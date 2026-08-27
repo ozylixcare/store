@@ -1811,9 +1811,11 @@ function buildMediaGallery(p) {
   }
   // Normalize — auto-detect videos from the URL when no type was given
   media = media.map(function(m) {
-    if (typeof m === 'string') return {url:m, type:mediaTypeFromUrl(m), thumb:m};
-    var t = m.type || mediaTypeFromUrl(m.url||m.src||'');
-    return {url: m.url||m.src||'', type: t, thumb: m.thumb||m.url||m.src||''};
+    var rawUrl = typeof m === 'string' ? m : (m.url || m.src || '');
+    var rawThumb = typeof m === 'string' ? m : (m.thumb || m.url || m.src || '');
+    var t = typeof m === 'string' ? mediaTypeFromUrl(rawUrl) : (m.type || mediaTypeFromUrl(rawUrl));
+    var toCdn = function(u) { return (typeof cdnImg === 'function') ? cdnImg(u) : u; };
+    return {url: toCdn(rawUrl), type: t, thumb: toCdn(rawThumb)};
   });
   _galleryMedia = media;
   _galleryIdx = 0;
