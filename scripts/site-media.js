@@ -13,7 +13,7 @@
     function smCdnFallback(u){
       if (!u) return u;
       var m = String(u).match(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/([^"'?\s]+)(\?.*)?$/);
-      return m ? '/cdn-storage/' + m[1] + (m[2] || '') : String(u);
+      return m ? 'https://back.ozylix.com/cdn-storage/' + m[1] + (m[2] || '') : String(u);
     }
     function smCdn(u){ return (typeof cdnImg === 'function') ? cdnImg(u) : smCdnFallback(u); }
     function applySiteMedia(map){

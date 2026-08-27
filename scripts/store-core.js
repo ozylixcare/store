@@ -1380,7 +1380,8 @@ const PRODUCT_FALLBACKS = {
 // Read-only mapping: the database keeps the canonical Supabase URL (search,
 // deletes, migrations keep working) and the admin panel uploads/previews
 // exactly as before.
-const CDN_IMG_PREFIX = '/cdn-storage/';
+// Public image Worker is attached to back.ozylix.com; keep the same path contract but use the Worker host explicitly so public www pages do not hit Pages and 404.
+const CDN_IMG_PREFIX = 'https://back.ozylix.com/cdn-storage/';
 function cdnImg(url) {
   if (!url) return url;
   const s = String(url);

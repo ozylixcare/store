@@ -3754,7 +3754,7 @@ function adminCdnImg(url) {
   if (!url) return url;
   const s = String(url);
   const m = s.match(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/([^"'\s]+)(\?.*)?$/);
-  if (m) return '/cdn-storage/' + m[1] + (m[2] || '');
+  if (m) return 'https://back.ozylix.com/cdn-storage/' + m[1] + (m[2] || '');
   return s;
 }
 
