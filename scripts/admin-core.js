@@ -21,7 +21,7 @@ if (!AbortSignal.timeout) {
 // CONFIG
 // ═══════════════════════════════════════════════
 const API = 'https://backend-s7ih.onrender.com';
-let authToken = sessionStorage.getItem('ascovita_token') || '';
+let authToken = sessionStorage.getItem('ozylix_token') || '';
 let allOrders = [], allProducts = [], allCustomers = [], allDiscounts = [], allPayments = [];
 
 // XSS-safe HTML escaping for all user/API data rendered into innerHTML
@@ -236,18 +236,18 @@ async function otpResend() {
 // burned two of the five allowed attempts on every single typo.
 // Shared success path entered after a successful password login.
 function __loginSuccess(d) {
-  sessionStorage.setItem('ascovita_token', d.token); // persist the fresh token
-  sessionStorage.setItem('ascovita_role', d.role || 'admin');
+  sessionStorage.setItem('ozylix_token', d.token); // persist the fresh token
+  sessionStorage.setItem('ozylix_role', d.role || 'admin');
   // Cache the session identity so the UI can hide owner/staff features
   // instantly, without a round trip on every render.
   try { apiFetch('/api/admin/me').then(m => {
-    if (m && !m.error) localStorage.setItem('ascovita_session', JSON.stringify({
+    if (m && !m.error) localStorage.setItem('ozylix_session', JSON.stringify({
       username: m.username, role: m.role, is_owner: !!m.is_owner,
       permissions: m.permissions, denied: m.denied,
       security: m.security || null,
     }));
   }).catch(() => {}); } catch(e) {}
-  try { localStorage.removeItem('ascovita_logout_reason'); } catch(e) {}
+  try { localStorage.removeItem('ozylix_logout_reason'); } catch(e) {}
   document.getElementById('loginError').style.display = 'none';
   const submitBtn = document.getElementById('loginSubmitBtn');
   if (submitBtn) submitBtn.textContent = '✅ Logged in!';
@@ -258,9 +258,9 @@ function __loginSuccess(d) {
 }
 
 function doLogout() {
-  sessionStorage.removeItem('ascovita_token');
-  sessionStorage.removeItem('ascovita_role');
-  try { localStorage.removeItem('ascovita_session'); } catch (e) {}
+  sessionStorage.removeItem('ozylix_token');
+  sessionStorage.removeItem('ozylix_role');
+  try { localStorage.removeItem('ozylix_session'); } catch (e) {}
   authToken = '';
   document.getElementById('app').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
@@ -281,7 +281,7 @@ function doLogout() {
 // normalise before atob() or the decode throws on some payloads.
 function tokenExpiryMs(t) {
   try {
-    var raw = t || sessionStorage.getItem('ascovita_token');
+    var raw = t || sessionStorage.getItem('ozylix_token');
     if (!raw) return 0;
     var b64 = raw.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
     while (b64.length % 4) b64 += '=';
@@ -382,7 +382,7 @@ async function apiFetch(path, opts={}) {
     //     belt-and-braces).
     // So: re-read the token from storage, and if it still looks valid,
     // try the request ONCE more before giving up.
-    var stored = sessionStorage.getItem('ascovita_token') || '';
+    var stored = sessionStorage.getItem('ozylix_token') || '';
     if (!authToken && stored && !tokenIsExpired(stored)) {
       authToken = stored;
       opts.headers = Object.assign({}, opts.headers || {});
@@ -416,8 +416,8 @@ async function apiFetch(path, opts={}) {
       delete window.__freshTokenRetryDone;
     }
     try {
-      if (!localStorage.getItem('ascovita_logout_reason')) {
-        localStorage.setItem('ascovita_logout_reason',
+      if (!localStorage.getItem('ozylix_logout_reason')) {
+        localStorage.setItem('ozylix_logout_reason',
           tokenIsExpired(authToken) ? 'expired' : (_why401 || 'rejected'));
       }
     } catch(e) {}
@@ -443,7 +443,7 @@ async function apiFetch(path, opts={}) {
 async function adminProofUpload(path, formData, promptText) {
   if (typeof confirmCriticalAction !== 'function') throw new Error('Save-password confirmation is unavailable — reload the admin panel');
   return confirmCriticalAction(promptText || 'Authorize this design upload?', async function(proof) {
-    const token = authToken || sessionStorage.getItem('ascovita_token') || '';
+    const token = authToken || sessionStorage.getItem('ozylix_token') || '';
     return fetch(`${API}${path}`, {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token, 'X-Password-Proof': proof },
@@ -573,10 +573,10 @@ async function checkServerStatus() {
 // owner to 'admin' — the server is the real enforcer, so default to
 // owner-visible until positively proven otherwise.
 function applyRole(role) {
-  let r = String(role || sessionStorage.getItem('ascovita_role') || '').toLowerCase();
+  let r = String(role || sessionStorage.getItem('ozylix_role') || '').toLowerCase();
   if (r !== 'owner' && r !== 'admin') {
     try {
-      const cached = JSON.parse(localStorage.getItem('ascovita_session') || '{}');
+      const cached = JSON.parse(localStorage.getItem('ozylix_session') || '{}');
       if (cached.role === 'owner' || cached.role === 'admin') r = cached.role;
     } catch (e) {}
   }
@@ -622,14 +622,14 @@ function applyRole(role) {
 //   network round trip, and turns a confusing flash-and-bounce into an
 //   honest "your session expired, please sign in again".
 if (authToken && tokenIsExpired(authToken)) {
-  try { localStorage.setItem('ascovita_logout_reason', 'expired'); } catch(e) {}
-  sessionStorage.removeItem('ascovita_token');
+  try { localStorage.setItem('ozylix_logout_reason', 'expired'); } catch(e) {}
+  sessionStorage.removeItem('ozylix_token');
   authToken = '';
 }
 if(authToken) {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  applyRole(sessionStorage.getItem('ascovita_role'));
+  applyRole(sessionStorage.getItem('ozylix_role'));
   initApp();
 }
 
@@ -5338,7 +5338,7 @@ let miItems = [];
 let miRowSeq = 0;
 
 function openManualInvoice() {
-  const role = sessionStorage.getItem('ascovita_role') || 'admin';
+  const role = sessionStorage.getItem('ozylix_role') || 'admin';
   if (role !== 'owner') { toast('🔒 Owner access only','error'); return; }
   miItems = [];
   miRowSeq = 0;
@@ -5590,10 +5590,10 @@ let _mediaLibraryImgs = [];
 let _mediaSelected = new Set();
 
 function _mediaAltMap() {
-  try { return JSON.parse(localStorage.getItem('ascovita_media_alt')||'{}'); }
+  try { return JSON.parse(localStorage.getItem('ozylix_media_alt')||'{}'); }
   catch(e) { return {}; }
 }
-function _mediaSaveAlt(map) { localStorage.setItem('ascovita_media_alt', JSON.stringify(map)); }
+function _mediaSaveAlt(map) { localStorage.setItem('ozylix_media_alt', JSON.stringify(map)); }
 function setPhotoAlt(filename, value) {
   const map = _mediaAltMap(); map[filename] = value; _mediaSaveAlt(map);
   toast('Alt text saved');
@@ -6559,11 +6559,11 @@ async function deletePromoStripCard(id) {
 // tracked client-side in localStorage per notification id.
 // ═══════════════════════════════════════════════
 function _notifReadIds() {
-  try { return new Set(JSON.parse(localStorage.getItem('ascovita_notif_read')||'[]')); }
+  try { return new Set(JSON.parse(localStorage.getItem('ozylix_notif_read')||'[]')); }
   catch(e) { return new Set(); }
 }
 function _notifSaveRead(set) {
-  localStorage.setItem('ascovita_notif_read', JSON.stringify([...set]));
+  localStorage.setItem('ozylix_notif_read', JSON.stringify([...set]));
 }
 function _notifTimeAgo(iso) {
   if(!iso) return '';
@@ -6642,10 +6642,10 @@ document.addEventListener('click', e => {
 // ═══════════════════════════════════════════════
 let calViewDate = new Date();
 function _calEvents() {
-  try { return JSON.parse(localStorage.getItem('ascovita_calendar_events')||'[]'); }
+  try { return JSON.parse(localStorage.getItem('ozylix_calendar_events')||'[]'); }
   catch(e) { return []; }
 }
-function _calSaveEvents(list) { localStorage.setItem('ascovita_calendar_events', JSON.stringify(list)); }
+function _calSaveEvents(list) { localStorage.setItem('ozylix_calendar_events', JSON.stringify(list)); }
 function _calDateKey(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 
 function calChangeMonth(delta) { calViewDate.setMonth(calViewDate.getMonth()+delta); renderCalendar(); }
@@ -7349,7 +7349,7 @@ const INTEGRATIONS = [
     checkUrl: () => `${API}/health`,
     checkAuth: false,
     setupSteps: [
-      'Backend already deployed at ascovitahealthcare-cell-github-io.onrender.com',
+      'Backend already deployed at ozylix-github-io.onrender.com',
       'Set all env variables in Render → Environment tab',
       'Free tier sleeps after 15 min — upgrade to avoid cold starts',
       'Connect GitHub for auto-deploy on push'
@@ -7579,8 +7579,8 @@ async function checkIntegrations() {
 // skin changes. Stored in localStorage for instant, flash-free load,
 // and synced to the shared backend settings so the choice is visible
 // to every admin/owner who opens the backoffice, not just this device.
-const PALETTE_KEY = 'ascovita_theme';
-const LAYOUT_THEME_KEY = 'ascovita_layout_theme';
+const PALETTE_KEY = 'ozylix_theme';
+const LAYOUT_THEME_KEY = 'ozylix_layout_theme';
 // Keep THEME_KEY as an alias for older code paths and saved local sessions.
 const THEME_KEY = PALETTE_KEY;
 const VALID_PALETTES = ['plum','ocean','forest','coral'];
@@ -7843,7 +7843,7 @@ async function saveSettingsCore() {
       // authenticate silently with the NEW credentials instead, so the
       // change of password never looks like a forced logout.
       try {
-        var who = String(localStorage.getItem('ascovita_session') ? JSON.parse(localStorage.getItem('ascovita_session')).username : (sessionStorage.getItem('ascovita_role') === 'owner' ? 'owner' : 'admin'));
+        var who = String(localStorage.getItem('ozylix_session') ? JSON.parse(localStorage.getItem('ozylix_session')).username : (sessionStorage.getItem('ozylix_role') === 'owner' ? 'owner' : 'admin'));
         var lr = await fetch(`${API}/api/admin/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

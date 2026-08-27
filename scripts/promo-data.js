@@ -3,7 +3,7 @@
 /**
  * PROMO_MEDIA.js — Ozylix
  * ─────────────────────────────────────────────────────────────────
- * Upload your promo images to https://ascovita.imgbb.com/
+ * Upload your promo images to https://ozylix.imgbb.com/
  * Then paste the direct image links into the `src` fields below.
  *
  * ⚠️ PERFORMANCE — READ BEFORE UPLOADING (important, unlike your
@@ -31,7 +31,7 @@
  * only thing to worry about here.
  *
  * HOW TO UPDATE:
- *   1. Go to https://ascovita.imgbb.com/ and upload your (pre-compressed,
+ *   1. Go to https://ozylix.imgbb.com/ and upload your (pre-compressed,
  *      WebP) image.
  *   2. Copy the "Direct link" (ends in .jpg / .png / .webp).
  *   3. Paste it into the `src` field of the card you want to update.

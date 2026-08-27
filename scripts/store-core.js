@@ -560,7 +560,7 @@ function setProductPageSchema(p) {
       url,
       category: p.category || '',
       brand: { '@type': 'Brand', name: p.brand || 'Ozylix' },
-      manufacturer: { '@type': 'Organization', '@id': 'https://www.ascovita.com/#organization', name: 'Ascovita Healthcare', url: 'https://www.ascovita.com' },
+      manufacturer: { '@type': 'Organization', '@id': 'https://www.ozylix.com/#organization', name: 'Ozylix', url: 'https://www.ozylix.com' },
       offers: schemaOfferFor(p, url),
     };
     // Same rule as the catalogue: no image, no Product node. Publishing one
@@ -889,7 +889,7 @@ function updateAllProductCards() {
 
 // Updated: New products, GoKwik payment, Shiprocket integration
 
-const ASCOVITA_LOGO = "assets/ozylix-logo.png";
+const OZYLIX_LOGO = "assets/ozylix-logo.png";
 
 // GoKwik config is handled via backend (GOKWIK_APP_ID, GOKWIK_APP_SECRET) environment variables
 

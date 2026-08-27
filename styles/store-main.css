@@ -309,7 +309,7 @@ h4 { font-size: 1.05rem; font-weight: 500; letter-spacing: -.01em; }
 p  { color: var(--t-mid); text-wrap: pretty; max-width: 70ch; }
 strong, b { color: var(--ink); font-weight: 600; }
 
-/* The one kicker in the system — Ascovita's own signature colour */
+/* The one kicker in the system — Ozylix's own signature colour */
 .section-label, .sec-overline, .cf-section-label {
   display: inline-block;
   font-family: var(--font-ui);
@@ -1335,7 +1335,7 @@ img[src=""], img[data-awaiting-upload] { visibility: hidden; width: 100%; }
 .shader-hero-veil { display: none; }
 .shader-hero-inner { position: relative; z-index: 2; max-width: 1080px; text-align: center; margin: 0 auto; }
 
-/* Ascovita signs the page, in its own green */
+/* Ozylix signs the page, in its own green */
 .shader-badge {
   display: inline-flex; align-items: center; gap: 12px;
   padding: 0; margin-bottom: clamp(14px, 2.2vh, 22px);
@@ -3296,7 +3296,7 @@ body.oz-pay-result { overflow: hidden; }
 }
 .about-stats-grid > *:nth-child(odd)::before { display: none; }
 
-/* Who actually makes this. Ozylix is the storefront; Ascovita Healthcare
+/* Who actually makes this. Ozylix is the storefront; Ozylix
    is the parent company and the plant. That was in the schema and the
    meta description and nowhere a reader could see it. */
 .ab-parent {

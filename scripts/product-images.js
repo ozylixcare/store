@@ -1,7 +1,7 @@
 // Extracted from index.html (line 13388) by Manus SEO pass — load order preserved
 
 // ============================================================
-// ASCOVITA — PRODUCT IMAGES
+// OZYLIX — PRODUCT IMAGES
 // Using direct Wix CDN URLs — no local image upload needed
 // ============================================================
 

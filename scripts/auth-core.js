@@ -124,9 +124,9 @@ const BLOGS = [
 
   { id:17, tag:"Private Label",
     title:"How to Start Your Own Supplement Brand in India: A Step-by-Step Guide to Private Labeling",
-    excerpt:"From FSSAI registration to formulation, packaging and launch — Ascovita's B2B arm handles everything for aspiring supplement entrepreneurs across India.",
+    excerpt:"From FSSAI registration to formulation, packaging and launch — Ozylix's B2B arm handles everything for aspiring supplement entrepreneurs across India.",
     img:"https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80",
-    date:"May 17, 2026", readTime:"9 min read", author:"Ascovita B2B Team" },
+    date:"May 17, 2026", readTime:"9 min read", author:"Ozylix B2B Team" },
 
   { id:18, tag:"Manufacturing Science",
     title:"The Science of Solubility: What Goes into Making a World-Class Effervescent Tablet?",
@@ -424,7 +424,7 @@ function showPage(pg) {
     ],
     contact:       [
       'Contact Ozylix | Supplement Manufacturer in Anand, Gujarat India',
-      'Reach Ascovita in Anand, Gujarat. Call +91 9898 582 650 or WhatsApp for product queries, B2B wholesale and retail support across India.'
+      'Reach Ozylix in Anand, Gujarat. Call +91 9898 582 650 or WhatsApp for product queries, B2B wholesale and retail support across India.'
     ],
     cart:          [
       'Your Cart | Ozylix – Effervescent Vitamins India',
@@ -597,13 +597,13 @@ function canonicalProductSlug(product) {
 }
 window.canonicalProductSlug = canonicalProductSlug;
 
-// ── Ascofizz → Ozylix slug migration ────────────────────────────────────
+// ── Ozylix → Ozylix slug migration ────────────────────────────────────
 // Product slugs are derived from product names, so renaming the brand moved
 // one URL. Inbound links from the old domain, old search results and old
 // social posts keep working through this map instead of dropping to /shop.
 // Safe to delete once Search Console shows no traffic on the old path.
 const LEGACY_PRODUCT_SLUGS = {
-  'multidiata-ascofizz-premium-multivitamin': 'multidiata-ozylix-premium-multivitamin'
+  'multidiata-ozylix-premium-multivitamin': 'multidiata-ozylix-premium-multivitamin'
 };
 
 function findProductBySlug(slug) {
@@ -2971,8 +2971,8 @@ function bootApp() {
   // here — so Back out of one of them restored nothing and left the customer on
   // a page whose URL no longer matched what they were looking at.
   const _validPages = ['home','shop','blog','about','contact','faq','advisor','account','product','wishlist','cart','notifications','privacy','terms','shipping','refund','accessibility','download','vita-points','conduct','discount-policy'];
-  // Legacy /b2b links now redirect to the Ascovita corporate B2B page
-  if (_initPage === 'b2b') { window.location.href = 'https://www.ascovita.com/#/capabilities'; }
+  // Legacy /b2b links now redirect to the Ozylix corporate B2B page
+  if (_initPage === 'b2b') { window.location.href = 'https://www.ozylix.com/#/capabilities'; }
   if (_initPage && (_validPages.includes(_initPage) || _initPage === 'blog')) {
     if (_initPage === 'product' && _pathSlug) {
       // Find product by slug and open it
@@ -4491,7 +4491,7 @@ function generateInvoice({ orderId, formData, srItems, sub, disc, promoDisc, shi
       Anand – 388001, Gujarat, India<br>
       📞 +91 98985 82650<br>
       ✉ ozylixcare@gmail.com<br>
-      🌐 ascovita.in
+      🌐 ozylix.in
     </div>
   </div>
 

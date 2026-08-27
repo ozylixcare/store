@@ -9,8 +9,8 @@
      localStorage would otherwise boot into a theme with no CSS behind it —
      an unstyled dashboard — so it is rewritten to deluxe here, before
      first paint, rather than left to the settings page nobody opens. */
-  var t = localStorage.getItem('ascovita_theme') || 'deluxe';
-  if (t === 'glass') { t = 'deluxe'; localStorage.setItem('ascovita_theme', t); }
+  var t = localStorage.getItem('ozylix_theme') || 'deluxe';
+  if (t === 'glass') { t = 'deluxe'; localStorage.setItem('ozylix_theme', t); }
   document.body.classList.add('theme-' + t);
 }catch(e){}})();
 

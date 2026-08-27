@@ -82,7 +82,7 @@ function renderLoginAudit() {
   // Owner-only data: don't populate the table for non-owner roles, even if the
   // card's CSS were somehow bypassed. The real boundary should also be enforced
   // server-side wherever this log is persisted centrally.
-  const role = sessionStorage.getItem('ascovita_role') || 'admin';
+  const role = sessionStorage.getItem('ozylix_role') || 'admin';
   if (role !== 'owner') {
     tbody.innerHTML = '<tr><td colspan="5" class="empty-state" style="padding:24px;text-align:center;color:var(--text3)">🔒 Owner access only.</td></tr>';
     if (countEl) countEl.textContent = '';
@@ -710,7 +710,7 @@ if (typeof _auditOrigShowPage === 'function') {
 
   function tokenExp() {
     try {
-      var t = sessionStorage.getItem('ascovita_token');
+      var t = sessionStorage.getItem('ozylix_token');
       if (!t) return 0;
       // JWT payloads are base64URL (- and _, no padding), not plain base64
       // (+ and /, padded). atob() on a raw JWT segment can throw — or on
@@ -765,7 +765,7 @@ if (typeof _auditOrigShowPage === 'function') {
   }
 
   function tick() {
-    if (!sessionStorage.getItem('ascovita_token')) return;
+    if (!sessionStorage.getItem('ozylix_token')) return;
 
     var idleLeft = IDLE_MS - (Date.now() - lastAct);
     var exp      = tokenExp();
@@ -776,7 +776,7 @@ if (typeof _auditOrigShowPage === 'function') {
 
     if (left <= 0) {
       hideWarn();
-      try { localStorage.setItem('ascovita_logout_reason', absLeft <= 0 ? 'expired' : 'idle'); } catch (e) {}
+      try { localStorage.setItem('ozylix_logout_reason', absLeft <= 0 ? 'expired' : 'idle'); } catch (e) {}
       doLogout();
       /* doLogout() swaps the panel for the login screen in place — it does
          not reload — so the DOMContentLoaded handler below has long since
@@ -817,15 +817,15 @@ if (typeof _auditOrigShowPage === 'function') {
 
   /* Signing out in one tab should sign out every tab. */
   window.addEventListener('storage', function (e) {
-    if (e.key === 'ascovita_token' && !e.newValue) location.reload();
+    if (e.key === 'ozylix_token' && !e.newValue) location.reload();
   });
 
   /* Explain why they were kicked out — both on a fresh page load and
      immediately after an in-place logout. */
   function showLogoutReason() {
-    var why = localStorage.getItem('ascovita_logout_reason');
+    var why = localStorage.getItem('ozylix_logout_reason');
     if (!why) return;
-    localStorage.removeItem('ascovita_logout_reason');
+    localStorage.removeItem('ozylix_logout_reason');
     var err = document.getElementById('loginError');
     if (err) {
       err.style.display = 'block';
@@ -944,7 +944,7 @@ function azApplyPermsToDOM() {
   // identity, fall back to 'owner' visibility (server still enforces
   // everything), and only apply role-admin once the server positively
   // confirms a staff role.
-  var cached = function () { try { return JSON.parse(localStorage.getItem('ascovita_session') || '{}'); } catch (e) { return {}; } }();
+  var cached = function () { try { return JSON.parse(localStorage.getItem('ozylix_session') || '{}'); } catch (e) { return {}; } }();
   var knownRole = window.AZPerms.loaded ? window.AZPerms.role : null;
   if (!knownRole && cached && cached.role) knownRole = cached.role;
   var currentRole = knownRole || 'owner';
@@ -988,7 +988,7 @@ async function azLoadPerms() {
       /* Cache the identity so owner-only UI (Staff page) can
          gate itself instantly without a second round trip. */
       try {
-        localStorage.setItem('ascovita_session', JSON.stringify({
+        localStorage.setItem('ozylix_session', JSON.stringify({
           username: d.username, role: d.role, is_owner: !!d.is_owner,
           permissions: d.permissions || [], denied: d.denied || [],
           security: d.security || null,
@@ -1037,7 +1037,7 @@ async function azLoadPerms() {
     azLoadPerms();
     /* Staff page is owner-only — reveal the nav item even before
        /api/admin/me answers, using the cached session identity. */
-    var _s = function () { try { return JSON.parse(localStorage.getItem('ascovita_session') || '{}'); } catch (e) { return {}; } }();
+    var _s = function () { try { return JSON.parse(localStorage.getItem('ozylix_session') || '{}'); } catch (e) { return {}; } }();
     var _nv = document.getElementById('navStaff');
     if (_nv) _nv.style.display = (_s.is_owner || r === 'owner') ? '' : 'none';
 
@@ -1061,7 +1061,7 @@ async function azLoadPerms() {
     }
     return r;
   };
-  if (sessionStorage.getItem('ascovita_token')) azLoadPerms();
+  if (sessionStorage.getItem('ozylix_token')) azLoadPerms();
 })();
 
 

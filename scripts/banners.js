@@ -373,7 +373,7 @@ window.dismissOfferReminder = function () {
       return s && s.src && String(s.src).trim() && s.alt;
     });
     if (!slides.length) return;              // no live offer -> stay hidden
-    var offer = String(slides[0].alt).replace(/\.?\s*(Ozylix|ASCOVITA)\s*/i, ' Ozylix ');
+    var offer = String(slides[0].alt).replace(/\.?\s*(Ozylix|OZYLIX)\s*/i, ' Ozylix ');
     offer = offer.replace(/\s*:\s*[^.]+\.?\s*$/, '.');
     label.textContent = offer;
     box.style.display = 'block';

@@ -26,7 +26,7 @@
 
 // ⚠️ UPDATE THESE BEFORE GOING LIVE — statutory identifiers.
 const OZYLIX_LEGAL = {
-  legalName:  'Ascovita Healthcare',
+  legalName:  'Ozylix',
   tradeName:  'Ozylix',
   /* Absolute, not relative. The storefront hands this document to the
      customer as a Blob URL, and a blob has an opaque origin — "assets/…"
@@ -341,7 +341,7 @@ function buildInvoiceHTML(order) {
   '<div class="doc">' +
     '<div class="hdr">' +
       '<div>' +
-        /* Was a text wordmark reading ASCOFIZZ — the old brand, still going
+        /* Was a text wordmark reading OZYLIX — the old brand, still going
            out on every tax invoice long after the rename. Now the Ozylix
            logo, with the wordmark kept behind it as an onerror fallback so
            an invoice printed with no network still shows a brand. */

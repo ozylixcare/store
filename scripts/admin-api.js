@@ -65,7 +65,7 @@ function closeModal(id){ document.getElementById(id).classList.remove('open'); }
    one-use proof valid 5 minutes — which is sent with the real action
    as X-Password-Proof. Never rely on the open session alone. */
 let __proof = null, __proofExp = 0;
-function azSessionUser(){ try{ return JSON.parse(localStorage.getItem('ascovita_session')||'{}'); }catch(e){ return {}; } }
+function azSessionUser(){ try{ return JSON.parse(localStorage.getItem('ozylix_session')||'{}'); }catch(e){ return {}; } }
 // Dual security (Aug 2026): when the backend has SAVE_PASSWORD configured,
 // critical actions require that separate save/transaction password — never
 // the login password — so a leaked login password can't approve changes.
@@ -78,7 +78,7 @@ async function azSavePwRequiredFresh(){
     if (r && r.ok) {
       const fresh = await r.json();
       const next = { ...cached, username:fresh.username, role:fresh.role, is_owner:!!fresh.is_owner, permissions:fresh.permissions, denied:fresh.denied, security:fresh.security || null };
-      localStorage.setItem('ascovita_session', JSON.stringify(next));
+      localStorage.setItem('ozylix_session', JSON.stringify(next));
       // Fail closed: a missing, stale, or false flag must never downgrade a critical action to the login password.
       return true;
     }
@@ -321,7 +321,7 @@ async function autFetch(url, opts) {
     const r = await apiFetch(url, opts || {});
     return r.json().catch(() => ({}));
   }
-  const r = await fetch(url, Object.assign({ headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (sessionStorage.getItem('ascovita_token') || '') } }, opts || {}));
+  const r = await fetch(url, Object.assign({ headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (sessionStorage.getItem('ozylix_token') || '') } }, opts || {}));
   return r.json().catch(() => ({}));
 }
 function autWhen(ts){ return ts ? (new Date(ts).toLocaleString()) : 'never'; }
