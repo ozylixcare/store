@@ -113,7 +113,7 @@ var SHIP_THRESHOLD = 999;
 var SHIP_FEE = 69;
 var COD_SHIP_FEE = 69;
 function calcShipping(netSubtotal, paymentMethod) {
-  if (paymentMethod && /cod|cash/i.test(String(paymentMethod))) return COD_SHIP_FEE;
+  if (paymentMethod && /^(cod|cash[_ -]?on[_ -]?delivery)$/i.test(String(paymentMethod).trim())) return COD_SHIP_FEE;
   if (!SHIP_FEE) return 0;
   return (Number(netSubtotal) || 0) >= SHIP_THRESHOLD ? 0 : SHIP_FEE;
 }
