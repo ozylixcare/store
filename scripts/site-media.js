@@ -205,7 +205,7 @@
       });
     }
     function refreshSiteMedia(){
-      var base = (typeof API_BASE !== 'undefined') ? API_BASE : 'https://ascovitahealthcare-cell-github-io.onrender.com';
+      var base = (typeof API_BASE !== 'undefined') ? API_BASE : 'https://backend-s7ih.onrender.com';
       // Same origin first: worker/index.js already serves /api/site-media from
       // an in-isolate edge cache, so this is a local hop rather than a Render
       // round-trip (~1.9s on a cold container). The storefront was calling

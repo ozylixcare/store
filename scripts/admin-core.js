@@ -20,7 +20,7 @@ if (!AbortSignal.timeout) {
 // ═══════════════════════════════════════════════
 // CONFIG
 // ═══════════════════════════════════════════════
-const API = 'https://ascovitahealthcare-cell-github-io.onrender.com';
+const API = 'https://backend-s7ih.onrender.com';
 let authToken = sessionStorage.getItem('ascovita_token') || '';
 let allOrders = [], allProducts = [], allCustomers = [], allDiscounts = [], allPayments = [];
 
@@ -6817,7 +6817,7 @@ Current business data:
 - Customers: ${statsSnap.totalCustomers}
 - Pending Orders: ${statsSnap.pendingOrders}
 - Low Stock Products: ${statsSnap.lowStock}
-- Backend: https://ascovitahealthcare-cell-github-io.onrender.com
+- Backend: https://backend-s7ih.onrender.com
 
 Products: ${allProducts.slice(0,5).map(p=>p.name+'(₹'+p.price+')').join(', ')}
 

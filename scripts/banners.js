@@ -23,7 +23,7 @@ function bnHydrateHeroSlide(track, index) {
 
 (function() {
 
-  var IG_API = (typeof API_BASE !== 'undefined' ? API_BASE : 'https://ascovitahealthcare-cell-github-io.onrender.com') + '/api/instagram';
+  var IG_API = (typeof API_BASE !== 'undefined' ? API_BASE : 'https://backend-s7ih.onrender.com') + '/api/instagram';
   var CARDS_VISIBLE = window.innerWidth < 600 ? 2 : window.innerWidth < 900 ? 3 : 5;
   var igPosts = [];
   var igIndex = 0;
