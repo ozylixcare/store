@@ -5491,10 +5491,10 @@ async function doRegister() {
 // ══════════════════════════════════════════════════════════════════════════
 // GOOGLE SIGN-IN — Production-Grade Google Identity Services (GIS)
 // Version 2.0 — Multi-strategy with full fallbacks + backend warm-up
-// Client ID: 6793142938-b9sl3d3lh2svjkmcnina8fsh31nut0bu.apps.googleusercontent.com
+// Client ID: 984843590893-opkqurrknj9l8spuov4afudr1lcnv82c.apps.googleusercontent.com
 // ══════════════════════════════════════════════════════════════════════════
 
-const GOOGLE_CLIENT_ID = '6793142938-b9sl3d3lh2svjkmcnina8fsh31nut0bu.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '984843590893-opkqurrknj9l8spuov4afudr1lcnv82c.apps.googleusercontent.com';
 
 // Where Google sends mobile users back after they approve sign-in. Pinned to
 // the bare origin (no trailing slash, no path) so it byte-for-byte matches
