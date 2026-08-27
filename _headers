@@ -1,0 +1,109 @@
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  X-Frame-Options: SAMEORIGIN
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://accounts.google.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://connect.facebook.net https://sdk.cashfree.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://www.googletagmanager.com https://www.facebook.com https://connect.facebook.net https://frwsjgrrtzhjfflcdjjs.supabase.co https://ascovitahealthcare-cell-github-io.onrender.com https://marketing-automation-rmcb.onrender.com https://*.gokwik.co https://gkx.gokwik.co https://www.google-analytics.com https://region1.google-analytics.com https://www.googleapis.com https://oauth2.googleapis.com https://openidconnect.googleapis.com https://accounts.google.com https://api.cashfree.com https://sandbox.cashfree.com; frame-src 'self' https://www.googletagmanager.com https://accounts.google.com https://content.googleapis.com https://oauth2.googleapis.com https://*.gokwik.co https://sdk.cashfree.com https://api.cashfree.com https://sandbox.cashfree.com https://payments.cashfree.com https://payments-test.cashfree.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';
+
+/admin.html
+  Cache-Control: no-store, private, max-age=0
+  X-Robots-Tag: noindex, nofollow
+
+/admin
+  Cache-Control: no-store, private, max-age=0
+  X-Robots-Tag: noindex, nofollow
+
+# ── HTML documents: always revalidate ────────────────────────────────────────
+# This has to exist for the immutable rules below to be safe. index.html is what
+# names the ?v= of every script and stylesheet, so a stale copy of it keeps
+# pointing at the PREVIOUS asset URLs — and those are now pinned for a year.
+# Cache the HTML and the page freezes completely: new deploy, old markup, old
+# assets, no expiry that will ever release it.
+#
+# no-cache does not mean "do not store". It means "store it, but revalidate
+# before serving". The round trip is a 304 with no body when nothing changed,
+# which is cheap, and correctness here is worth more than one conditional GET.
+#
+# Every SPA route is listed because the Worker answers each of them with
+# index.html, and a _headers rule matches on the REQUEST path, not on the file
+# that ends up being served. Keep this list in step with SPA_ROUTES in
+# worker/index.js.
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/shop
+  Cache-Control: no-cache
+/blog
+  Cache-Control: no-cache
+/blog/*
+  Cache-Control: no-cache
+/about
+  Cache-Control: no-cache
+/contact
+  Cache-Control: no-cache
+/faq
+  Cache-Control: no-cache
+/advisor
+  Cache-Control: no-cache
+/account
+  Cache-Control: no-cache
+/wishlist
+  Cache-Control: no-cache
+/cart
+  Cache-Control: no-cache
+/notifications
+  Cache-Control: no-cache
+/privacy
+  Cache-Control: no-cache
+/terms
+  Cache-Control: no-cache
+/shipping
+  Cache-Control: no-cache
+/refund
+  Cache-Control: no-cache
+/accessibility
+  Cache-Control: no-cache
+/download
+  Cache-Control: no-cache
+/vita-points
+  Cache-Control: no-cache
+/conduct
+  Cache-Control: no-cache
+/discount-policy
+  Cache-Control: no-cache
+/product/*
+  Cache-Control: no-cache
+/products/*
+  Cache-Control: no-cache
+/404.html
+  Cache-Control: no-cache
+/offline.html
+  Cache-Control: no-cache
+
+# ── Static asset caching (Aug 2026 perf pass) ────────────────────────────────
+# Every reference to these paths carries a ?v= query string, and the storefront
+# bumps it on each deploy, so the URL itself changes when the content does.
+# Without an explicit rule they were served with no max-age at all: a revalidation
+# round-trip per file, per page load — the slowest part of a repeat visit on a
+# phone. immutable also stops the browser revalidating on a manual reload.
+/styles/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/scripts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Logos and icons are referenced WITHOUT a ?v=, so the URL does not change when
+# the file does. 30 days with revalidation, not immutable: replacing a logo must
+# still reach people, and these are already served from the edge.
+/assets/*
+  Cache-Control: public, max-age=2592000
+
+# The service worker must never be cached long: it is how every other cached
+# asset gets invalidated, so a stale copy freezes the whole PWA on old files.
+/sw.js
+  Cache-Control: no-cache
+
+/manifest.json
+  Cache-Control: public, max-age=3600

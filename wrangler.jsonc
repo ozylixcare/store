@@ -1,0 +1,70 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+
+  // Must match the Worker that Workers Builds already created, otherwise a
+  // deploy publishes a second Worker instead of updating this one.
+  "name": "ascovitahealthcare-cell-github-io",
+  // Wrangler defaults this to "today", which the bundled workerd runtime does
+  // not yet support — `wrangler dev` refuses to start. Nothing here depends on
+  // recent runtime behaviour, so pin a date the local runtime also accepts.
+  "compatibility_date": "2026-08-11",
+
+  // Without this file checked in, `npx wrangler deploy` re-guesses these
+  // settings inside the build container on every run and answers its own
+  // prompts with fallback values. Committing it makes each build identical.
+  "main": "./worker/index.js",
+
+  // The admin hostname must invoke this Worker for every path. Without an
+  // explicit custom-domain binding, Cloudflare Pages can serve the storefront
+  // asset bundle directly at back.ozylix.com/, bypassing serveAdmin() and its
+  // no-store/noindex policy.
+  "routes": [
+    {
+      "pattern": "back.ozylix.com",
+      "custom_domain": true
+    },
+    {
+      "pattern": "www.ozylix.com",
+      "custom_domain": true
+    },
+    // The apex. It used to resolve to GitHub Pages, which ignores _headers
+    // entirely — so ozylix.com served the whole storefront with no CSP, no
+    // HSTS and no cache policy, while www had all three. Binding it here puts
+    // it behind the same Worker, which redirects it to www (see APEX_HOST in
+    // worker/index.js).
+    //
+    // DEPLOY NOTE: custom_domain creates and takes over the DNS record. The
+    // first `wrangler deploy` after this line lands will move ozylix.com off
+    // GitHub Pages onto Cloudflare. That is the intent, but it IS a live DNS
+    // change — expect a short propagation window, and do it when you can watch
+    // it rather than last thing at night.
+    {
+      "pattern": "ozylix.com",
+      "custom_domain": true
+    }
+  ],
+
+  "assets": {
+    // The site is served from the repository root — there is no build step.
+    "directory": ".",
+
+    // Run the Worker before asset lookup. This is required for the admin
+    // hostname’s root path: otherwise the static asset server can resolve /
+    // directly to index.html and bypass serveAdmin() and noIndex().
+    "run_worker_first": true,
+
+    // Required so worker/index.js can hand requests back to the asset server.
+    "binding": "ASSETS",
+
+    // Unmatched paths return 404.html with a real 404 status. Deliberately NOT
+    // "single-page-application": that answers 200 with index.html for every
+    // unknown URL, which turns every typo and dead link into a soft 404 and is
+    // exactly the indexing problem this migration is meant to fix. Real SPA
+    // routes are handled explicitly in worker/index.js.
+    "not_found_handling": "404-page"
+  },
+
+  "observability": {
+    "enabled": true
+  }
+}

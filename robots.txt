@@ -1,0 +1,18 @@
+# Ozylix crawler policy
+# This file is guidance only; access control is enforced by the application and edge.
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /offline.html
+Disallow: /free/
+Disallow: /_page_staff.html
+Disallow: /_page_customer360.html
+Disallow: /platform_review_report.md
+Disallow: /invoice-template.js
+Disallow: /invoice-renderer.js
+Disallow: /tools/
+Disallow: /*?p=
+
+Sitemap: https://www.ozylix.com/sitemap.xml
