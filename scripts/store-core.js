@@ -1373,14 +1373,14 @@ const PRODUCT_FALLBACKS = {
 // reach the frontend as full
 //   https://frwsjgrrtzhjfflcdjjs.supabase.co/storage/v1/object/public/...
 // URLs (products.image etc.). cdnImg() rewrites those to the Worker's
-// /cdn-storage/ path, which Cloudflare fetches ONCE and caches at the edge
+//  path, which Cloudflare fetches ONCE and caches at the edge
 // forever (1 year, immutable). Visitors then pay for the image from
 // Cloudflare, not Supabase — which is what burned the free-plan egress quota.
 //
 // Read-only mapping: the database keeps the canonical Supabase URL (search,
 // deletes, migrations keep working) and the admin panel uploads/previews
 // exactly as before.
-const CDN_IMG_PREFIX = '/cdn-storage/';
+const CDN_IMG_PREFIX = '';
 function cdnImg(url) {
   if (!url) return url;
   const s = String(url);
