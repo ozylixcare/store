@@ -5412,7 +5412,13 @@ async function vitaClaimMilestone(btn) {
 }
 
 function getCurrentUser() {
-  try { return JSON.parse(localStorage.getItem('asc_user') || 'null'); } catch(e) { return null; }
+  try {
+    const user = JSON.parse(localStorage.getItem('asc_user') || 'null');
+    // A cached profile is not authentication. Require the server JWT too,
+    // otherwise COD can pass the UI login gate and receive a 401 from the
+    // protected order endpoint with no Authorization header.
+    return user && localStorage.getItem('asc_jwt') ? user : null;
+  } catch(e) { return null; }
 }
 
 // Shared post-login navigation: go to the account page, UNLESS the
