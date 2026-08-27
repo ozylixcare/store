@@ -302,7 +302,7 @@ async function apiFetch(path, opts={}) {
   const writeMethod = /^(POST|PUT|PATCH|DELETE)$/.test(method);
   const pathText = String(path || '');
   const exemptAiWrite = /^\/api\/owner\/ai\/(ask|propose-action)$/.test(pathText);
-  const protectedPath = !exemptAiWrite && (/^\/api\/(admin|owner)\//.test(pathText) || pathText === '/api/settings' || pathText === '/api/create-delhivery-order' || /^\/api\/(marketing|delhivery)\//.test(pathText) || /^\/api\/public\/(theme|content)$/.test(pathText));
+  const protectedPath = !exemptAiWrite && (/^\/api\/(admin|owner)\//.test(pathText) || pathText === '/api/settings' || pathText === '/api/create-delhivery-order' || /^\/api\/(marketing|delhivery|upload)\//.test(pathText) || /^\/api\/public\/(theme|content)$/.test(pathText));
   const exemptPath = /\/confirm-password$|\/login$/.test(String(path || ''));
   const suppliedHeaders = opts.headers || {};
   const proof = suppliedHeaders['X-Password-Proof'] || suppliedHeaders['x-password-proof'] || (typeof suppliedHeaders.get === 'function' ? suppliedHeaders.get('X-Password-Proof') : '');
