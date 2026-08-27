@@ -14,32 +14,13 @@
   // prompts with fallback values. Committing it makes each build identical.
   "main": "./worker/index.js",
 
-  // The admin hostname must invoke this Worker for every path. Without an
-  // explicit custom-domain binding, Cloudflare Pages can serve the storefront
-  // asset bundle directly at back.ozylix.com/, bypassing serveAdmin() and its
-  // no-store/noindex policy.
+  // Hybrid deployment: Cloudflare Pages serves the public storefront at the
+  // apex and www hostnames. This Worker is reserved for the admin hostname so
+  // it can enforce the secret admin path and no-store/noindex headers without
+  // competing with the Pages custom domains.
   "routes": [
     {
       "pattern": "back.ozylix.com",
-      "custom_domain": true
-    },
-    {
-      "pattern": "www.ozylix.com",
-      "custom_domain": true
-    },
-    // The apex. It used to resolve to GitHub Pages, which ignores _headers
-    // entirely — so ozylix.com served the whole storefront with no CSP, no
-    // HSTS and no cache policy, while www had all three. Binding it here puts
-    // it behind the same Worker, which redirects it to www (see APEX_HOST in
-    // worker/index.js).
-    //
-    // DEPLOY NOTE: custom_domain creates and takes over the DNS record. The
-    // first `wrangler deploy` after this line lands will move ozylix.com off
-    // GitHub Pages onto Cloudflare. That is the intent, but it IS a live DNS
-    // change — expect a short propagation window, and do it when you can watch
-    // it rather than last thing at night.
-    {
-      "pattern": "ozylix.com",
       "custom_domain": true
     }
   ],
