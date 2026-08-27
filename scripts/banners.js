@@ -286,7 +286,7 @@ function bnMediaType(url) {
               + ' style="width:100%;height:100%;object-fit:cover"></video>';
       } else {
         var img = (isPhone && s.mobile) ? s.mobile : s.src;
-        inner = '<img ' + (i === 0 ? 'src="' + img + '" fetchpriority="high" decoding="sync"' : 'data-src="' + img + '" loading="lazy" fetchpriority="low" decoding="async"') +
+        inner = '<img src="' + img + '" ' + (i === 0 ? 'fetchpriority="high" decoding="sync"' : 'loading="eager" fetchpriority="low" decoding="async"') +
                     ' width="1600" height="686" alt="' + (s.alt || 'Ozylix effervescent supplements offer banner') + '">';
       }
       return s.link
@@ -435,7 +435,7 @@ window.dismissOfferReminder = function () {
               + ' style="width:100%;height:100%;object-fit:cover"></video>';
       } else {
         var img = (isPhone && s.mobile) ? s.mobile : s.src;
-        inner = '<img ' + (i === 0 ? 'src="' + img + '" fetchpriority="high" decoding="sync"' : 'data-src="' + img + '" loading="lazy" fetchpriority="low" decoding="async"') +
+        inner = '<img src="' + img + '" ' + (i === 0 ? 'fetchpriority="high" decoding="sync"' : 'loading="eager" fetchpriority="low" decoding="async"') +
                     ' width="1600" height="686" alt="' + (s.alt || 'Ozylix effervescent supplements offer banner') + '">';
       }
       return s.link
