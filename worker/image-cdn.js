@@ -116,14 +116,18 @@ export async function handleCdnRequest(request) {
   const cacheKey = new Request(url.toString(), { method: 'GET' });
   const cache = caches.default;
 
+  // Video elements request byte ranges. Never serve a cached full response
+  // to a range request: browsers need the origin's 206/Content-Range contract.
+  const isRangeRequest = request.headers.has('Range');
   // Layer 1: Cache API — instant if we already stored a copy here.
-  let response = await cache.match(cacheKey);
+  let response = isRangeRequest ? null : await cache.match(cacheKey);
   if (response) {
     return response;
   }
 
   // Layer 2: Cloudflare zone cache via the origin fetch options.
   const origin = await fetch(supabaseUrl, {
+    headers: isRangeRequest ? { Range: request.headers.get('Range') } : undefined,
     cf: {
       cacheKey: cacheKey, // explicit key so hits land on the same entry
       cacheTtl: CACHE_TTL_SECONDS,
@@ -145,9 +149,10 @@ export async function handleCdnRequest(request) {
     'Cache-Control': `public, max-age=${CACHE_TTL_SECONDS}, immutable`,
     'Access-Control-Allow-Origin': '*',
   });
-  const len = origin.headers.get('Content-Length');
-  if (len) headers.set('Content-Length', len);
-  if (origin.headers.get('Accept-Ranges')) headers.set('Accept-Ranges', 'bytes');
+  for (const name of ['Content-Length', 'Content-Range', 'Accept-Ranges', 'ETag', 'Last-Modified']) {
+    const value = origin.headers.get(name);
+    if (value) headers.set(name, value);
+  }
 
   // Only mirror into the Cache API for image/video bodies; skip HTML error
   // pages or unexpected content types so we never serve broken bytes.
@@ -158,8 +163,8 @@ export async function handleCdnRequest(request) {
     // previous version gave the SAME body to both put() and the return,
     // which locked the stream and crashed the Worker with error 1101.
     const body = await origin.bytes();
-    const resp = new Response(body, { status: 200, headers: new Headers(headers) });
-    const storeTask = cache.put(cacheKey, resp.clone());
+    const resp = new Response(body, { status: origin.status, headers: new Headers(headers) });
+    const storeTask = isRangeRequest ? Promise.resolve() : cache.put(cacheKey, resp.clone());
     storeTask.catch(() => {}); // never let a cache failure break the response
 
     // Layer 0 (write): keep a copy in isolate memory so the next request in
@@ -182,5 +187,5 @@ export async function handleCdnRequest(request) {
     return resp;
   }
 
-  return new Response(origin.body, { status: 200, headers });
+  return new Response(origin.body, { status: origin.status, headers });
 }
