@@ -12,22 +12,12 @@
  * own controls, and no .carousel-wrap markup exists in the page.
  */
 (function () {
-  // ── SUPABASE ──
-  window.SUPABASE_URL = 'https://frwsjgrrtzhjfflcdjjs.supabase.co';
-  window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyd3NqZ3JydHpoamZmbGNkampzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDUzMTgsImV4cCI6MjA4ODI4MTMxOH0.iIjlG1A0BoMAmROwovyLasRZU7bVRJC5q7vhmWiMeOs';
-  // The library is deferred, so it does not exist yet when this runs —
-  // and it must not, because a blocking <script src> to a CDN in <head>
-  // holds up first paint for as long as the CDN takes to answer. Reviews
-  // are never needed during first paint, so the client is built on first
-  // use. Every call site is inside an async function, so by the time one
-  // runs the deferred bundle has executed.
-  var _sbClient = null;
-  window.sbClient = function () {
-    if (_sbClient) return _sbClient;
-    if (!window.supabase) return null;
-    _sbClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-    return _sbClient;
-  };
+  // ── DATA ACCESS ──
+  // The storefront must not connect directly to Supabase. Database and
+  // Storage access is server-side only through the Ozylix backend API.
+  // Keep this compatibility function returning null for older optional
+  // callers; all required public data loaders use backend API routes.
+  window.sbClient = function () { return null; };
 
   // ── VITA POINTS MICRO-DISPLAY ──
   window.updateVitaMicrocopy = function () {
