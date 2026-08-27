@@ -7663,6 +7663,7 @@ async function loadSettings() {
     if(d.store_online !== undefined || policy.store_online !== undefined) document.getElementById('storeOnline').checked = boolValue(d.store_online ?? policy.store_online, true);
     if(d.shipping_mode !== undefined || policy.shipping_mode !== undefined) { const sm = document.getElementById('shippingMode'); if (sm) sm.value = policy.shipping_mode ?? d.shipping_mode; }
     if(d.shipping_fee !== undefined || policy.shipping_fee !== undefined) { const sf = document.getElementById('shippingFee'); if (sf) sf.value = policy.shipping_fee ?? d.shipping_fee; }
+    if(d.cod_shipping_fee !== undefined || policy.cod_shipping_fee !== undefined) { const cf = document.getElementById('codShippingFee'); if (cf) cf.value = policy.cod_shipping_fee ?? d.cod_shipping_fee; }
     // delivery_policy is the canonical source. Legacy top-level keys are only
     // fallbacks so an old, conflicting row cannot make the panel show a state
     // different from the policy enforced by checkout.
@@ -7781,8 +7782,9 @@ async function saveSettingsCore() {
   };
   const deliveryPolicy = {
     shipping_mode: (document.getElementById('shippingMode')||{}).value || 'paid',
-    shipping_fee: readNonNegative('shippingFee', 79),
-    free_shipping_threshold: readNonNegative('freeShippingThreshold', 599),
+    shipping_fee: readNonNegative('shippingFee', 69),
+    cod_shipping_fee: readNonNegative('codShippingFee', 69),
+    free_shipping_threshold: readNonNegative('freeShippingThreshold', 999),
     cod_enabled: document.getElementById('codAvailable').checked,
     cod_min_order: readNonNegative('codMinOrder', 0),
     cod_max_order: readNonNegative('codMaxOrder', 0),
@@ -7792,6 +7794,7 @@ async function saveSettingsCore() {
     store_online: document.getElementById('storeOnline').checked,
     shipping_mode: deliveryPolicy.shipping_mode,
     shipping_fee: deliveryPolicy.shipping_fee,
+    cod_shipping_fee: deliveryPolicy.cod_shipping_fee,
     free_shipping_threshold: deliveryPolicy.free_shipping_threshold,
     cod_available: deliveryPolicy.cod_enabled,
     cod_enabled: deliveryPolicy.cod_enabled,

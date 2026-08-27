@@ -241,13 +241,13 @@ const BLOGS = [
 
 // ── FAQ DATA ──
 const FAQS = [
-  { q:"How long does delivery take?", a:"Standard delivery across India generally takes 3–5 business days. Orders below ₹599 have a ₹79 shipping fee; shipping is free when the paid subtotal reaches ₹599 or more. Dispatch is normally within 24–48 hours, and the tracking link is sent after dispatch.", cat:"Shipping" },
+  { q:"How long does delivery take?", a:"Standard delivery across India generally takes 3–5 business days. Online prepaid orders below ₹999 have a ₹69 shipping fee; prepaid shipping is free when the paid subtotal reaches ₹999 or more. COD orders have a ₹69 delivery fee. Dispatch is normally within 24–48 hours, and the tracking link is sent after dispatch.", cat:"Shipping" },
   { q:"What payment methods do you accept?", a:"Payment options shown at checkout may include UPI, cards, net banking, supported wallets or EMI options, and Cash on Delivery where available for your PIN code. The available methods are confirmed by the payment provider at checkout.", cat:"Payment" },
   { q:'How does Mix & Match work?', a:"Add four eligible units and the lowest-priced eligible unit becomes free. Mix & Match is a standalone offer: if it unlocks, any coupon code or additional percentage discount is removed rather than stacked. The final saving is recalculated securely at checkout.", cat:"Offers" },
   { q:"Are Ozylix products FSSAI approved?", a:"Yes. All Ozylix products are manufactured in FSSAI-licensed facilities and meet all regulatory requirements for food supplements in India. Product licenses are available on request.", cat:"Products" },
   { q:"Can I take multiple supplements together?", a:"Generally yes, but we recommend checking with your doctor if you're on medications. Ozylix supplements are designed to be safe when combined. Our Combo Kits are specifically curated for safe, effective multi-supplement use.", cat:"Products" },
   { q:"How do I track my order?", a:"After dispatch, you'll receive an SMS and email with a tracking link from our shipping partner (Shiprocket). Track directly at shiprocket.in/shipment-tracking or via the link in your confirmation email.", cat:"Shipping" },
-  { q:"Is COD available? Are there extra charges?", a:"Cash on Delivery is offered only where the checkout provider and delivery PIN code support it. Any applicable delivery or COD charge is shown before you place the order; orders of ₹599 or more qualify for free shipping under the current policy.", cat:"Payment" },
+  { q:"Is COD available? Are there extra charges?", a:"Cash on Delivery is offered where the delivery PIN code supports it and carries a ₹69 delivery fee. Online prepaid orders below ₹999 have a ₹69 shipping fee; prepaid shipping is free at ₹999 or more.", cat:"Payment" },
   { q:"Can I return or exchange products?", a:"Request a return within 7 days of delivery for sealed and unused products. Damaged, defective, or incorrect items should be reported promptly with photographs. Refunds are processed after the return is received and checked; promotional discounts and redeemed VitaPoints are reversed according to the final eligible amount.", cat:"Returns" },
   { q:"How should I store the products?", a:"Store all Ozylix products in a cool, dry place below 30°C. Keep away from direct sunlight and moisture. After opening effervescent tablet tubes, seal tightly and use within 30 days.", cat:"Products" },
   { q:"Are these suitable for vegetarians/vegans?", a:"All Ozylix supplements are 100% vegetarian. The spirulina products are also vegan. Glutathione and B1+Biotin are vegetarian but check if vegan-strict, as some capsule shells may vary.", cat:"Products" },
@@ -2167,7 +2167,7 @@ function renderCart() {
           </div>` : ''}
         <div class="sum-row"><span>Shipping</span><span>${ship === 0 ? '<span style="color:var(--success);font-weight:700">FREE 🎉</span>' : '₹' + ship}</span></div>
         ${(!shippingIsAlwaysFree() && (sub - mmOff - disc) < SHIP_THRESHOLD) ? `<div style="font-size:.72rem;color:var(--gray);margin-bottom:4px;padding:6px 10px;background:var(--st-warn-bg);border-radius:6px;border-left:1px solid var(--seal)">💡 Add ₹${Math.max(0, SHIP_THRESHOLD - (sub - mmOff - disc)).toLocaleString('en-IN')} more for FREE shipping</div>` : ''}
-        <div class="sum-row" style="font-size:.78rem;color:var(--gray)"><span>COD charge</span><span>${calcShipping(sub - mmOff - disc) === 0 ? '<span style="color:var(--success)">FREE</span>' : '₹' + calcShipping(sub - mmOff - disc)}</span></div>
+        <div class="sum-row" style="font-size:.78rem;color:var(--gray)"><span>COD charge</span><span>₹${calcShipping(sub - mmOff - disc, 'cod')}</span></div>
         <hr style="border:none;border-top:1px solid var(--light-gray);margin:8px 0">
         ${vitaOff > 0 ? `<div class="sum-row" style="color:var(--fern-lo)"><span>💎 VitaPoints (${_vita.applied.toLocaleString('en-IN')})</span><span>-₹${vitaOff.toFixed(2)}</span></div>` : ''}
         <div class="sum-row total"><span>Total</span><span style="color:var(--green)">₹${total.toLocaleString('en-IN',{maximumFractionDigits:2})}</span></div>
@@ -2407,7 +2407,7 @@ function renderCheckoutSummary() {
   // Mix & Match is standalone. Keep the UI identical to the server: a live
   // free-item offer removes the coupon instead of showing a stacked saving.
   if (mmOff > 0) disc = 0;
-  const ship = calcShipping(sub - mmOff - disc);
+  const ship = calcShipping(sub - mmOff - disc, typeof getSelectedGateway === 'function' ? getSelectedGateway() : null);
   const _vita = vitaCheckoutInfo(sub - mmOff - disc);
   const vitaOff = _vita.rupees;
   const total = Math.max(0, sub - mmOff - disc + ship - vitaOff);
@@ -3551,7 +3551,7 @@ async function initiateCOD() {
   const { sub, disc, mixMatchDiscount } = getOrderTotal();
   const orderId = generateOrderId();
   const netSub = sub - disc - (mixMatchDiscount || 0);
-  const codCharge = calcShipping(netSub);
+  const codCharge = calcShipping(netSub, 'cod');
   const codTotal = netSub + codCharge;
 
   // Disable button immediately to prevent double-tap

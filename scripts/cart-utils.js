@@ -109,20 +109,23 @@ const _origRenderCkSummary = renderCheckoutSummary;
 //   SHIP_FEE = 79  -> ₹79 charged below SHIP_THRESHOLD
 //   SHIP_FEE = 0   -> shipping always free
 // ══════════════════════════════════════════════════════════════
-var SHIP_THRESHOLD = 599;
-var SHIP_FEE = 79;
-function calcShipping(netSubtotal) {
+var SHIP_THRESHOLD = 999;
+var SHIP_FEE = 69;
+var COD_SHIP_FEE = 69;
+function calcShipping(netSubtotal, paymentMethod) {
+  if (paymentMethod && /cod|cash/i.test(String(paymentMethod))) return COD_SHIP_FEE;
   if (!SHIP_FEE) return 0;
   return (Number(netSubtotal) || 0) >= SHIP_THRESHOLD ? 0 : SHIP_FEE;
 }
 function shippingIsAlwaysFree() { return !SHIP_FEE; }
-var DELIVERY_POLICY = { store_online: true, shipping_mode: 'paid', shipping_fee: 79, free_shipping_threshold: 599, cod_enabled: false, cod_min_order: 0, cod_max_order: 0, cod_allowed_all_orders: true };
+var DELIVERY_POLICY = { store_online: true, shipping_mode: 'paid', shipping_fee: 69, cod_shipping_fee: 69, free_shipping_threshold: 999, cod_enabled: false, cod_min_order: 0, cod_max_order: 0, cod_allowed_all_orders: true };
 function applyDeliveryPolicy(policy) {
   if (!policy || typeof policy !== 'object') return;
   DELIVERY_POLICY = Object.assign({}, DELIVERY_POLICY, {
     store_online: policy.store_online ?? policy.storeOnline ?? DELIVERY_POLICY.store_online,
     shipping_mode: policy.shipping_mode ?? policy.shippingMode ?? DELIVERY_POLICY.shipping_mode,
     shipping_fee: policy.shipping_fee ?? policy.shippingFee ?? DELIVERY_POLICY.shipping_fee,
+    cod_shipping_fee: policy.cod_shipping_fee ?? policy.codShippingFee ?? DELIVERY_POLICY.cod_shipping_fee,
     free_shipping_threshold: policy.free_shipping_threshold ?? policy.freeShippingThreshold ?? DELIVERY_POLICY.free_shipping_threshold,
     cod_enabled: policy.cod_enabled ?? policy.codEnabled ?? DELIVERY_POLICY.cod_enabled,
     cod_min_order: policy.cod_min_order ?? policy.codMinOrder ?? DELIVERY_POLICY.cod_min_order,
@@ -131,6 +134,7 @@ function applyDeliveryPolicy(policy) {
   });
   SHIP_THRESHOLD = Math.max(0, Number(DELIVERY_POLICY.free_shipping_threshold) || 0);
   SHIP_FEE = DELIVERY_POLICY.shipping_mode === 'free' ? 0 : Math.max(0, Number(DELIVERY_POLICY.shipping_fee) || 0);
+  COD_SHIP_FEE = Math.max(0, Number(DELIVERY_POLICY.cod_shipping_fee) || 0);
   document.dispatchEvent(new CustomEvent('ozylix:delivery-policy-updated'));
   try { updateCodBtnNote(); } catch (_) {}
 }
