@@ -38,13 +38,13 @@
  * ──────────────────────────────────────────────────────────────────────────
  */
 
-// The Supabase project that owns the product-images bucket (the same ref
-// the storefront's SUPABASE_URL points at).
+// Keep legacy product-images URLs working while serving new uploads from the
+// active Supabase project and bucket. Existing database rows still reference
+// the legacy project, so the mapping is intentionally per bucket.
 export const SUPABASE_STORAGE_ORIGIN = 'https://frwsjgrrtzhjfflcdjjs.supabase.co';
+export const ACTIVE_SUPABASE_STORAGE_ORIGIN = 'https://syayxfxyqnnvmvrjoxyw.supabase.co';
 
-// All buckets the site may serve images from. Add new ones here as the
-// admin uploads to new buckets — the proxy itself needs no other changes.
-export const CDN_BUCKETS = new Set(['product-images']);
+export const CDN_BUCKETS = new Set(['product-images', 'ozylix store']);
 
 const CDN_PREFIX = '/cdn-storage/';
 const CACHE_TTL_SECONDS = 31536000; // 1 year — images are immutable (timestamped names)
@@ -66,12 +66,13 @@ export function toSupabaseUrl(pathname) {
   if (!rest) return null;
   const slash = rest.indexOf('/');
   if (slash === -1) return null;
-  const bucket = rest.slice(0, slash);
+  const bucket = decodeURIComponent(rest.slice(0, slash));
   const path = rest.slice(slash + 1);
   if (!bucket || !path || !CDN_BUCKETS.has(bucket)) return null;
   // Prevent path traversal (e.g. ../ escaping the bucket root).
   if (/(^|\/)\.\.(\/|$)/.test(path)) return null;
-  return `${SUPABASE_STORAGE_ORIGIN}/storage/v1/object/public/${bucket}/${path}`;
+  const origin = bucket === 'ozylix store' ? ACTIVE_SUPABASE_STORAGE_ORIGIN : SUPABASE_STORAGE_ORIGIN;
+  return `${origin}/storage/v1/object/public/${encodeURIComponent(bucket)}/${path}`;
 }
 
 /**
