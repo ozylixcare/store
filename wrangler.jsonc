@@ -3,7 +3,7 @@
 
   // Must match the Worker that Workers Builds already created, otherwise a
   // deploy publishes a second Worker instead of updating this one.
-  "name": "ascovitahealthcare-cell-github-io",
+  "name": "ascovita-admin-worker",
   // Wrangler defaults this to "today", which the bundled workerd runtime does
   // not yet support — `wrangler dev` refuses to start. Nothing here depends on
   // recent runtime behaviour, so pin a date the local runtime also accepts.
