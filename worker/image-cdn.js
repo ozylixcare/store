@@ -6,10 +6,10 @@
  *
  * How it works:
  *   1) The storefront and admin panel reference images as
- *        /cdn-storage/<bucket>/<path>   (e.g. /cdn-storage/product-images/1786544808269-q1ro7o.webp)
+ *        /cdn-storage/<bucket>/<path>   (e.g. /cdn-storage/ozylix%20store/1786544808269-q1ro7o.webp)
  *   2) The Worker (see index.js) catches anything under /cdn-storage/ and
  *      fetches it from Supabase Storage in the background:
- *        https://frwsjgrrtzhjfflcdjjs.supabase.co/storage/v1/object/public/<bucket>/<path>
+ *        https://syayxfxyqnnvmvrjoxyw.supabase.co/storage/v1/object/public/<bucket>/<path>
  *   3) The response is stored in the Cloudflare Cache API with a YEAR-long
  *      TTL — the FIRST visitor pays for the Supabase transfer once, every
  *      visitor after that is served straight from Cloudflare's edge and
@@ -38,13 +38,9 @@
  * ──────────────────────────────────────────────────────────────────────────
  */
 
-// Keep legacy product-images URLs working while serving new uploads from the
-// active Supabase project and bucket. Existing database rows still reference
-// the legacy project, so the mapping is intentionally per bucket.
-export const SUPABASE_STORAGE_ORIGIN = 'https://frwsjgrrtzhjfflcdjjs.supabase.co';
-export const ACTIVE_SUPABASE_STORAGE_ORIGIN = 'https://syayxfxyqnnvmvrjoxyw.supabase.co';
-
-export const CDN_BUCKETS = new Set(['product-images', 'ozylix store']);
+// Single production image origin and bucket.
+export const SUPABASE_STORAGE_ORIGIN = 'https://syayxfxyqnnvmvrjoxyw.supabase.co';
+export const CDN_BUCKETS = new Set(['ozylix store']);
 
 const CDN_PREFIX = '/cdn-storage/';
 const CACHE_TTL_SECONDS = 31536000; // 1 year — images are immutable (timestamped names)
@@ -71,8 +67,7 @@ export function toSupabaseUrl(pathname) {
   if (!bucket || !path || !CDN_BUCKETS.has(bucket)) return null;
   // Prevent path traversal (e.g. ../ escaping the bucket root).
   if (/(^|\/)\.\.(\/|$)/.test(path)) return null;
-  const origin = bucket === 'ozylix store' ? ACTIVE_SUPABASE_STORAGE_ORIGIN : SUPABASE_STORAGE_ORIGIN;
-  return `${origin}/storage/v1/object/public/${encodeURIComponent(bucket)}/${path}`;
+  return `${SUPABASE_STORAGE_ORIGIN}/storage/v1/object/public/${encodeURIComponent(bucket)}/${path}`;
 }
 
 /**

@@ -1371,7 +1371,7 @@ const PRODUCT_FALLBACKS = {
 // Edge image CDN — August 2026
 // All images uploaded through the admin backend live in Supabase Storage and
 // reach the frontend as full
-//   https://frwsjgrrtzhjfflcdjjs.supabase.co/storage/v1/object/public/...
+//   https://syayxfxyqnnvmvrjoxyw.supabase.co/storage/v1/object/public/...
 // URLs (products.image etc.). cdnImg() rewrites those to the Worker's
 // /cdn-storage/ path, which Cloudflare fetches ONCE and caches at the edge
 // forever (1 year, immutable). Visitors then pay for the image from
