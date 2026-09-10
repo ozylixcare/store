@@ -1368,33 +1368,14 @@ const PRODUCT_FALLBACKS = {
   'default':      NO_IMAGE_PLACEHOLDER,
 };
 
-// Edge image CDN — August 2026
-// All images uploaded through the admin backend live in Supabase Storage and
-// reach the frontend as full
-//   https://syayxfxyqnnvmvrjoxyw.supabase.co/storage/v1/object/public/...
-// URLs (products.image etc.). cdnImg() rewrites those to the Worker's
-// /cdn-storage/ path, which Cloudflare fetches ONCE and caches at the edge
-// forever (1 year, immutable). Visitors then pay for the image from
-// Cloudflare, not Supabase — which is what burned the free-plan egress quota.
-//
-// Read-only mapping: the database keeps the canonical Supabase URL (search,
-// deletes, migrations keep working) and the admin panel uploads/previews
-// exactly as before.
-// Public image Worker is attached to back.ozylix.com; keep the same path contract but use the Worker host explicitly so public www pages do not hit Pages and 404.
-const CDN_IMG_PREFIX = 'https://back.ozylix.com/cdn-storage/';
+// Image delivery fallback — September 2026
+// The Cloudflare image Worker is currently returning 404 for /cdn-storage/.
+// Keep the canonical public Supabase Storage URL until that Worker route is
+// deployed and verified. This restores product, banner, blog, and detail-page
+// images without exposing any private Supabase key.
 function cdnImg(url) {
   if (!url) return url;
-  const s = String(url);
-  // Any public Supabase storage URL: /storage/v1/object/public/<bucket>/<name>[?params]
-  // → /cdn-storage/<bucket>/<name>[?params] so the Worker serves and caches it
-  // at the edge (product images, website uploads, banners, fallbacks…).
-  const m = s.match(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/([^"'?\s]+)(\?.*)?$/);
-  if (m) {
-    // Preserve any transformation params in the cache key so ?width=300
-    // requests don't collide with full-size ones.
-    return CDN_IMG_PREFIX + m[1] + (m[2] || '');
-  }
-  return s;
+  return String(url);
 }
 
 // Infer a media item's type from its URL when the backend hasn't supplied one.
