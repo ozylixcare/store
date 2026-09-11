@@ -3747,15 +3747,22 @@ function renderAllImgSlots() {
   for (let s = 1; s <= 5; s++) renderImgSlot(s);
 }
 
-// Edge image CDN mirror of the storefront's cdnImg() — admin previews of
-// uploaded images (slots, photo library, banners, promo cards) are served
-// from the Cloudflare cache so previews never count against Supabase egress.
+// Temporary direct-origin image delivery — the Cloudflare image Worker is
+// currently returning 404, so admin previews must use the public Supabase URL.
 function adminCdnImg(url) {
   if (!url) return url;
-  const s = String(url);
-  const m = s.match(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/([^"'\s]+)(\?.*)?$/);
-  if (m) return 'https://back.ozylix.com/cdn-storage/' + m[1] + (m[2] || '');
-  return s;
+  return String(url);
+}
+
+// Uploading the file and saving its site/product reference are two separate
+// requests. Treat the second request as part of the upload transaction;
+// otherwise the UI says “success” while Supabase Storage contains an orphan
+// that the storefront never knows about.
+async function requireAdminMediaSave(response, fallback) {
+  if (response && response.ok) return response;
+  let detail = {};
+  try { detail = await response.json(); } catch (_) {}
+  throw new Error(detail.error || fallback || 'The image was uploaded but its database reference was not saved');
 }
 
 // Video detection — a product slot can now hold a video (mp4/webm/mov).
@@ -6213,7 +6220,11 @@ async function uploadBannerImage(prefix, n, input) {
     const d = await r.json();
     if (!r.ok) { toast(d.error || 'Upload failed', 'error'); return; }
     const url = d.url || d.public_url || '';
-    await apiFetch(`/api/admin/site-media/${encodeURIComponent(key)}`, { method: 'PUT', body: JSON.stringify({ url }) });
+    if (!url) throw new Error('Storage upload returned no public URL');
+    await requireAdminMediaSave(
+      await apiFetch(`/api/admin/site-media/${encodeURIComponent(key)}`, { method: 'PUT', body: JSON.stringify({ url }) }),
+      'Image uploaded, but the site-media reference was not saved'
+    );
     toast('✅ ' + (file.type.startsWith('video/') ? 'Video' : 'Banner') + ' uploaded — live on the site now');
     loadBannerManagers();
   } catch(e) { toast('Upload error: ' + e.message, 'error'); }
@@ -6384,7 +6395,11 @@ async function uploadPromoCardImage(n, input) {
     const d = await r.json();
     if (!r.ok) { toast(d.error || 'Upload failed', 'error'); return; }
     const url = d.url || d.public_url || '';
-    await apiFetch(`/api/admin/site-media/${encodeURIComponent(key)}`, { method: 'PUT', body: JSON.stringify({ url }) });
+    if (!url) throw new Error('Storage upload returned no public URL');
+    await requireAdminMediaSave(
+      await apiFetch(`/api/admin/site-media/${encodeURIComponent(key)}`, { method: 'PUT', body: JSON.stringify({ url }) }),
+      'Image uploaded, but the promo-card reference was not saved'
+    );
     toast('✅ ' + (file.type.startsWith('video/') ? 'Video' : 'Image') + ' uploaded — live on the home page now');
     loadBannerManagers(); loadPromoMedia();
   } catch(e) { toast('Upload error: ' + e.message, 'error'); }
@@ -6489,10 +6504,11 @@ async function createPromoStripCard(file) {
     const d = await r.json();
     if (!r.ok) { toast(d.error || 'Upload failed', 'error'); return; }
     const url = d.url || d.public_url || '';
-    await apiFetch('/api/admin/promo-media', {
+    if (!url) throw new Error('Storage upload returned no public URL');
+    await requireAdminMediaSave(await apiFetch('/api/admin/promo-media', {
       method: 'POST',
       body: JSON.stringify({ src: url, type: file.type.startsWith('video/') ? 'video' : 'image', cta_page: 'shop' })
-    });
+    }), 'Image uploaded, but the promo-strip reference was not saved');
     toast('✅ ' + (file.type.startsWith('video/') ? 'Video' : 'Image') + ' added to the promo strip — live on the home page now');
     loadPromoStripMedia();
   } catch(e) { toast('Could not add card: ' + e.message, 'error'); }
@@ -6505,10 +6521,11 @@ async function uploadPromoStripCard(id, input) {
     const d = await r.json();
     if (!r.ok) { toast(d.error || 'Upload failed', 'error'); return; }
     const url = d.url || d.public_url || '';
-    await apiFetch(`/api/admin/promo-media/${encodeURIComponent(id)}`, {
+    if (!url) throw new Error('Storage upload returned no public URL');
+    await requireAdminMediaSave(await apiFetch(`/api/admin/promo-media/${encodeURIComponent(id)}`, {
       method: 'PUT',
       body: JSON.stringify({ src: url, type: file.type.startsWith('video/') ? 'video' : 'image' })
-    });
+    }), 'Image uploaded, but the promo-strip reference was not saved');
     toast('✅ ' + (file.type.startsWith('video/') ? 'Video' : 'Image') + ' uploaded — live on the home page now');
     loadPromoStripMedia();
   } catch(e) { toast('Upload error: ' + e.message, 'error'); }
@@ -8776,4 +8793,3 @@ async function geminiSend() {
     console.error('Gemini error:', e);
   }
 }
-

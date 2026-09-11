@@ -5,15 +5,13 @@
     // bare calls that used to be here threw a ReferenceError whenever this ran
     // early, which is why the whole block was deferred behind a ~1.1s timer.
     //
-    // The fallback is not a no-op on purpose. Returning the raw URL made the
-    // <link rel=preload> point at the Supabase original while the carousel
-    // rendered the /cdn-storage/ copy — two URLs, two downloads, and the
-    // preload helping neither. This mirrors cdnImg() in store-core.js; keep
-    // the two in step.
+    // Keep the raw public Supabase URL while the image Worker is unavailable.
+    // The previous fallback rewrote the URL to back.ozylix.com/cdn-storage,
+    // which currently returns 404 and broke banners before store-core.js had
+    // loaded its own image helper.
     function smCdnFallback(u){
       if (!u) return u;
-      var m = String(u).match(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/([^"'?\s]+)(\?.*)?$/);
-      return m ? 'https://back.ozylix.com/cdn-storage/' + m[1] + (m[2] || '') : String(u);
+      return String(u);
     }
     function smCdn(u){ return (typeof cdnImg === 'function') ? cdnImg(u) : smCdnFallback(u); }
     function applySiteMedia(map){
