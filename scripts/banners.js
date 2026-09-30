@@ -23,7 +23,7 @@ function bnHydrateHeroSlide(track, index) {
 
 (function() {
 
-  var IG_API = (typeof API_BASE !== 'undefined' ? API_BASE : 'https://backend-s7ih.onrender.com') + '/api/instagram';
+  var IG_API = (typeof API_BASE !== 'undefined' ? API_BASE : 'https://ascovitahealthcare-cell-github-io.onrender.com') + '/api/instagram';
   var CARDS_VISIBLE = window.innerWidth < 600 ? 2 : window.innerWidth < 900 ? 3 : 5;
   var igPosts = [];
   var igIndex = 0;
@@ -286,7 +286,7 @@ function bnMediaType(url) {
               + ' style="width:100%;height:100%;object-fit:cover"></video>';
       } else {
         var img = (isPhone && s.mobile) ? s.mobile : s.src;
-        inner = '<img src="' + img + '" ' + (i === 0 ? 'fetchpriority="high" decoding="sync"' : 'loading="eager" fetchpriority="low" decoding="async"') +
+        inner = '<img ' + (i === 0 ? 'src="' + img + '" fetchpriority="high" decoding="sync"' : 'data-src="' + img + '" loading="lazy" fetchpriority="low" decoding="async"') +
                     ' width="1600" height="686" alt="' + (s.alt || 'Ozylix effervescent supplements offer banner') + '">';
       }
       return s.link
@@ -435,7 +435,7 @@ window.dismissOfferReminder = function () {
               + ' style="width:100%;height:100%;object-fit:cover"></video>';
       } else {
         var img = (isPhone && s.mobile) ? s.mobile : s.src;
-        inner = '<img src="' + img + '" ' + (i === 0 ? 'fetchpriority="high" decoding="sync"' : 'loading="eager" fetchpriority="low" decoding="async"') +
+        inner = '<img ' + (i === 0 ? 'src="' + img + '" fetchpriority="high" decoding="sync"' : 'data-src="' + img + '" loading="lazy" fetchpriority="low" decoding="async"') +
                     ' width="1600" height="686" alt="' + (s.alt || 'Ozylix effervescent supplements offer banner') + '">';
       }
       return s.link
@@ -684,3 +684,4 @@ window.dismissOfferReminder = function () {
   });
 
 })();
+

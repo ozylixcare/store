@@ -7,7 +7,7 @@
 // Appended at end of file per repo convention.
 (function () {
   'use strict';
-  var CONTENT_API = 'https://backend-s7ih.onrender.com/api/public/content';
+  var CONTENT_API = 'https://ascovitahealthcare-cell-github-io.onrender.com/api/public/content';
   var CONTENT_KEY = 'ozylix';
   var CONTENT_CACHE_MS = 60000;
 
@@ -400,3 +400,4 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { applyStyleCss(); applyStyleCssAfterDelay(); loadContent(); });
   else { applyStyleCss(); applyStyleCssAfterDelay(); loadContent(); }
 })();
+

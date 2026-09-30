@@ -33,7 +33,7 @@ function setCustomerWhatsAppNumber(value) {
 }
 
 function loadStoreWhatsApp() {
-  const base = (typeof API_BASE !== 'undefined') ? API_BASE : 'https://backend-s7ih.onrender.com';
+  const base = (typeof API_BASE !== 'undefined') ? API_BASE : 'https://ascovitahealthcare-cell-github-io.onrender.com';
   return fetchWithTimeout(base + '/api/public/store-config', { headers: { 'Accept': 'application/json' } }, 4500)
     .then(function (response) { return response.ok ? response.json() : null; })
     .then(function (payload) {
@@ -171,7 +171,7 @@ function fetchWithTimeout(url, options, ms) {
 // BACKEND CONNECTION — Supabase via Render API
 // Admin changes (products, stock, coupons) reflect here live
 // ══════════════════════════════════════════════════════════════
-const API_BASE = 'https://backend-s7ih.onrender.com';
+const API_BASE = 'https://ascovitahealthcare-cell-github-io.onrender.com';
 loadStoreWhatsApp();
 
 // Merge backend product data over static product array — ALL fields synced
@@ -181,12 +181,22 @@ function mergeBackendProducts(backendProducts) {
   const parseArr = (val) => {
     if (!val) return [];
     if (Array.isArray(val)) return val;
-    if (typeof val === 'string') { try { return JSON.parse(val); } catch(e) { return val.split(',').map(s=>s.trim()).filter(Boolean); } }
+    if (typeof val === 'string') { try { const parsed = JSON.parse(val); return Array.isArray(parsed) ? parsed : []; } catch(e) { return val.split(',').map(s=>s.trim()).filter(Boolean); } }
     return [];
   };
 
   backendProducts.forEach(bp => {
     bp.id = parseInt(bp.id);
+    const normalizeMedia = items => items.map(item => {
+      const url = typeof item === 'string' ? item : item && item.url;
+      if (typeof url !== 'string' || !url.trim()) return null;
+      return { ...(typeof item === 'object' ? item : {}), url: url.trim(),
+        type: item.type === 'video' ? 'video' : mediaTypeFromUrl(url),
+        thumb: typeof item.thumb === 'string' ? item.thumb : url.trim() };
+    }).filter(Boolean).slice(0, 10);
+    let backendMedia = normalizeMedia(parseArr(bp.media));
+    if (!backendMedia.length) backendMedia = normalizeMedia(parseArr(bp.images));
+    if (!backendMedia.length) backendMedia = normalizeMedia([bp.image, bp.image2, bp.image3, bp.image4, bp.image5].filter(Boolean));
 
     const idx = PRODUCTS.findIndex(p => p.id === bp.id);
 
@@ -219,22 +229,12 @@ function mergeBackendProducts(backendProducts) {
       else if (bp.position != null) p.position = parseInt(bp.position);
       // Tags
       if (bp.tags) p.tags = parseArr(bp.tags);
-      // Media — support media[] JSON array (up to 10 images/videos) OR individual fields
-      // ✅ Only apply backend images if products-images.js has NOT already set them
-      const alreadyHasImage = p.image && p.image.startsWith('http');
-      const mediaArr = parseArr(bp.media || bp.images);
-      if (mediaArr.length && !alreadyHasImage) {
-        p.media = mediaArr.slice(0, 10); // [{url, type:"image"|"video", thumb}]
-        // Back-compat flat fields
-        p.image  = (mediaArr[0] && mediaArr[0].url) || mediaArr[0] || p.image;
-        p.image2 = (mediaArr[1] && mediaArr[1].url) || mediaArr[1] || '';
-        p.allImages = mediaArr.map(m => m.url || m).filter(Boolean);
-      } else {
-        if (bp.image  && !alreadyHasImage) p.image  = bp.image;
-        if (bp.image2 && !alreadyHasImage) p.image2 = bp.image2;
-        // Build media array from individual fields for back-compat
-        const legacyUrls = [bp.image,bp.image2,bp.image3,bp.image4,bp.image5].filter(Boolean);
-        if (legacyUrls.length) p.media = legacyUrls.map(u=>({url:u,type:mediaTypeFromUrl(u),thumb:u}));
+      // Backend media is authoritative so admin edits replace stale local images.
+      if (backendMedia.length) {
+        p.media = backendMedia;
+        p.image = backendMedia[0].url;
+        p.image2 = backendMedia[1]?.url || '';
+        p.allImages = backendMedia.map(m => m.url);
       }
       // Key Ingredients
       const ki = parseArr(bp.key_ingredients);
@@ -263,7 +263,7 @@ function mergeBackendProducts(backendProducts) {
       }
     } else if (bp.active !== false) {
       // New product from admin — add to store
-      const imgs = parseArr(bp.images);
+      const imgs = backendMedia.map(m => m.url);
       const ki   = parseArr(bp.key_ingredients);
       PRODUCTS.push({
         id:          parseInt(bp.id),
@@ -276,7 +276,7 @@ function mergeBackendProducts(backendProducts) {
         price:       bp.price != null ? parseFloat(bp.price) : null,
         salePrice:   bp.sale_price ? parseFloat(bp.sale_price) : null,
         offer:       bp.offer_text || bp.offer || null,
-        media:       (()=>{ const m=parseArr(bp.media||bp.images); return m.length?m.slice(0,10).map(x=>typeof x==='string'?{url:x,type:mediaTypeFromUrl(x),thumb:x}:x):[]; })(),
+        media:       backendMedia,
         image:       imgs[0] || bp.image || '',
         image2:      imgs[1] || bp.image2 || '',
         allImages:   imgs,
@@ -1396,7 +1396,7 @@ function mediaTypeFromUrl(url) {
   return 'image';
 }
 function getProductImg(p) {
-  if (p.image && p.image.startsWith('http')) return cdnImg(p.image);
+  if (typeof p.image === 'string' && /^(https?:\/\/|\/(?!\/))/.test(p.image)) return cdnImg(p.image);
   return cdnImg(PRODUCT_FALLBACKS[p.category] || PRODUCT_FALLBACKS['default']);
 }
 
@@ -1409,7 +1409,7 @@ function getProductSurfaceImg(p) {
   return getProductImg(p);
 }
 function productSurfaceMediaHTML(url, alt, className, extraStyle) {
-  const src = cdnImg(url || '');
+  const src = esc(cdnImg(url || ''));
   const safeAlt = esc(alt || 'Ozylix product media');
   const cls = className || '';
   const style = extraStyle || '';
@@ -1644,3 +1644,4 @@ function renderProductCard(p, options = {}){
   const buyNowOnclick = `event.stopPropagation();openProduct(${p.id})`;
   return `<div class="product-card" data-product-id="${p.id}" data-image-state="${mediaState}" style="--card-flavour:${cardFlavour}" onclick="openProduct(${p.id})"><div class="p-img-wrap">${cardMedia}${safeBadge}${mediaBadge} ${maxDisc>0?`<span class="p-disc-badge">${tiers?'Up to ':'-'}${maxDisc}%</span>`:''}<div class="p-actions"><button class="btn-wishlist" onclick="event.stopPropagation();STORE.toggleWishlist(${p.id})" title="Wishlist">♡</button><button class="btn-qadd" onclick="${qAddOnclick}">${qAddLabel}</button></div><div class="p-buyrow"><button class="btn-buynow" onclick="${buyNowOnclick}">⚡ Buy Now</button></div></div><div class="p-info"><div class="p-brand">${safeKicker}</div><div class="p-name">${safeName}</div><div class="p-rating">${ratingDisplay}</div><div class="p-price"><span class="sale-price">${priceDisplay}</span>${(baseMRP&&baseMRP!==baseRate)?`<span class="orig-price">₹${baseMRP.toLocaleString('en-IN')}</span>`:''}</div>${tiers?`<div class="tier-offer-tag">⚡ Up to ${maxDisc.toFixed(maxDisc%1?1:0)}% OFF on larger packs${tiers[0]?.offerType==='buy_get' ? ` · ${esc(tiers[0].label || `Buy ${tiers[0].buyQuantity||1} Get ${tiers[0].freeQuantity||0}`)}` : ''}</div>`:safeOffer}<div class="p-enter" aria-hidden="true">Shop now<svg viewBox="0 0 15 8" fill="none"><path d="M0 4h13M9.5 1L13 4l-3.5 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div></div>`;
 }
+
