@@ -1368,14 +1368,20 @@ const PRODUCT_FALLBACKS = {
   'default':      NO_IMAGE_PLACEHOLDER,
 };
 
-// Image delivery fallback — September 2026
-// The Cloudflare image Worker is currently returning 404 for /cdn-storage/.
-// Keep the canonical public Supabase Storage URL until that Worker route is
-// deployed and verified. This restores product, banner, blog, and detail-page
-// images without exposing any private Supabase key.
+// Approved media delivery: public Supabase Storage URLs returned by the
+// backend are rewritten to the Cloudflare image Worker. Non-backend URLs are
+// left alone for ordinary local site assets, but dynamic uploaded media never
+// bypasses the CDN.
 function cdnImg(url) {
   if (!url) return url;
-  return String(url);
+  var raw = String(url);
+  try {
+    var u = new URL(raw, location.origin);
+    var marker = '/storage/v1/object/public/ozylix%20store/';
+    if (u.pathname.indexOf(marker) === 0) return '/cdn-storage/ozylix%20store/' + u.pathname.slice(marker.length) + u.search;
+    if (u.pathname.indexOf('/cdn-storage/ozylix%20store/') === 0) return u.pathname + u.search;
+  } catch (_) {}
+  return raw;
 }
 
 // Infer a media item's type from its URL when the backend hasn't supplied one.

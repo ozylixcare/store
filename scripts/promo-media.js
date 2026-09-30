@@ -90,15 +90,13 @@
       });
     }
     function renderPromoMedia(){
-      // Local PROMO_MEDIA.js paints immediately so the carousel is never empty/late.
-      var local = usable(typeof PROMO_MEDIA !== 'undefined' ? PROMO_MEDIA : []);
-      paintPromoMedia(local);
-
+      // Never paint checked-in or third-party promo URLs. The backend is the
+      // only source of truth; it accepts media only after an admin upload to
+      // Supabase Storage and serves it through the Cloudflare image Worker.
       var section = document.getElementById('promo-media-section');
-      if (section && !local.length) section.style.display = 'none';
+      if (section) section.style.display = 'none';
 
-      // Then ask the admin-managed backend. It only takes over if it has
-      // real media — never to blank out cards that are already showing.
+      // Load only admin-managed, backend-verified media.
       var base = (typeof API_BASE !== 'undefined') ? API_BASE : 'https://ascovitahealthcare-cell-github-io.onrender.com';
       // The backend is a free Render instance that can be asleep; without a
       // deadline this request can sit open for 30s holding a connection.
@@ -122,9 +120,16 @@
           if (remote.length) {
             paintPromoMedia(remote);
             if (section) section.style.display = '';
+          } else if (section) {
+            paintPromoMedia([]);
+            section.style.display = 'none';
           }
         })
-        .catch(function(){ clearTimeout(timer); /* keep local PROMO_MEDIA.js cards */ });
+        .catch(function(){
+          clearTimeout(timer);
+          paintPromoMedia([]);
+          if (section) section.style.display = 'none';
+        });
       });
     }
     if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',renderPromoMedia); }
