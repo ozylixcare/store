@@ -20,7 +20,7 @@ if (!AbortSignal.timeout) {
 // ═══════════════════════════════════════════════
 // CONFIG
 // ═══════════════════════════════════════════════
-const API = 'https://backend-s7ih.onrender.com';
+const API = 'https://ascovitahealthcare-cell-github-io.onrender.com';
 let authToken = sessionStorage.getItem('ozylix_token') || '';
 let allOrders = [], allProducts = [], allCustomers = [], allDiscounts = [], allPayments = [];
 
@@ -71,7 +71,7 @@ async function doLogin() {
   //    and is waiting for { nonce, code } to complete the sign-in.
   if (_otpNonce && document.getElementById('otpStep').style.display !== 'none') {
     const code = document.getElementById('loginOtp').value.trim();
-    if (!/^[0-9]{4}$/.test(code)) { err.textContent = 'Enter the 4-digit code from your email.'; err.style.display='block'; return; }
+    if (!/^[0-9]+$/.test(code) || code.length !== _otpLength) { err.textContent = `Enter the ${_otpLength}-digit code from your email.`; err.style.display='block'; return; }
     err.style.display = 'none';
     btn.disabled = true;
     btn.textContent = 'Verifying…';
@@ -135,6 +135,7 @@ async function doLogin() {
         // ── Step 1 done: password matched — a code was emailed. Reveal the
         //    OTP field; signing in now finishes by entering it.
         _otpNonce = d.nonce;
+        setOtpLength(d);
         _otpUser = user; _otpPass = pass;
         document.getElementById('otpStep').style.display = 'block';
         btn.style.marginTop = '14px';
@@ -143,7 +144,7 @@ async function doLogin() {
         err.style.display = 'none';
         const hint = document.getElementById('otpHint');
         hint.style.display = 'block';
-        hint.textContent = 'A 4-digit code was sent · valid for 5 minutes';
+        hint.textContent = `A ${_otpLength}-digit code was sent · valid for 5 minutes`;
         const otpField = document.getElementById('loginOtp');
         otpField.value = '';
         otpField.focus();
@@ -190,7 +191,14 @@ async function doLogin() {
 // ── Email OTP step state ────────────────────────────────────────────
 // The password stays in memory only while the OTP step is active, so a
 // stale page refresh or a second tab cannot reuse it.
-let _otpNonce = null, _otpUser = '', _otpPass = '';
+let _otpNonce = null, _otpUser = '', _otpPass = '', _otpLength = 4;
+function setOtpLength(d) {
+  _otpLength = d.codeLength === 4 ? 4 : 6; // Older backend challenges use six digits.
+  const field = document.getElementById('loginOtp');
+  field.minLength = field.maxLength = _otpLength;
+  field.pattern = `[0-9]{${_otpLength}}`;
+  field.placeholder = `${_otpLength}-digit code`;
+}
 function clearOtpStep() {
   _otpNonce = null; _otpUser = ''; _otpPass = '';
   document.getElementById('otpStep').style.display = 'none';
@@ -217,7 +225,8 @@ async function otpResend() {
     const d = await r.json();
     if (d && d.pending_otp && d.nonce) {
       _otpNonce = d.nonce;
-      hint.textContent = 'A fresh 4-digit code was sent · valid for 5 minutes';
+        setOtpLength(d);
+      hint.textContent = `A fresh ${_otpLength}-digit code was sent · valid for 5 minutes`;
       document.getElementById('loginOtp').value = '';
       document.getElementById('loginOtp').focus();
     } else {
@@ -6841,7 +6850,7 @@ Current business data:
 - Customers: ${statsSnap.totalCustomers}
 - Pending Orders: ${statsSnap.pendingOrders}
 - Low Stock Products: ${statsSnap.lowStock}
-- Backend: https://backend-s7ih.onrender.com
+- Backend: https://ascovitahealthcare-cell-github-io.onrender.com
 
 Products: ${allProducts.slice(0,5).map(p=>p.name+'(₹'+p.price+')').join(', ')}
 

@@ -5555,7 +5555,7 @@ const _GOOGLE_MAX_RETRIES = 8;
   // redirect_uri MUST byte-for-byte match the one used to request the code
   // (Google rejects the exchange otherwise) — both now derive from the live
   // origin instead of the hardcoded non-resolving ozylix.com.
-  fetch('https://backend-s7ih.onrender.com/api/auth/google-code', {
+  fetch('https://ascovitahealthcare-cell-github-io.onrender.com/api/auth/google-code', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

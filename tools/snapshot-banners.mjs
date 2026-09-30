@@ -22,7 +22,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const INDEX = join(ROOT, 'index.html');
 
 const EDGE = 'https://ozylix.com/api/site-media';
-const RENDER = 'https://backend-s7ih.onrender.com/api/site-media';
+const RENDER = 'https://ascovitahealthcare-cell-github-io.onrender.com/api/site-media';
 const START = '<!-- OZYLIX:BANNER-SNAPSHOT:START -->';
 const END = '<!-- OZYLIX:BANNER-SNAPSHOT:END -->';
 const MAX_BANNERS = 9; // matches the loop in scripts/site-media.js
@@ -130,3 +130,4 @@ if (check) {
 
 writeFileSync(INDEX, next);
 console.log('✓ wrote ' + count + ' banner' + (count === 1 ? '' : 's') + ' into index.html');
+
