@@ -5,13 +5,17 @@
     // bare calls that used to be here threw a ReferenceError whenever this ran
     // early, which is why the whole block was deferred behind a ~1.1s timer.
     //
-    // Keep the raw public Supabase URL while the image Worker is unavailable.
-    // The previous fallback rewrote the URL to back.ozylix.com/cdn-storage,
-    // which currently returns 404 and broke banners before store-core.js had
-    // loaded its own image helper.
+    // Backend media is stored in Supabase and delivered only through the
+    // Cloudflare image Worker. Never fall back to a raw or third-party URL.
     function smCdnFallback(u){
-      if (!u) return u;
-      return String(u);
+      if (!u) return '';
+      try {
+        var x = new URL(String(u), location.origin);
+        var marker = '/storage/v1/object/public/ozylix%20store/';
+        if (x.pathname.indexOf(marker) === 0) return '/cdn-storage/ozylix%20store/' + x.pathname.slice(marker.length);
+        if (x.pathname.indexOf('/cdn-storage/ozylix%20store/') === 0) return x.pathname + x.search;
+      } catch (_) {}
+      return String(u).indexOf('/cdn-storage/ozylix%20store/') === 0 ? String(u) : '';
     }
     function smCdn(u){ return (typeof cdnImg === 'function') ? cdnImg(u) : smCdnFallback(u); }
     function applySiteMedia(map){
@@ -224,28 +228,12 @@
     // means the hero is built with its images on the first pass: no empty
     // display:none section, no late is-live flip pushing the page down.
     function startSiteMedia(){
-      var cached = smCacheRead();
-      if (cached) {
-        smPreloadHeroOne(cached);
-        applySiteMedia(cached);
-      } else {
-        // No cache — seed just the banner family from the baked-in snapshot.
-        // Deliberately not applySiteMedia(): that publishes __ozylixSiteMedia
-        // as the whole media map, and the snapshot is only a slice of it.
-        var snap = smSnapshot();
-        if (snap) { smPreloadHeroOne(snap); applyAdminImageFamilies(snap); }
-      }
-      // With a warm cache the network pass only corrects what is already on
-      // screen, so it can yield to first paint. With no cache the banner has
-      // nothing to show until it lands — fetch straight away.
-      if (cached) {
-        var run = window.requestIdleCallback
-          ? function(fn){ window.requestIdleCallback(fn, {timeout: 1200}); }
-          : function(fn){ setTimeout(fn, 600); };
-        run(refreshSiteMedia);
-      } else {
-        refreshSiteMedia();
-      }
+      // Do not hydrate localStorage or a build-time snapshot: either can keep
+      // deleted media visible after an admin delete. Every image slot starts
+      // empty and is populated only by the current backend response.
+      try { localStorage.removeItem(SM_CACHE_KEY); } catch (_) {}
+      window.__ozylixSiteMedia = {};
+      refreshSiteMedia();
     }
     startSiteMedia();
   })();
