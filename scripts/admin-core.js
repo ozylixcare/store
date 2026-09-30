@@ -63,15 +63,15 @@ let showDeletedProducts = false;
 // ═══════════════════════════════════════════════
 async function doLogin() {
   const user = document.getElementById('loginUser').value.trim();
-  const pass = document.getElementById('loginPass').value.trim();
+  const pass = document.getElementById('loginPass').value;
   const err  = document.getElementById('loginError');
   const btn  = document.getElementById('loginSubmitBtn');
 
-  // ── Step 2: password already matched; the server emailed a 6-digit code
+  // ── Step 2: password already matched; the server emailed a 4-digit code
   //    and is waiting for { nonce, code } to complete the sign-in.
   if (_otpNonce && document.getElementById('otpStep').style.display !== 'none') {
-    const code = document.getElementById('loginOtp').value.replace(/\D/g, '').trim();
-    if (!code) { err.textContent = 'Enter the 6-digit code from your email.'; err.style.display='block'; return; }
+    const code = document.getElementById('loginOtp').value.trim();
+    if (!/^[0-9]{4}$/.test(code)) { err.textContent = 'Enter the 4-digit code from your email.'; err.style.display='block'; return; }
     err.style.display = 'none';
     btn.disabled = true;
     btn.textContent = 'Verifying…';
@@ -85,7 +85,7 @@ async function doLogin() {
       if (!r.ok || !d.token) {
         err.style.background = '';
         err.style.color = '';
-        err.textContent = 'Invalid code.';
+        err.textContent = d.error || 'Invalid code.';
         err.style.display = 'block';
         btn.disabled = false;
         btn.textContent = 'Verify code →';
@@ -143,7 +143,7 @@ async function doLogin() {
         err.style.display = 'none';
         const hint = document.getElementById('otpHint');
         hint.style.display = 'block';
-        hint.textContent = 'A 6-digit code was sent · valid for 5 minutes';
+        hint.textContent = 'A 4-digit code was sent · valid for 5 minutes';
         const otpField = document.getElementById('loginOtp');
         otpField.value = '';
         otpField.focus();
@@ -217,7 +217,7 @@ async function otpResend() {
     const d = await r.json();
     if (d && d.pending_otp && d.nonce) {
       _otpNonce = d.nonce;
-      hint.textContent = 'A fresh 6-digit code was sent · valid for 5 minutes';
+      hint.textContent = 'A fresh 4-digit code was sent · valid for 5 minutes';
       document.getElementById('loginOtp').value = '';
       document.getElementById('loginOtp').focus();
     } else {

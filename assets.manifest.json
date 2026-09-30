@@ -1,7 +1,7 @@
 {
   "scripts/admin-api.js": "be018582db9fc2bf",
   "scripts/admin-audit.js": "c0a5c1df6ee1f178",
-  "scripts/admin-core.js": "b1387872815b4052",
+  "scripts/admin-core.js": "a9f0e6b8e90b3061",
   "scripts/admin-ui.js": "f671762dc3fdd8e9",
   "scripts/auth-core.js": "58ef1d42a66c73e1",
   "scripts/banners.js": "55aec8810aadf299",
@@ -14,5 +14,6 @@
   "styles/admin-palettes.css": "605130aa31169755",
   "styles/admin-reference-os.css": "8a0b389155d89a41",
   "styles/store-account-mobile.css": "a432794dcdf86c4e",
-  "styles/store-main.css": "94db44dea838e9bb"
+  "styles/store-main.css": "94db44dea838e9bb",
+  "styles/store-editorial.css": "3935ac6e4381d205"
 }
