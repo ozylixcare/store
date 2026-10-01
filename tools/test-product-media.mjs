@@ -17,3 +17,21 @@ ctx.mergeBackendProducts([{id:1,price:99}]);
 assert.equal(products[0].image,'https://example.com/new.webp');
 assert.equal(products[0].price,99);
 console.log('Product media regression tests passed');
+
+
+// Public catalog is a complete snapshot; partial admin updates are not.
+ctx.mergeBackendProducts([{id:1,active:true,stock:3}], {fullSnapshot:true});
+assert.equal(products.find(p=>p.id===2)._hidden,true);
+assert.equal(products.find(p=>p.id===2).stock,0);
+ctx.mergeBackendProducts([{id:2,active:true,stock:5,image:'https://example.com/restored.webp'}], {fullSnapshot:true});
+assert.equal(products.find(p=>p.id===2)._hidden,false);
+assert.equal(products.find(p=>p.id===2).stock,5);
+ctx.mergeBackendProducts([{id:2,image:null,images:[],media:[]}]);
+assert.equal(products.find(p=>p.id===2).image,'');
+assert.equal(products.find(p=>p.id===2).allImages.length,0);
+assert.equal(ctx.mergeBackendProducts([{id:'bad'}], {fullSnapshot:true}),false);
+assert.equal(products.find(p=>p.id===2)._hidden,false);
+assert.equal(ctx.mergeBackendProducts(null,{fullSnapshot:true}),false);
+ctx.mergeBackendProducts([], {fullSnapshot:true});
+assert.ok(products.every(p=>p._hidden && p.stock===0));
+console.log('Catalog snapshot tests passed: removal, reactivation, empty catalog, malformed response and cleared media');

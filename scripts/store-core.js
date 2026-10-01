@@ -175,8 +175,20 @@ const API_BASE = 'https://ascovitahealthcare-cell-github-io.onrender.com';
 loadStoreWhatsApp();
 
 // Merge backend product data over static product array — ALL fields synced
-function mergeBackendProducts(backendProducts) {
-  if (!backendProducts || !backendProducts.length) return;
+function mergeBackendProducts(backendProducts, options = {}) {
+  if (!Array.isArray(backendProducts)) return false;
+  if (options.fullSnapshot) {
+    // Only a complete, successful public response can remove catalogue items.
+    if (backendProducts.some(p => !p || !Number.isInteger(Number(p.id)) || Number(p.id) <= 0)) return false;
+    const liveIds = new Set(backendProducts.map(p => Number(p.id)));
+    PRODUCTS.forEach(p => {
+      if (!liveIds.has(Number(p.id))) {
+        p._hidden = true;
+        p.active = false;
+        p.stock = 0;
+      }
+    });
+  }
 
   const parseArr = (val) => {
     if (!val) return [];
@@ -235,6 +247,9 @@ function mergeBackendProducts(backendProducts) {
         p.image = backendMedia[0].url;
         p.image2 = backendMedia[1]?.url || '';
         p.allImages = backendMedia.map(m => m.url);
+      } else if (['media','images','image','image2','image3','image4','image5'].some(key => Object.prototype.hasOwnProperty.call(bp, key))) {
+        // An admin clearing all photos must clear stale browser references too.
+        p.media = []; p.allImages = []; p.image = ''; p.image2 = '';
       }
       // Key Ingredients
       const ki = parseArr(bp.key_ingredients);
@@ -301,6 +316,7 @@ function mergeBackendProducts(backendProducts) {
 
   updateSaleUIVisibility();
   syncProductStructuredData();
+  return true;
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -747,8 +763,8 @@ async function syncProductsFromBackend() {
 
       const data = await r.json();
       const products = data.data || data;
-      if (Array.isArray(products) && products.length) {
-        mergeBackendProducts(products);
+      if (Array.isArray(products)) {
+        if (mergeBackendProducts(products, { fullSnapshot: true }) === false) return;
         // Re-run the stale-cart fix now that live products exist
         // (init ran before the backend sync) and refresh the side
         // cart so stale prices disappear on first paint.
@@ -1644,4 +1660,5 @@ function renderProductCard(p, options = {}){
   const buyNowOnclick = `event.stopPropagation();openProduct(${p.id})`;
   return `<div class="product-card" data-product-id="${p.id}" data-image-state="${mediaState}" style="--card-flavour:${cardFlavour}" onclick="openProduct(${p.id})"><div class="p-img-wrap">${cardMedia}${safeBadge}${mediaBadge} ${maxDisc>0?`<span class="p-disc-badge">${tiers?'Up to ':'-'}${maxDisc}%</span>`:''}<div class="p-actions"><button class="btn-wishlist" onclick="event.stopPropagation();STORE.toggleWishlist(${p.id})" title="Wishlist">♡</button><button class="btn-qadd" onclick="${qAddOnclick}">${qAddLabel}</button></div><div class="p-buyrow"><button class="btn-buynow" onclick="${buyNowOnclick}">⚡ Buy Now</button></div></div><div class="p-info"><div class="p-brand">${safeKicker}</div><div class="p-name">${safeName}</div><div class="p-rating">${ratingDisplay}</div><div class="p-price"><span class="sale-price">${priceDisplay}</span>${(baseMRP&&baseMRP!==baseRate)?`<span class="orig-price">₹${baseMRP.toLocaleString('en-IN')}</span>`:''}</div>${tiers?`<div class="tier-offer-tag">⚡ Up to ${maxDisc.toFixed(maxDisc%1?1:0)}% OFF on larger packs${tiers[0]?.offerType==='buy_get' ? ` · ${esc(tiers[0].label || `Buy ${tiers[0].buyQuantity||1} Get ${tiers[0].freeQuantity||0}`)}` : ''}</div>`:safeOffer}<div class="p-enter" aria-hidden="true">Shop now<svg viewBox="0 0 15 8" fill="none"><path d="M0 4h13M9.5 1L13 4l-3.5 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div></div>`;
 }
+
 
