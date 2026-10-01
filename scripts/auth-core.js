@@ -492,7 +492,7 @@ function showPage(pg) {
   const el = document.getElementById('page-' + pg);
   if (!el) return;
   el.classList.add('active');
-  window.scrollTo({ top:0, behavior:'smooth' });
+  window.scrollTo({ top:0, behavior:'instant' });
   currentPage = pg;
   document.querySelectorAll('.nav-links a').forEach(a => {
     a.classList.toggle('active', a.dataset.page === pg);
@@ -2297,7 +2297,7 @@ function updateCodBtnNote() {
   // The server validates COD against the payable amount after shipping (and
   // performs the final VitaPoints-aware check). Use the same pre-Vita amount
   // here so shipping thresholds do not make the tile disagree with checkout.
-  const payableBeforeVita = net + calcShipping(net);
+  const payableBeforeVita = net + calcShipping(net, 'cod');
   const codAllowed = DELIVERY_POLICY.cod_enabled === true || DELIVERY_POLICY.cod_enabled === 'true';
   const min = Math.max(0, Number(DELIVERY_POLICY.cod_min_order) || 0);
   const max = Math.max(0, Number(DELIVERY_POLICY.cod_max_order) || 0);
@@ -2318,8 +2318,8 @@ function updateCodBtnNote() {
   if (!codAllowed) note.textContent = 'COD is currently unavailable';
   else if (!within && min > 0 && net < min) note.textContent = 'COD available above ₹' + min.toLocaleString('en-IN');
   else if (!within && max > 0) note.textContent = 'COD available up to ₹' + max.toLocaleString('en-IN');
-  else note.textContent = calcShipping(net) === 0 ? '✅ Free COD on your order!' : '+₹' + calcShipping(net) + ' COD charge · Free if order ≥ ₹' + SHIP_THRESHOLD;
-  note.style.color = calcShipping(net) === 0 ? 'var(--st-ok-bg)' : 'rgba(255,255,255,0.85)';
+  else note.textContent = calcShipping(net, 'cod') === 0 ? '✅ Free COD on your order!' : '+₹' + calcShipping(net, 'cod') + ' COD charge · Free if order ≥ ₹' + SHIP_THRESHOLD;
+  note.style.color = calcShipping(net, 'cod') === 0 ? 'var(--st-ok-bg)' : 'rgba(255,255,255,0.85)';
 }
 
 // ══════════════════════════════════════════════
@@ -2353,7 +2353,10 @@ function getOrderTotal() {
   } else if (mixMatchDiscount <= 0 && typeof appliedDiscount !== 'undefined' && appliedDiscount) {
     disc = appliedDiscount.type === 'percent' ? Math.round(sub * appliedDiscount.value / 100) : appliedDiscount.value;
   }
-  return { sub, disc, mixMatchDiscount, paidSubtotal: Math.max(0, sub - disc - mixMatchDiscount) };
+  const paidSubtotal = Math.max(0, sub - disc - mixMatchDiscount);
+  const vita = vitaCheckoutInfo(paidSubtotal);
+  const vitaOff = Math.min(paidSubtotal, Math.max(0, Number(vita.rupees) || 0));
+  return { sub, disc, mixMatchDiscount, paidSubtotal, vitaOff };
 }
 
 function generateOrderId() {
@@ -2465,6 +2468,7 @@ function selPayGateway(el) {
       ? '🔒 Pay via Cashfree'
       : gw === 'gokwik' ? '🔒 Pay via GoKwik' : '💵 Pay COD';
   }
+  if (typeof renderCheckoutSummary === 'function') renderCheckoutSummary();
 }
 function getSelectedGateway() {
   const sel = document.querySelector('#page-checkout .pay-method-compact.selected');
@@ -3171,9 +3175,9 @@ function initiatePayment() {
   const formData = validateCheckoutForm();
   if (!formData) return;
 
-  const { sub, disc, mixMatchDiscount, paidSubtotal } = getOrderTotal();
+  const { sub, disc, mixMatchDiscount, paidSubtotal, vitaOff } = getOrderTotal();
   const ship  = calcShipping(paidSubtotal);
-  const total = paidSubtotal + ship;
+  const total = Math.max(0, paidSubtotal + ship - vitaOff);
   const displayedDiscount = disc + mixMatchDiscount;
 
   const orderId = generateOrderId();
@@ -3523,7 +3527,9 @@ async function handleCashfreeReturn(orderId) {
       orderId, pending.formData, 0, 'cashfree');
   }
 }
+var codOrderInFlight = false;
 async function initiateCOD() {
+  if (codOrderInFlight) return;
   if (DELIVERY_POLICY && DELIVERY_POLICY.store_online === false) {
     showToast('The store is temporarily unavailable for new orders. Please try again shortly.', 'error');
     return;
@@ -3551,12 +3557,13 @@ async function initiateCOD() {
   const formData = validateCheckoutForm();
   if (!formData) return;
 
-  const { sub, disc, mixMatchDiscount } = getOrderTotal();
+  const { paidSubtotal, vitaOff } = getOrderTotal();
   const orderId = generateOrderId();
-  const netSub = sub - disc - (mixMatchDiscount || 0);
+  const netSub = paidSubtotal;
   const codCharge = calcShipping(netSub, 'cod');
-  const codTotal = netSub + codCharge;
+  const codTotal = Math.max(0, netSub + codCharge - vitaOff);
 
+  codOrderInFlight = true;
   // Disable button immediately to prevent double-tap
   const btn = document.getElementById('codBtn');
   if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; btn.innerHTML = '<span>⏳</span> <span>Placing your order...</span>'; }
@@ -3567,6 +3574,7 @@ async function initiateCOD() {
   } catch(err) {
     showToast('❌ Order failed: ' + err.message, 'error');
   } finally {
+    codOrderInFlight = false;
     // MUST be `finally`, not `catch`. finalizeOrder RETURNS (it does not
     // throw) when the order fails to save, so a catch-only reset left the
     // button stuck on "Placing your order..." until a page refresh — and
@@ -3943,63 +3951,10 @@ async function finalizeOrder(orderId, formData, total, method, codCharge, paymen
   const firstName = nameParts[0] || formData.firstName;
   const lastName  = nameParts.slice(1).join(' ') || '.';
 
-  // ── 1. Push to Shiprocket ──────────────────────────────────
+  // Only the server/admin dispatches a persisted order. Never send customer
+  // addresses to the courier or store a success record before confirmation.
   let srOrderId = null, srShipmentId = null, srAwb = null;
   let srStatus = 'Confirmed — Awaiting Dispatch';
-  if (method !== 'demo') {
-    try {
-      const srResp = await fetch(SHIPROCKET_CONFIG.apiBase + '/api/create-shiprocket-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(20000),
-        body: JSON.stringify({
-          order_id: orderId,
-          order_date: new Date().toISOString().slice(0,19).replace('T',' '),
-          pickup_location: SHIPROCKET_CONFIG.pickup_location,
-          billing_customer_name: firstName, billing_last_name: lastName,
-          billing_address: formData.addr1, billing_address_2: formData.addr2 || '',
-          billing_city: formData.city, billing_pincode: formData.pin,
-          billing_state: formData.state, billing_country: 'India',
-          billing_email: formData.email, billing_phone: formData.phone,
-          shipping_is_billing: true, order_items: srItems,
-          payment_method: method === 'cod' ? 'COD' : 'Prepaid', sub_total: total,
-          length: 15, breadth: 10, height: 10,
-          weight: Math.max(0.2, srItems.reduce((s,i)=>s+i.units*0.1,0)),
-        }),
-      });
-      const srData = await srResp.json();
-      if (srResp.ok && srData.order_id) {
-        srOrderId = srData.order_id; srShipmentId = srData.shipment_id; srAwb = srData.awb_code || null;
-        srStatus = 'Pushed to Shiprocket — Ready to Ship 🚚';
-        const trackBtn = document.getElementById('trackOrderBtn');
-        if (trackBtn) { trackBtn.href = srAwb ? 'https://shiprocket.co/tracking/'+srAwb : 'https://shiprocket.in/shipment-tracking/'; trackBtn.style.display='inline-flex'; }
-        const srIdEl = document.getElementById('srOrderId');
-        if (srIdEl) { srIdEl.textContent = srOrderId; const row=document.getElementById('srOrderRow'); if(row) row.style.display='flex'; }
-      } else {
-        // Log the actual error from Shiprocket so we can debug
-        console.error('❌ Shiprocket error:', JSON.stringify(srData));
-        srStatus = 'Order Confirmed — Dispatch Pending (SR: ' + (srData.error || srData.message || 'error') + ')';
-      }
-    } catch(e) { console.error('❌ Shiprocket fetch failed:', e.message); }
-  } else {
-    srStatus = '';
-  }
-
-  // ── 2. Save order locally ──────────────────────────────────
-  try {
-    const orders = JSON.parse(localStorage.getItem('asc_orders') || '[]');
-    orders.push({
-      orderId, srOrderId, srShipmentId, srAwb,
-      date: new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}),
-      customer: `${formData.firstName} ${formData.lastName}`,
-      email: formData.email, phone: formData.phone,
-      userEmail: (getCurrentUser()?.email || formData.email || '').toLowerCase().trim(),
-      address: `${formData.addr1}, ${formData.city}, ${formData.state} - ${formData.pin}`,
-      total, method, items: srItems.map(i=>({name:i.name,qty:i.units,price:i.selling_price})),
-      status: srStatus,
-    });
-    localStorage.setItem('asc_orders', JSON.stringify(orders));
-  } catch(e) {}
 
   // How many VitaPoints the customer chose to redeem. The actual debit
   // happens SERVER-SIDE (vita_redeem, atomic and idempotent per order id)
@@ -4124,6 +4079,10 @@ async function finalizeOrder(orderId, formData, total, method, codCharge, paymen
         // 4xx (bad token, product unavailable, price mismatch) will fail the
         // same way every time — don't burn the remaining retries on it.
         _saveError = result.error || result.message || ('Server returned ' + resp.status);
+        if (resp.status === 401 && method === 'cod') {
+          localStorage.removeItem('asc_jwt');
+          _saveError = 'Your sign-in session has expired. Sign in again to place your order.';
+        }
         if (resp.status >= 400 && resp.status < 500) break;
       } catch (e) {
         _saveError = (e.name === 'TimeoutError' || e.name === 'AbortError')
@@ -4205,7 +4164,7 @@ async function finalizeOrder(orderId, formData, total, method, codCharge, paymen
       invBtn.onclick = function() {
         // Prefer the server-side printable A4 PDF (same document My Account
         // downloads); the already-open HTML preview remains as the fallback.
-        const t = localStorage.getItem('asc_token');
+        const t = localStorage.getItem('asc_jwt') || localStorage.getItem('asc_token');
         const _h = t ? { 'Authorization': 'Bearer ' + t } : {};
         fetchWithTimeout(API_BASE + '/api/orders/' + encodeURIComponent(orderId) + '/pdf', { headers: _h })
           .then(function(r){
@@ -4385,7 +4344,7 @@ async function sendOrderEmail({ orderId, formData, srItems, sub, totalDisc, prom
 // ══════════════════════════════════════════════════════════════
 // INVOICE GENERATOR — Full GST Tax Invoice
 // ══════════════════════════════════════════════════════════════
-function generateInvoice({ orderId, formData, srItems, sub, disc, promoDisc, ship, total, method, srOrderId }) {
+function generateInvoice({ orderId, formData, srItems, sub, disc, promoDisc, ship, total, method, srOrderId, mixMatchDiscount = 0 }) {
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' });
   const invNo = 'INV-' + orderId.replace('AVC-','').replace('DEMO-','D');
@@ -5418,7 +5377,15 @@ function getCurrentUser() {
     // A cached profile is not authentication. Require the server JWT too,
     // otherwise COD can pass the UI login gate and receive a 401 from the
     // protected order endpoint with no Authorization header.
-    return user && localStorage.getItem('asc_jwt') ? user : null;
+    const token = localStorage.getItem('asc_jwt');
+    if (!user || !token) return null;
+    // This is only a UI expiry check; the server still verifies the signature.
+    try {
+      const segment = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      const claims = JSON.parse(atob(segment.padEnd(Math.ceil(segment.length / 4) * 4, '=')));
+      if (!Number.isFinite(claims.exp) || claims.exp * 1000 <= Date.now() + 5000) return null;
+    } catch (_) { return null; }
+    return user;
   } catch(e) { return null; }
 }
 
@@ -8522,5 +8489,6 @@ function vitaSubmitLead() {
 }
 
 // Vita is initialized via the consolidated showPage above
+
 
 
