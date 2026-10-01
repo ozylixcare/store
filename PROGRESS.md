@@ -12,13 +12,13 @@ Validation: new Google-session regression test and all nine pre-existing storefr
 
 PR #5 merged: https://github.com/ozylixcare/store/pull/5. Cloudflare branch build succeeded. No claim of real-account acceptance.
 
-## Checkout login return — IN PROGRESS
+## Checkout login return — CODE FIX MERGED; LIVE ACCEPTANCE PENDING
 
 Changed: login gate and redirect resume in scripts/auth-core.js, rebuilt minified sibling, HTML asset versions, sw.js, manifest and checkout-return regression tests.
 
 The selected COD/prepaid method is persisted before Google redirect. COD resumes COD; prepaid resumes prepaid. Checkout from a cart no longer requires a current product ID. Existing server COD confirmation remains separate from gateway calls.
 
-Validation: checkout-return tests cover both payment methods from product/cart pages, missing sessions and unrelated return contexts. Existing checkout failure/double-tap and Google-session tests pass. Actual COD persistence, delivery eligibility, gateway success/failure and confirmation emails remain unverified without authenticated staging access. PR pending.
+Validation: checkout-return tests cover both payment methods from product/cart pages, missing sessions and unrelated return contexts. Existing checkout failure/double-tap and Google-session tests pass. Actual COD persistence, delivery eligibility, gateway success/failure and confirmation emails remain unverified without authenticated staging access. PR #6 merged: https://github.com/ozylixcare/store/pull/6. Cloudflare branch build succeeded.
 
 ## Remaining issues
 
@@ -37,3 +37,11 @@ Validation: checkout-return tests cover both payment methods from product/cart p
 | Security and final journeys | TODO | Complete review and realistic acceptance tests |
 
 Detailed audit is retained locally; it is not included in this public progress document.
+
+## Resume checkpoint
+
+Next: verify the applied database schema and actual COD order acceptance, then reconcile database/server connections before proceeding to media and product-control fixes.
+
+Supabase installation is confirmed, but database operations are not exposed in the current running tool session. Refresh the tool session before continuing; do not ask the owner to reinstall it. Render access remains unconfirmed. Backend health and public configuration returned HTTP 200. A direct storefront request returned HTTP 403, so deployed page behavior was not verified. No live orders, database mutations, real payments or test emails were sent.
+
+Only the two code fixes above are merged. Remaining issues are still open.
