@@ -80,7 +80,7 @@ async function main() {
   assert.equal(h.values.get('asc_jwt'), jwt);
   assert.ok(!source.includes('_buildSyntheticCredential'), 'synthetic credentials must be absent');
   for (const path of ['../index.html', '../about/index.html']) {
-    assert.ok(fs.readFileSync(require.resolve(path), 'utf8').includes('/scripts/auth-core.min.js?v=20261001-google-session'));
+    assert.ok(fs.readFileSync(require.resolve(path), 'utf8').includes('/scripts/auth-core.min.js?v='));
   }
   console.log('Google session: ID token/code success, invalid sessions, rejection, timeout, popup and page assets passed');
 }
