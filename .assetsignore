@@ -35,3 +35,6 @@ platform_review_report.md
 llms.txt
 scripts/sanity_check.py
 tools/
+
+# Engineering progress is not a storefront asset.
+PROGRESS.md

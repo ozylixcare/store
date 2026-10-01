@@ -5522,20 +5522,20 @@ const _GOOGLE_MAX_RETRIES = 8;
   // redirect_uri MUST byte-for-byte match the one used to request the code
   // (Google rejects the exchange otherwise) — both now derive from the live
   // origin instead of the hardcoded non-resolving ozylix.com.
-  fetch('https://ascovitahealthcare-cell-github-io.onrender.com/api/auth/google-code', {
+  fetchWithTimeout(API_BASE + '/api/auth/google-code', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       code: code,
       redirect_uri: window.location.origin
     })
+  }, 60000)
+  .then(function(r){
+    if (!r.ok) throw new Error('Google sign-in could not be verified.');
+    return r.json();
   })
-  .then(function(r){ return r.json(); })
   .then(function(data) {
-    if (data.error) throw new Error(data.error);
-    // Complete login directly — no race condition with SDK load
-    localStorage.setItem('asc_jwt',  data.token);
-    localStorage.setItem('asc_user', JSON.stringify(data.user));
+    saveVerifiedGoogleSession(data);
     var el = document.getElementById('g-spinner');
     if (el) el.remove();
     // FIX (Aug 2026, owner video report): this handler used to land every
@@ -5617,28 +5617,25 @@ function parseGoogleJWT(token) {
   }
 }
 
-// ── Build a synthetic credential object from OAuth2 userinfo ──
-function _buildSyntheticCredential(profile) {
-  // Encode as a pseudo-JWT so handleGoogleCredential can parse it uniformly
-  const header  = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' })).replace(/=/g,'');
-  const payload = btoa(JSON.stringify({
-    sub:        profile.sub        || profile.id || '',
-    name:       profile.name       || '',
-    email:      profile.email      || '',
-    picture:    profile.picture    || '',
-    given_name: profile.given_name || (profile.name || '').split(' ')[0],
-    email_verified: true,
-    iss: 'https://accounts.google.com',
-    aud: GOOGLE_CLIENT_ID,
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + 3600,
-  })).replace(/=/g,'');
-  return { credential: header + '.' + payload + '.synthetic' };
+// Accept a session only after the backend has verified Google and issued its JWT.
+// This is a browser expiry/shape check; protected APIs verify the signature.
+function saveVerifiedGoogleSession(data) {
+  const token = data && data.token;
+  const user = data && data.user;
+  const claims = typeof token === 'string' ? parseGoogleJWT(token) : null;
+  if (!user || !user.email || !claims || !Number.isFinite(claims.exp) ||
+      claims.exp * 1000 <= Date.now() + 5000 ||
+      String(claims.email || '').toLowerCase() !== String(user.email).toLowerCase()) {
+    throw new Error('Our server could not verify your sign-in. Please try again.');
+  }
+  localStorage.setItem('asc_jwt', token);
+  localStorage.setItem('asc_user', JSON.stringify(user));
+  return user;
 }
 
 // ── Core: called after any successful Google auth (One Tap, popup, or OAuth2) ──
 async function handleGoogleCredential(response) {
-  if (!response || !response.credential) {
+  if (!response || (!response.credential && !response.code)) {
     _showAuthFeedback('error', 'Google sign-in returned no credential. Please try again.');
     return;
   }
@@ -5656,56 +5653,34 @@ async function handleGoogleCredential(response) {
   };
 
   try {
-    // Parse the JWT locally first so we always have user data
-    const payload = parseGoogleJWT(response.credential);
-    if (!payload || !payload.email) {
-      throw new Error('Invalid credential payload');
-    }
-
-        // Attempt backend verification.
-    let backendUser = null;
-    let backendJwt  = null;
-    // A real server JWT is REQUIRED for the order to save — a local-only
-    // Google profile (no asc_jwt) would pass the front-end login gate but
-    // the order POST would then be rejected 401 and lost. Render free-tier
-    // cold starts can take 30-60s, so retry with growing timeouts before
-    // ever giving up: the customer waiting on the sign-in button will
-    // happily wait longer than the 8s that silently doomed their order.
-    const googleRetryTimeouts = [8000, 15000, 30000];
-    for (let attempt = 0; attempt < googleRetryTimeouts.length; attempt++) {
-      if (attempt > 0) await new Promise(r => setTimeout(r, 1500 * attempt));
+    const isCode = Boolean(response.code);
+    const endpoint = isCode ? '/api/auth/google-code' : '/api/auth/google';
+    const body = isCode
+      ? { code: response.code, redirect_uri: window.location.origin }
+      : { credential: response.credential };
+    // Authorization codes are single use: never replay after an ambiguous timeout.
+    const timeouts = isCode ? [60000] : [8000, 15000, 30000];
+    let session = null;
+    for (let attempt = 0; attempt < timeouts.length; attempt++) {
+      if (attempt > 0) await new Promise(resolve => setTimeout(resolve, 1500 * attempt));
+      let res;
       try {
-        const res = await fetchWithTimeout(API_BASE + '/api/auth/google', {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ credential: response.credential }),
-        }, googleRetryTimeouts[attempt]);
-        if (res.ok) {
-          const data = await res.json();
-          backendUser = data.user;
-          backendJwt  = data.token;
-          break;   // success — stop retrying
-        } else {
-          console.warn('[Ozylix Auth] Backend returned', res.status, 'on attempt', attempt + 1);
-        }
-      } catch (backendErr) {
-        console.warn('[Ozylix Auth] Backend unreachable on attempt', attempt + 1, ':', backendErr.message);
+        res = await fetchWithTimeout(API_BASE + endpoint, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        }, timeouts[attempt]);
+      } catch (err) {
+        if (attempt + 1 === timeouts.length) throw err;
+        continue;
       }
+      if (!res.ok) {
+        if (res.status >= 500 && attempt + 1 < timeouts.length) continue;
+        throw new Error('Google sign-in could not be verified. Please try again.');
+      }
+      session = await res.json();
+      break;
     }
-
-    // Build user object — backend data wins, local payload is the fallback
-    const user = backendUser || {
-      name:    payload.name       || 'Google User',
-      email:   payload.email      || '',
-      picture: payload.picture    || '',
-      social:  'google',
-      sub:     payload.sub        || '',
-      verified: true,
-    };
-
-    // Persist session
-    if (backendJwt) localStorage.setItem('asc_jwt', backendJwt);
-    localStorage.setItem('asc_user', JSON.stringify(user));
+    const user = saveVerifiedGoogleSession(session);
 
     // Update UI
     closeAuth();
@@ -5713,8 +5688,7 @@ async function handleGoogleCredential(response) {
     updateAccountNavBtn();
     autofillCheckoutFromGoogle(user);
     const firstName = (user.name || 'there').split(' ')[0];
-    const isNew = payload.iat && (Date.now() / 1000 - payload.iat) < 10;
-    showToast('🌿 ' + (isNew ? 'Welcome, ' : 'Welcome back, ') + firstName + '!');
+    showToast('🌿 Welcome back, ' + firstName + '!');
     // Resume a blocked checkout payment flow if the sign-in was triggered from checkout
     resumeCheckoutIfWaiting();
     // Navigate to account unless mid-checkout or mid-review (see postLoginRedirect)
@@ -5766,7 +5740,7 @@ function _tryOneTap() {
   }
 }
 
-// ── Strategy 2: OAuth2 token popup → userinfo endpoint (desktop) or redirect (mobile/Safari) ──
+// ── Strategy 2: authorization code popup (desktop) or redirect (mobile/Safari) ──
 function _isMobileBrowser() {
   return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 }
@@ -5809,34 +5783,25 @@ function _tryOAuth2Popup() {
     return;
   }
 
-  // Desktop: popup flow is fine
+  // Google issues a real authorization code; the backend exchanges and verifies it.
   try {
-    const client = google.accounts.oauth2.initTokenClient({
+    const client = google.accounts.oauth2.initCodeClient({
       client_id: GOOGLE_CLIENT_ID,
       scope: 'openid profile email',
-      prompt: 'select_account',
-      callback: async (tokenResponse) => {
-        if (tokenResponse.error) {
-          console.warn('[Ozylix Auth] OAuth2 error:', tokenResponse.error);
-          if (tokenResponse.error !== 'access_denied') {
-            _showAuthFeedback('error', 'Google sign-in was cancelled.');
-          }
+      ux_mode: 'popup',
+      select_account: true,
+      callback: async (codeResponse) => {
+        if (codeResponse.error || !codeResponse.code) {
+          _showAuthFeedback('error', 'Google sign-in was cancelled or could not be completed.');
           return;
         }
-        try {
-          const profileRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: { Authorization: 'Bearer ' + tokenResponse.access_token }
-          });
-          if (!profileRes.ok) throw new Error('userinfo fetch failed: ' + profileRes.status);
-          const profile = await profileRes.json();
-          await handleGoogleCredential(_buildSyntheticCredential(profile));
-        } catch(e) {
-          console.error('[Ozylix Auth] OAuth2 userinfo error:', e);
-          _showAuthFeedback('error', 'Could not retrieve Google profile. Please try again.');
-        }
-      }
+        await handleGoogleCredential({ code: codeResponse.code });
+      },
+      error_callback: () => {
+        _showAuthFeedback('error', 'Google sign-in could not open or was closed. Please try again.');
+      },
     });
-    client.requestAccessToken();
+    client.requestCode();
   } catch(e) {
     console.error('[Ozylix Auth] OAuth2 popup error:', e);
     _showAuthFeedback('error', 'Google sign-in failed. Please use email login.');
