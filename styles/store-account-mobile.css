@@ -376,3 +376,15 @@ body:not(.oz-product) #stickyCart { display: none !important; }
   #page-account .account-nav-copy strong { font-size:.56rem; }
   #page-account .account-nav-item { padding-left:2px; padding-right:2px; }
 }
+
+
+/* Compact promise cards, retaining the existing theme and desktop layout. */
+@media (max-width:600px) {
+  #page-home .trust-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:16px 0; }
+  #page-home .trust-tile { padding:12px 6px; border-radius:12px; min-width:0; }
+  #page-home .trust-tile .tt-ico { font-size:1.15rem; margin-bottom:4px; }
+  #page-home .trust-tile .tt-lbl { font-size:.65rem; line-height:1.35; letter-spacing:0; overflow-wrap:anywhere; }
+}
+@media (hover:none) {
+  #page-home .trust-tile:hover { transform:none; }
+}

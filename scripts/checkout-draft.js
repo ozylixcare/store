@@ -11,6 +11,12 @@
 ═══════════════════════════════════════════════════════════════ */
 (function () {
   const POS_KEY = 'ozylix-position';
+  let userInteracted = false;
+  ['pointerdown', 'touchstart', 'wheel', 'keydown'].forEach(function (name) {
+    window.addEventListener(name, function () { userInteracted = true; }, { passive: true, once: true });
+  });
+  const BOOT_PATH = location.pathname;
+  const BOOT_HASH = location.hash;
 
   const MAX_AGE_MS = 60 * 60 * 1000; // ignore positions older than 1 hour
 
@@ -123,6 +129,7 @@
 
   // ── Restore ──
   function restorePosition() {
+    if (userInteracted || BOOT_HASH) return;
   
     if (new URLSearchParams(location.search).get('fresh')) { clearPosition(); return; }
     // Prefer the synchronous parse-time snapshot; fall back to a fresh read.
@@ -130,16 +137,7 @@
     if (!state || typeof state !== 'object') {
       try { state = JSON.parse(localStorage.getItem(POS_KEY) || 'null'); } catch (e) { return; }
     }
-    if (!state || typeof state !== 'object') {
-      // Chromium re-hydrates localStorage only AFTER script execution on
-      // reload, so reads can be null for the first seconds. Retry up to ~4s.
-      if (!restorePosition.__retry) restorePosition.__retry = 0;
-      if (restorePosition.__retry < 8) {
-        restorePosition.__retry++;
-        setTimeout(restorePosition, 500);
-      }
-      return;
-    }
+    if (!state || typeof state !== 'object') return;
     if (Date.now() - (state.at || 0) > MAX_AGE_MS) { clearPosition(); return; }
 
     const qs = new URLSearchParams(location.search);
@@ -150,12 +148,14 @@
     // router replaces ?p= with a clean URL before restore ever runs.
     const deepLink = bootParams.get('p') || qs.get('p');
     const deepPage = deepLink ? String(deepLink).replace(/^\//, '').split('/')[0] : '';
-    const pathPage = (location.pathname.replace(/\/+$/, '') || '/').replace(/^\//, '').split('/')[0];
+    const pathPage = (BOOT_PATH.replace(/\/+$/, '') || '/').replace(/^\//, '').split('/')[0];
     // Deep-link rule: an intentional URL (e.g. /product/xyz, /blog/abc, /shop
     // or ?p=...) wins EXCEPT when it is exactly the page the shopper left —
     // in that case this is a reload of their own session, not a fresh deep
     // link, so resume their saved position (section, category, scroll and all).
-    const targetPage = pathPage || deepPage;
+    const targetPage = deepPage || pathPage;
+    // A product URL identifies a specific product, not merely the product page.
+    if (targetPage === 'product' || targetPage === 'blog') return;
     if (targetPage && state.page !== targetPage && VALID_PAGES.filter(function (p) {
         return p !== 'cart' && p !== 'checkout' && p !== 'thankyou' && p !== 'orders' && p !== 'account' && p !== 'login';
       }).indexOf(targetPage) >= 0) {
@@ -176,8 +176,8 @@
     // Sections — these run after the page has a moment to render.
     // Some sections (shop grid, checkout summary) render asynchronously, so
     // the sub-section restores retry a few times before giving up.
-    let _restoreTries = 0;
     (function _restoreSections() {
+      if (userInteracted) return;
       try {
         // Shop category — the app's own showPage('shop') resets the category
         // to 'all', so re-apply the saved pick after rendering settles.
@@ -224,14 +224,14 @@
           if (target) { try { (typeof selPayGateway === 'function' ? selPayGateway : selPayMethod)(target); } catch (e) {} }
         }
       } catch (e) { console.warn('[ozylix-position] sections:', e && e.message); }
-      if (_restoreTries < 6) { _restoreTries++; setTimeout(_restoreSections, 450); }
     })();
 
     // Scroll — wait for render, then jump (skip for pages that must open at top,
     // e.g. checkout always opens at the top of the form for safety)
     if (state.scroll > 0 && page !== 'checkout' && page !== 'thankyou') {
       setTimeout(function () {
-        try { window.scrollTo({ top: state.scroll, behavior: 'auto' }); } catch (e) {}
+        if (userInteracted) return;
+        try { window.scrollTo({ top: state.scroll, behavior: 'instant' }); } catch (e) {}
       }, 900);
     }
   }
@@ -295,11 +295,8 @@
     document.addEventListener('DOMContentLoaded', function () { scheduleRestore(900); });
     window.addEventListener('pageshow', function (ev) {
       if (ev.persisted) {
-        // bfcache restores the JS state from the earlier page load, where
-        // restorePosition was already scheduled once — reset the flag so the
-        // restored session resumes again instead of skipping it.
-        _restoreScheduled = false;
-        scheduleRestore(400);
+        // The browser already restored the document and its scroll position.
+        userInteracted = true;
       }
     });
   } else {
@@ -335,3 +332,4 @@
     });
   } catch (e) {}
 })();
+

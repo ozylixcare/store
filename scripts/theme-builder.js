@@ -305,7 +305,7 @@
             var ico = tiles[i].querySelector('.tt-ico');
             var lbl = tiles[i].querySelector('.tt-lbl');
             if (ico && it.icon !== undefined) ico.textContent = it.icon;
-            if (lbl && it.label !== undefined) lbl.innerHTML = esc(it.label);
+            if (lbl && it.label !== undefined) lbl.innerHTML = String(it.label).split(/<br\s*\/?\s*>/i).map(esc).join('<br>');
           }
         });
       }
@@ -400,4 +400,5 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { applyStyleCss(); applyStyleCssAfterDelay(); loadContent(); });
   else { applyStyleCss(); applyStyleCssAfterDelay(); loadContent(); }
 })();
+
 
