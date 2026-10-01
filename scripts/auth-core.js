@@ -3171,7 +3171,7 @@ function initiatePayment() {
     }
   }
   // LOGIN GATE: orders can only be placed by signed-in customers.
-  if (!getCurrentUser()) { requireLoginForCheckout(function(){ initiatePayment(); }); return; }
+  if (!getCurrentUser()) { requireLoginForCheckout(function(){ initiatePayment(); }, 'prepaid'); return; }
   const formData = validateCheckoutForm();
   if (!formData) return;
 
@@ -3553,7 +3553,7 @@ async function initiateCOD() {
     }
   }
   // LOGIN GATE: orders can only be placed by signed-in customers.
-  if (!getCurrentUser()) { requireLoginForCheckout(function(){ initiateCOD(); }); return; }
+  if (!getCurrentUser()) { requireLoginForCheckout(function(){ initiateCOD(); }, 'cod'); return; }
   const formData = validateCheckoutForm();
   if (!formData) return;
 
@@ -5555,31 +5555,7 @@ const _GOOGLE_MAX_RETRIES = 8;
       try { updateAccountNavBtn(); } catch(e) {}
       var name = ((data.user && data.user.name) || 'there').split(' ')[0];
       try { showToast('🌿 Welcome back, ' + name + '!'); } catch(e) {}
-      if (_retFresh && _ret && (_ret.page === 'product' || _ret.page === 'checkout') && _ret.productId) {
-        try {
-          // Open the product with the previously selected tier (selectedTiers
-          // was restored from localStorage at module load above, so the
-          // widget builds with the right pack and price already chosen).
-          openProduct(_ret.productId);
-          if (typeof refreshStickyCart === 'function') refreshStickyCart();
-          if (_ret.intent === 'checkout_payment') {
-            // _checkoutResumeCb (the in-memory "re-run initiatePayment" cb)
-            // does not survive the full-page redirect, so rebuild the flow:
-            // go to checkout → let the page render → autofill from the just-
-            // logged-in profile → initiatePayment() which now finds the user
-            // signed in and continues straight to the secure payment modal.
-            setTimeout(function() {
-              try { showPage('checkout'); } catch(e) {}
-              setTimeout(function() {
-                var _u = null; try { _u = getCurrentUser(); } catch(e) {}
-                if (_u) { try { autofillCheckoutFromGoogle(_u); } catch(e) {} }
-                try { if (typeof initiatePayment === 'function') initiatePayment(); } catch(e) { console.warn('[Auth] payment resume failed', e); }
-              }, 400);
-            }, 600);
-          }
-          return;
-        } catch(e) { console.warn('[Auth] return-to product navigation failed', e); }
-      }
+      if (_retFresh && resumeCheckoutAfterRedirect(_ret)) return;
       try { showPage('account'); loadAccountPage(); } catch(e) {}
     }
     if (document.readyState === 'loading') {
@@ -5843,8 +5819,33 @@ function socialLogin(provider) {
 // So the two order paths (initiatePayment / initiateCOD) refuse to run
 // unless asc_jwt exists, and resume automatically once sign-in finishes.
 // ══════════════════════════════════════════════════════════
+// Redirects lose in-memory callbacks. Resume only the customer's selected flow.
+function resumeCheckoutAfterRedirect(context) {
+  if (!context || !['product', 'checkout'].includes(context.page)) return false;
+  if (context.intent !== 'checkout_payment') {
+    if (!context.productId) return false;
+    openProduct(context.productId);
+    if (typeof refreshStickyCart === 'function') refreshStickyCart();
+    return true;
+  }
+  // A cart checkout need not have a current product or productId.
+  if (context.page === 'product' && context.productId) {
+    openProduct(context.productId);
+    if (typeof refreshStickyCart === 'function') refreshStickyCart();
+  }
+  showPage('checkout');
+  setTimeout(function() {
+    const user = getCurrentUser();
+    if (!user) { openAuth('login'); return; }
+    autofillCheckoutFromGoogle(user);
+    if (context.paymentMethod === 'cod') initiateCOD();
+    else initiatePayment();
+  }, 400);
+  return true;
+}
+
 var _checkoutResumeCb = null;
-function requireLoginForCheckout(resumeCb) {
+function requireLoginForCheckout(resumeCb, paymentMethod = 'prepaid') {
   if (getCurrentUser()) return false;   // already signed in
   _checkoutResumeCb = resumeCb || null;
   // FIX (Aug 2026, owner video report): the mobile Google sign-in runs as a
@@ -5858,6 +5859,7 @@ function requireLoginForCheckout(resumeCb) {
       page: currentPage || 'checkout',
       productId: (typeof currentProduct !== 'undefined' && currentProduct) ? currentProduct.id : null,
       intent: 'checkout_payment',
+      paymentMethod: paymentMethod === 'cod' ? 'cod' : 'prepaid',
       at: Date.now(),
     }));
   } catch(e) {}
