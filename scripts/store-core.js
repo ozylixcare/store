@@ -1255,30 +1255,39 @@ if (document.readyState === 'loading') {
   loadProductRatings();
 }
 
+const REVIEW_REQUEST_VERSION = {};
+const REVIEW_REQUEST_PENDING = {};
 async function loadProductReviews(productId) {
-  try {
-    const response = await fetch(`${API_BASE}/api/public-reviews?product_id=${encodeURIComponent(productId)}`, {
-      headers: { Accept: 'application/json' },
-      credentials: 'omit',
-    });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(payload.error || `Review request failed (${response.status})`);
-    REVIEWS[productId] = (Array.isArray(payload.reviews) ? payload.reviews : []).map(r => ({
-      id: r.id, user: r.user_name, rating: r.rating, text: r.review_text,
-      date: r.created_at, verified: r.verified
-    }));
-  } catch (e) {
-    console.error('[loadProductReviews] Supabase error:', JSON.stringify(e, Object.getOwnPropertyNames(e||{})), e);
-    // Supabase not reachable / table not set up yet — show an honest
-    // "no reviews yet" state rather than fake filler text.
-    REVIEWS[productId] = REVIEWS[productId] || [];
-  } finally {
-    REVIEWS_LOADED[productId] = true;
-    // If the shopper is currently looking at this exact product, refresh the tab in place.
-    if (currentProduct && currentProduct.id === productId) {
-      try { buildProductPage(currentProduct); } catch(e) {}
+  if (REVIEW_REQUEST_PENDING[productId]) return REVIEW_REQUEST_PENDING[productId];
+  const version = (REVIEW_REQUEST_VERSION[productId] || 0) + 1;
+  REVIEW_REQUEST_VERSION[productId] = version;
+  const task = (async () => {
+    try {
+      const response = await fetch(`${API_BASE}/api/public-reviews?product_id=${encodeURIComponent(productId)}`, {
+        headers: { Accept: 'application/json' }, credentials: 'omit', cache: 'no-store',
+        signal: AbortSignal.timeout(20000),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Reviews are temporarily unavailable');
+      if (REVIEW_REQUEST_VERSION[productId] !== version) return;
+      REVIEWS[productId] = (Array.isArray(payload.reviews) ? payload.reviews : []).map(r => ({
+        id: r.id, user: r.user_name, rating: Number(r.rating), text: r.review_text,
+        date: r.created_at, verified: r.verified
+      }));
+      REVIEWS_LOADED[productId] = true;
+      if (typeof refreshProductReviewUI === 'function') refreshProductReviewUI(productId);
+    } catch (e) {
+      if (REVIEW_REQUEST_VERSION[productId] !== version) return;
+      if (currentProduct?.id === productId && !REVIEWS_LOADED[productId]) {
+        const wrap = document.getElementById('rvListWrap');
+        if (wrap) wrap.innerHTML = '<p>Reviews could not load. <button type="button" onclick="loadProductReviews(' + Number(productId) + ')">Retry</button></p>';
+      }
+    } finally {
+      delete REVIEW_REQUEST_PENDING[productId];
     }
-  }
+  })();
+  REVIEW_REQUEST_PENDING[productId] = task;
+  return task;
 }
 
 const STORE = {
@@ -1660,4 +1669,5 @@ function renderProductCard(p, options = {}){
   const buyNowOnclick = `event.stopPropagation();openProduct(${p.id})`;
   return `<div class="product-card" data-product-id="${p.id}" data-image-state="${mediaState}" style="--card-flavour:${cardFlavour}" onclick="openProduct(${p.id})"><div class="p-img-wrap">${cardMedia}${safeBadge}${mediaBadge} ${maxDisc>0?`<span class="p-disc-badge">${tiers?'Up to ':'-'}${maxDisc}%</span>`:''}<div class="p-actions"><button class="btn-wishlist" onclick="event.stopPropagation();STORE.toggleWishlist(${p.id})" title="Wishlist">♡</button><button class="btn-qadd" onclick="${qAddOnclick}">${qAddLabel}</button></div><div class="p-buyrow"><button class="btn-buynow" onclick="${buyNowOnclick}">⚡ Buy Now</button></div></div><div class="p-info"><div class="p-brand">${safeKicker}</div><div class="p-name">${safeName}</div><div class="p-rating">${ratingDisplay}</div><div class="p-price"><span class="sale-price">${priceDisplay}</span>${(baseMRP&&baseMRP!==baseRate)?`<span class="orig-price">₹${baseMRP.toLocaleString('en-IN')}</span>`:''}</div>${tiers?`<div class="tier-offer-tag">⚡ Up to ${maxDisc.toFixed(maxDisc%1?1:0)}% OFF on larger packs${tiers[0]?.offerType==='buy_get' ? ` · ${esc(tiers[0].label || `Buy ${tiers[0].buyQuantity||1} Get ${tiers[0].freeQuantity||0}`)}` : ''}</div>`:safeOffer}<div class="p-enter" aria-hidden="true">Shop now<svg viewBox="0 0 15 8" fill="none"><path d="M0 4h13M9.5 1L13 4l-3.5 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div></div>`;
 }
+
 
