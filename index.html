@@ -410,6 +410,20 @@
   #statsMarquee .sm-dot { background: var(--indigo, #c0394a); box-shadow: 0 0 6px rgba(192,57,74,.35); }
 </style>
 
+<style id="mobile-promise-compact">
+  /* Compact trust cards on phones only; desktop keeps the full-size layout. */
+  @media (max-width: 480px) {
+    .promise-section { padding-top: 0 !important; }
+    .promise-section .sec-head { margin: 5px 0 0 !important; }
+    .promise-section .section-label { font-size: .52rem; letter-spacing: .09em; margin-bottom: 5px; }
+    .promise-section .section-title { font-size: 1.02rem !important; line-height: 1.1; margin-bottom: 0; }
+    .promise-section .trust-grid { gap: 5px; margin: 8px 0; }
+    .promise-section .trust-tile { padding: 6px 3px; border-radius: 10px; }
+    .promise-section .trust-tile .tt-ico { font-size: .98rem; margin-bottom: 2px; }
+    .promise-section .trust-tile .tt-lbl { font-size: .53rem; line-height: 1.12; letter-spacing: .01em; }
+  }
+</style>
+
 <style>
   .app-download-header { background: radial-gradient(circle at 50% 0%, rgba(214,238,222,.9), transparent 58%); }
   .app-download-kicker { color: var(--green, #3d755a); font-size: .72rem; font-weight: 800; letter-spacing: .16em; margin-bottom: 10px; }
