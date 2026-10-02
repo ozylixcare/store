@@ -1303,6 +1303,7 @@ const STORE = {
       // price on every page load (and right after the Google sign-in
       // redirect). If the product isn't known yet, leave the entry alone;
       // the catalog-sync re-run below catches it once data exists.
+      const p = PRODUCTS.find(x => x.id === it.id);
       if (!p) return;
       // Tier-less entries on a tiered product are stale (added via
       // upsells/recommendations without a pack choice). Apply the
@@ -1313,7 +1314,6 @@ const STORE = {
         if (t2 && t2.length) { const first = t2[0]; it.tierIdx = 0; it.tierRate = first.rate; it.tierMRP = first.mrp; it.tierDisc = first.discountPct || 0; it.tierTabs = first.tabs; changed = true; }
         return;
       }
-      const p = PRODUCTS.find(x => x.id === it.id);
       const tiers = (typeof getProductTiers === 'function') ? getProductTiers(p) : null;
       const tier = tiers && Array.isArray(tiers) ? tiers[it.tierIdx] : null;
       if (tier && tier.rate !== undefined && tier.rate !== it.tierRate) {
@@ -1660,5 +1660,4 @@ function renderProductCard(p, options = {}){
   const buyNowOnclick = `event.stopPropagation();openProduct(${p.id})`;
   return `<div class="product-card" data-product-id="${p.id}" data-image-state="${mediaState}" style="--card-flavour:${cardFlavour}" onclick="openProduct(${p.id})"><div class="p-img-wrap">${cardMedia}${safeBadge}${mediaBadge} ${maxDisc>0?`<span class="p-disc-badge">${tiers?'Up to ':'-'}${maxDisc}%</span>`:''}<div class="p-actions"><button class="btn-wishlist" onclick="event.stopPropagation();STORE.toggleWishlist(${p.id})" title="Wishlist">♡</button><button class="btn-qadd" onclick="${qAddOnclick}">${qAddLabel}</button></div><div class="p-buyrow"><button class="btn-buynow" onclick="${buyNowOnclick}">⚡ Buy Now</button></div></div><div class="p-info"><div class="p-brand">${safeKicker}</div><div class="p-name">${safeName}</div><div class="p-rating">${ratingDisplay}</div><div class="p-price"><span class="sale-price">${priceDisplay}</span>${(baseMRP&&baseMRP!==baseRate)?`<span class="orig-price">₹${baseMRP.toLocaleString('en-IN')}</span>`:''}</div>${tiers?`<div class="tier-offer-tag">⚡ Up to ${maxDisc.toFixed(maxDisc%1?1:0)}% OFF on larger packs${tiers[0]?.offerType==='buy_get' ? ` · ${esc(tiers[0].label || `Buy ${tiers[0].buyQuantity||1} Get ${tiers[0].freeQuantity||0}`)}` : ''}</div>`:safeOffer}<div class="p-enter" aria-hidden="true">Shop now<svg viewBox="0 0 15 8" fill="none"><path d="M0 4h13M9.5 1L13 4l-3.5 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div></div>`;
 }
-
 
