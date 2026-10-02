@@ -1398,6 +1398,34 @@ function renderProductReviewList(pid) {
   wrap.innerHTML = html;
 }
 
+function refreshProductReviewUI(pid) {
+  const rows = REVIEWS[pid] || [];
+  const avg = rows.length ? rows.reduce((sum, r) => sum + Number(r.rating), 0) / rows.length : null;
+  PRODUCT_RATINGS[pid] = { avg, count: rows.length };
+  if (!currentProduct || currentProduct.id !== pid) return;
+  renderProductReviewList(pid);
+  const root = document.getElementById('productDetail');
+  if (!root) return;
+  const label = root.querySelector('.prod-rating-row .review-ct');
+  if (label) label.textContent = '(' + rows.length + ' reviews)';
+  const row = root.querySelector('.prod-rating-row');
+  if (row) row.innerHTML = (avg === null ? '<span>No ratings yet</span>' : stars(avg)) +
+    ' <span class="review-ct">(' + rows.length + ' reviews)</span> <span class="write-rv" onclick="document.getElementById(\'rvFormWrap\').scrollIntoView({behavior:\'smooth\'})">Write a Review</span>';
+  const tab = root.querySelector('[onclick*="rvs"]');
+  if (tab) tab.textContent = 'Reviews (' + rows.length + ')';
+  const summary = root.querySelector('.rv-summary');
+  if (summary) {
+    summary.querySelector('.rv-big-num').textContent = avg === null ? '—' : avg.toFixed(1);
+    const count = summary.querySelector('.rating-big > div:last-child');
+    if (count) count.textContent = rows.length + ' reviews';
+    summary.querySelectorAll('.rv-bar-row').forEach((bar, index) => {
+      const pct = rows.length ? rows.filter(r => Math.round(r.rating) === 5 - index).length / rows.length * 100 : 0;
+      bar.querySelector('.rv-bar-fill').style.width = pct + '%';
+      bar.lastElementChild.textContent = Math.round(pct) + '%';
+    });
+  }
+}
+
 // ── PRODUCT PAGE ──
 // ══════════════════════════════════════════════════════════════════════
 // EDUCATIONAL GALLERY — product page (Aug 2026)
@@ -1938,117 +1966,58 @@ function previewRating(v) {
 function clearRatingPreview() {
   document.querySelectorAll('#starPicker span').forEach(s => s.classList.remove('hover-lit'));
 }
+let reviewSubmissionPending = false;
 async function submitReview() {
+  if (reviewSubmissionPending) return;
   const user = getCurrentUser();
   if (!user) { openAuth('login'); return; }
-  const name = (user.name || 'Ozylix Customer').trim();
-  const rvTextInput = document.getElementById('rvText');
-  const starPicker = document.getElementById('starPicker');
-  const text = rvTextInput?.value.trim();
-
-  // Clear any stale error state before re-checking
-  rvTextInput?.classList.remove('field-error');
-  starPicker?.classList.remove('field-error');
-
-  const missingText = !text;
-  const missingRating = !selectedRating;
-  if (missingText || missingRating) {
-    if (missingText) { rvTextInput?.classList.add('field-error'); rvTextInput?.focus(); }
-    if (missingRating) {
-      starPicker?.classList.add('field-error');
-      // restart the shake if it's already mid-animation from a previous attempt
-      if (starPicker) { starPicker.style.animation = 'none'; void starPicker.offsetWidth; starPicker.style.animation = ''; }
-    }
-    const msg = missingText && missingRating
-      ? 'Please write your experience and select a star rating!'
-      : missingText
-        ? 'Please write a few words about your experience!'
-        : 'Please select a star rating!';
-    showToast(msg, 'error');
+  const input = document.getElementById('rvText');
+  const text = input?.value.trim();
+  const rating = Number(selectedRating);
+  if (!text || !Number.isInteger(rating) || rating < 1 || rating > 5) {
+    showToast('Please write your experience and select a star rating.', 'error');
     return;
   }
   if (!currentProduct) return;
-
+  const product = { id: currentProduct.id, name: currentProduct.name };
+  const jwt = localStorage.getItem('asc_jwt') || '';
+  if (!jwt) { openAuth('login'); return; }
   const btn = document.querySelector('#rvFormWrap .btn-primary');
-  if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
-
+  reviewSubmissionPending = true;
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving review…'; }
   try {
-    // Submits through the backend now, not a direct Supabase insert.
-    // The RLS policy that used to allow anonymous inserts (no purchase
-    // check, and it didn't even restrict the verified/status columns —
-    // anyone could mark their own review "verified") has been removed.
-    // The backend checks this customer actually has an order containing
-    // the product before the review is created at all.
-    const jwt = localStorage.getItem('asc_jwt') || '';
-    if (!jwt) { openAuth('login'); if (btn) { btn.disabled = false; btn.textContent = 'Submit Review 🌱'; } return; }
-
-    // ── OPTIMISTIC ──────────────────────────────────────────────
-    // Show the review immediately. Waiting for the round trip meant
-    // pressing Submit and watching a disabled button for a second or
-    // more with nothing else happening — long enough to wonder whether
-    // it worked, which is how people end up submitting twice.
-    //
-    // The form is cleared and the reviews tab opened right away too, so
-    // the whole action reads as done. Everything needed to undo it is
-    // captured first: the id to find the row by, and the text and rating
-    // to put back in the form if the server refuses.
-    const pid = currentProduct.id;
-    const tempId = 'tmp-' + Date.now();
-    const keptRating = selectedRating;
-
-    if (!Array.isArray(REVIEWS[pid])) REVIEWS[pid] = [];
-    REVIEWS[pid].unshift({
-      id: tempId, _tempId: tempId, _pending: true,
-      user: name, rating: keptRating, text: text,
-      date: new Date().toISOString(), verified: false,
-    });
-    REVIEWS_LOADED[pid] = true;
-    const rvClear = document.getElementById('rvText'); if (rvClear) rvClear.value = '';
-    setRating(0);
-    try { buildProductPage(currentProduct); } catch (err) {}
-    switchTab(document.querySelectorAll('.tab')[2], 'rvs');
-
     const resp = await fetch(API_BASE + '/api/reviews', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
-      body: JSON.stringify({
-        product_id: currentProduct.id,
-        product_name: currentProduct.name || '',
-        user_name: name,
-        rating: selectedRating,
-        review_text: text,
-      }),
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + jwt },
+      body: JSON.stringify({ product_id: product.id, product_name: product.name || '',
+        user_name: user.name || 'Ozylix Customer', rating, review_text: text }),
       signal: AbortSignal.timeout(20000),
     });
     const result = await resp.json();
-    if (!resp.ok) throw new Error(result.error || 'Could not submit review');
-
-    // Re-fetch the authoritative list from Supabase rather than
-    // trusting our own optimistic copy — guarantees what's shown
-    // matches what's actually stored in SQL.
-    REVIEWS_LOADED[currentProduct.id] = false;
-    await loadProductReviews(currentProduct.id);
-    showToast('Review submitted! Thank you 🌿');
+    if (!resp.ok) throw new Error(result.error || 'Could not save your review');
+    if (!result.ok || !result.review?.id) throw new Error('The server did not confirm the save. Please retry.');
+    const r = result.review;
+    // Only show a review after the database write is confirmed. Invalidate
+    // any read started before this save so it cannot overwrite the new row.
+    REVIEW_REQUEST_VERSION[product.id] = (REVIEW_REQUEST_VERSION[product.id] || 0) + 1;
+    const saved = { id: r.id, user: r.user_name, rating: Number(r.rating),
+      text: r.review_text, date: r.created_at, verified: !!r.verified };
+    REVIEWS[product.id] = [saved, ...(REVIEWS[product.id] || []).filter(x => String(x.id) !== String(saved.id))];
+    REVIEWS_LOADED[product.id] = true;
+    _reviewsBatchDone = null;
+    _loadProductRatingsDone = null;
+    FEATURED_REVIEWS_CACHE = null;
+    if (currentProduct?.id === product.id) {
+      if (document.getElementById('rvText') === input) { input.value = ''; setRating(0); }
+      refreshProductReviewUI(product.id);
+    }
+    showToast('Review saved. Thank you 🌿');
   } catch (e) {
-    console.error('[submitReview] error:', e);
-    // ROLLBACK. The review was shown the instant they pressed submit, so
-    // it has to visibly come back out again — and the text has to be
-    // returned to the box, because losing what someone just wrote is a
-    // far worse failure than the slow submit this replaced.
-    const list = REVIEWS[pid];
-    if (Array.isArray(list)) {
-      const i = list.findIndex(r => r._tempId === tempId);
-      if (i > -1) list.splice(i, 1);
-    }
-    if (currentProduct && currentProduct.id === pid) {
-      try { buildProductPage(currentProduct); } catch (err) {}
-    }
-    const rvBack = document.getElementById('rvText');
-    if (rvBack && !rvBack.value) rvBack.value = text;
-    setRating(keptRating);   // puts the stars back too, not just the words
-
-    showToast('↩️ ' + (e.message || "Couldn't submit your review — please try again in a moment."), 'error');
+    // Keep the original text and stars available for retry; never claim a
+    // failed or timed-out request has been stored.
+    showToast(e.message || 'Could not confirm the save. Please retry.', 'error');
   } finally {
+    reviewSubmissionPending = false;
     if (btn) { btn.disabled = false; btn.textContent = 'Submit Review 🌱'; }
   }
 }
@@ -2568,7 +2537,7 @@ async function loadReviewsBatch() {
   _reviewsBatchDone = (async () => {
     const response = await fetch(API_BASE + '/api/public-reviews', {
       headers: { Accept: 'application/json' },
-      credentials: 'omit',
+      credentials: 'omit', cache: 'no-store',
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(payload.error || `Review request failed (${response.status})`);
@@ -2590,7 +2559,7 @@ async function loadReviewsBatch() {
       id: r.id, productId: r.product_id, productName: r.product_name,
       user: r.user_name, rating: r.rating, text: r.review_text, date: r.created_at
     }));
-  })().catch(() => []);
+  })().catch(() => { _reviewsBatchDone = null; return []; });
   return _reviewsBatchDone;
 }
 
@@ -8456,6 +8425,7 @@ function vitaSubmitLead() {
 }
 
 // Vita is initialized via the consolidated showPage above
+
 
 
 
