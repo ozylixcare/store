@@ -3,57 +3,14 @@
 // Place this file in ROOT of your GitHub Pages repo
 // ============================================================
 
-// Bumped v7 -> v8 to force-purge every stale cache.
-//
-// Documents are network-first below, so an online visitor normally gets
-// fresh HTML. But the cache fallback fires whenever fetch() REJECTS — and
-// on patchy mobile data that happens often. A phone that cached
-// index.html back when the drawer scroll-lock bug was still in it could
-// therefore be handed that frozen copy again on any flaky load, long
-// after the fix went live. That is indistinguishable, to the person
-// holding the phone, from the fix never having shipped.
-//
-// The activate handler deletes every cache whose key !== CACHE_NAME, so
-// changing this string is what actually evicts the bad copy from devices
-// already carrying it. Bump it on any deploy that fixes a page-breaking
-// bug — a fix nobody can receive is not shipped.
-const CACHE_NAME = 'ozylix-pwa-v39';
+// Release v40 removes cached application shells and code from older installs.
+// Keep only offline UI and media in Cache Storage.
+const CACHE_NAME = 'ozylix-pwa-v40';
 const OFFLINE_URL = '/offline.html';
 
-// Files to cache on install (your core pages)
-// index.html is now modular: core JS lives in external scripts/ modules
-// (security, tracking, seo-core in head; shop, promo-data at body end).
-// They are cacheable so offline fallbacks stay consistent.
-const CORE_FILES = [
-  '/manifest.json',
-  '/',
-  '/index.html',
-  '/shop',
-  '/advisor',
-  '/about',
-  '/contact',
-  '/faq',
-  '/offline.html',
-  // cache.addAll rejects the whole batch if a single entry 404s, so every
-  // path below must exist.
-  '/assets/ozylix-logo.png',
-  '/assets/ozylix-mark.svg',
-  '/assets/favicon.svg',
-  '/assets/ozylix-icon-192.png',
-  '/assets/ozylix-icon-512.png',
-  // Storefront CSS, extracted out of index.html (Aug 2026 perf pass). The
-  // page is unstyled offline without these, so they belong in the core set.
-  '/styles/store-main.min.css?v=20261001-3',
-  '/styles/store-account-mobile.min.css?v=20261001-3',
-  '/scripts/security.js',
-  '/scripts/tracking.js',
-  '/scripts/seo-core.min.js?v=20261001-3',
-  '/scripts/shop.js',
-  '/scripts/promo-data.js',
-  '/scripts/store-core-20261001-cart.min.js',
-  '/scripts/auth-core.min.js?v=20261001-checkout-return',
-  '/scripts/cart-utils.js'
-];
+// Only cache a self-contained offline screen and icons. Cached application
+// shells and mutable scripts can mix releases after a deployment.
+const CORE_FILES = [OFFLINE_URL, '/assets/ozylix-icon-192.png', '/assets/ozylix-icon-512.png'];
 
 // ── INSTALL: cache core files ──
 self.addEventListener('install', event => {
@@ -61,7 +18,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       return cache.addAll(CORE_FILES).catch(err => {
-        // If some files fail (e.g. /shop not a static file), continue anyway
+        // Installation can continue if an offline asset is unavailable.
         console.warn('[Ozylix SW] Some files not cached:', err);
       });
     })
@@ -103,7 +60,7 @@ self.addEventListener('activate', event => {
 // added a service-worker round trip to every image.
 //
 // Rule 2: same-origin. Documents are network-first so content is fresh;
-// static assets are cache-first so repeat views are instant.
+// application code always revalidates; media assets can use the device cache.
 self.addEventListener('fetch', event => {
   const { request } = event;
 
@@ -140,18 +97,22 @@ self.addEventListener('fetch', event => {
 
   const isDocument = request.mode === 'navigate' || request.destination === 'document';
 
-  // Rule 2a — documents: network first, cache as backup.
+  // Application code must never use a previous release from Cache Storage
+  // or from an old immutable browser-cache entry. This also repairs devices
+  // which received the former one-year immutable policy.
+  const isAppCode = request.destination === 'script' || request.destination === 'style' ||
+    /\.(?:m?js|css)$/.test(url.pathname);
+  if (isAppCode) {
+    event.respondWith(fetch(request, { cache: 'no-cache' }).catch(() => Response.error()));
+    return;
+  }
+
+  // Documents always revalidate. Offline visits get the offline screen, never an old shop.
   if (isDocument) {
     event.respondWith(
-      fetch(request)
-        .then(response => {
-          remember(response);
-          return response;
-        })
+      fetch(request, { cache: 'no-cache' })
         .catch(async () => {
-          return (await caches.match(request))
-              || (await caches.match('/index.html'))
-              || (await caches.match(OFFLINE_URL))
+          return (await caches.match(OFFLINE_URL))
               || new Response('<h1>Offline</h1>', { status: 503, headers: { 'Content-Type': 'text/html' } });
         })
     );
