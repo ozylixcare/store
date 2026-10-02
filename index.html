@@ -390,21 +390,23 @@
      stylesheet becomes active; otherwise it first paints centered and then
      jumps left when the final CSS loads. -->
 <style id="hero-critical-overrides">
-  #shaderHero .shader-hero-inner { text-align: left; }
-  #shaderHero .shader-cta-row { justify-content: flex-start; }
+  #shaderHero .shader-hero-inner { text-align: center; }
+  #shaderHero .shader-cta-row { justify-content: center; }
 </style>
 <link rel="stylesheet" href="/styles/store-main.min.css?v=20261001-3" media="print" onload="this.media='all';this.onload=null">
 <noscript><link rel="stylesheet" href="/styles/store-main.min.css?v=20261001-3"></noscript>
 <style id="hero-restore-overrides">
-  /* Restored to the earlier Ozylix homepage presentation. */
-  #shaderHero .shader-hero-inner { text-align: left; }
-  #shaderHero .shader-cta-row { justify-content: flex-start; }
-  /* The mobile storefront reference uses a centered hero lockup while the
-     wider layout keeps the restored editorial left alignment. */
-  @media (max-width: 768px) {
-    #shaderHero .shader-hero-inner { text-align: center; }
-    #shaderHero .shader-cta-row { justify-content: center; }
-  }
+  /* Use the compact centered storefront hero consistently on every device. */
+  #shaderHero .shader-hero-inner { text-align: center; }
+  #shaderHero .shader-hero { min-height: auto !important; padding: 14px 0 18px !important; }
+  #shaderHero .sh-line-2,
+  #shaderHero .sh-line-3 { font-size: clamp(1.05rem, 4.6vw, 1.4rem); line-height: 1.15; }
+  #shaderHero .shader-sub { display: none; }
+  #shaderHero .shader-badge { font-size: .625rem; letter-spacing: .09em; padding: 7px 14px 7px 11px; margin-bottom: 4px; }
+  #shaderHero .shader-badge-line { display: none; }
+  #shaderHero .shader-cta-row { justify-content: center; }
+  #shaderHero .shader-btn-primary,
+  #shaderHero .shader-btn-ghost { padding: 10px 22px; font-size: .8rem; }
   #statsMarquee { background: var(--paper, #f5f3f4); color: var(--t-mid, #5a5560); }
   #statsMarquee .sm-item { color: var(--t-mid, #5a5560); }
   #statsMarquee .sm-dot { background: var(--indigo, #c0394a); box-shadow: 0 0 6px rgba(192,57,74,.35); }
