@@ -399,6 +399,12 @@
   /* Restored to the earlier Ozylix homepage presentation. */
   #shaderHero .shader-hero-inner { text-align: left; }
   #shaderHero .shader-cta-row { justify-content: flex-start; }
+  /* The mobile storefront reference uses a centered hero lockup while the
+     wider layout keeps the restored editorial left alignment. */
+  @media (max-width: 768px) {
+    #shaderHero .shader-hero-inner { text-align: center; }
+    #shaderHero .shader-cta-row { justify-content: center; }
+  }
   #statsMarquee { background: var(--paper, #f5f3f4); color: var(--t-mid, #5a5560); }
   #statsMarquee .sm-item { color: var(--t-mid, #5a5560); }
   #statsMarquee .sm-dot { background: var(--indigo, #c0394a); box-shadow: 0 0 6px rgba(192,57,74,.35); }
