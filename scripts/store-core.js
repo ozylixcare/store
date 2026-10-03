@@ -33,7 +33,7 @@ function setCustomerWhatsAppNumber(value) {
 }
 
 function loadStoreWhatsApp() {
-  const base = (typeof API_BASE !== 'undefined') ? API_BASE : 'https://ascovitahealthcare-cell-github-io.onrender.com';
+  const base = (typeof API_BASE !== 'undefined') ? API_BASE : 'https://backend-s7ih.onrender.com';
   return fetchWithTimeout(base + '/api/public/store-config', { headers: { 'Accept': 'application/json' } }, 4500)
     .then(function (response) { return response.ok ? response.json() : null; })
     .then(function (payload) {
@@ -171,7 +171,7 @@ function fetchWithTimeout(url, options, ms) {
 // BACKEND CONNECTION — Supabase via Render API
 // Admin changes (products, stock, coupons) reflect here live
 // ══════════════════════════════════════════════════════════════
-const API_BASE = 'https://ascovitahealthcare-cell-github-io.onrender.com';
+const API_BASE = 'https://backend-s7ih.onrender.com';
 loadStoreWhatsApp();
 
 // Merge backend product data over static product array — ALL fields synced

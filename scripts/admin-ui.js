@@ -371,7 +371,7 @@ const STORE_ED_PICKERS = [
 // ── Draft = the in-flight theme (palette + layout + fonts). Kept in
 //    localStorage so a reload does not lose an unsaved edit. ────────────
 const STORE_ED_DRAFT_KEY = 'ozylix_theme';
-const STORE_ED_THEME_API = 'https://ascovitahealthcare-cell-github-io.onrender.com/api/public/theme';
+const STORE_ED_THEME_API = 'https://backend-s7ih.onrender.com/api/public/theme';
 
 function storeEdDefaultDraft() {
   const pal = STORE_ED_PALETTES.find(x => x.default);
@@ -599,7 +599,7 @@ window.showPage = function (page) {
 // will drive the live site once the storefront's loader is updated.
 // ═══════════════════════════════════════════════════════════════
 const STORE_ED_CONTENT_KEY = 'ozylix_content_draft';
-const STORE_ED_CONTENT_API = 'https://ascovitahealthcare-cell-github-io.onrender.com/api/public/content';
+const STORE_ED_CONTENT_API = 'https://backend-s7ih.onrender.com/api/public/content';
 const STORE_ED_CONTENT_STORE = 'ozylix';
 
 // ── Live defaults: the copy currently hard-coded in the storefront.

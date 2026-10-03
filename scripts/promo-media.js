@@ -97,7 +97,7 @@
       if (section) section.style.display = 'none';
 
       // Load only admin-managed, backend-verified media.
-      var base = (typeof API_BASE !== 'undefined') ? API_BASE : 'https://ascovitahealthcare-cell-github-io.onrender.com';
+      var base = (typeof API_BASE !== 'undefined') ? API_BASE : 'https://backend-s7ih.onrender.com';
       // The backend is a free Render instance that can be asleep; without a
       // deadline this request can sit open for 30s holding a connection.
       var ctl = ('AbortController' in window) ? new AbortController() : null;

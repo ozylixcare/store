@@ -20,7 +20,7 @@ if (!AbortSignal.timeout) {
 // ═══════════════════════════════════════════════
 // CONFIG
 // ═══════════════════════════════════════════════
-const API = 'https://ascovitahealthcare-cell-github-io.onrender.com';
+const API = 'https://backend-s7ih.onrender.com';
 let authToken = sessionStorage.getItem('ozylix_token') || '';
 let allOrders = [], allProducts = [], allCustomers = [], allDiscounts = [], allPayments = [];
 
@@ -6850,7 +6850,7 @@ Current business data:
 - Customers: ${statsSnap.totalCustomers}
 - Pending Orders: ${statsSnap.pendingOrders}
 - Low Stock Products: ${statsSnap.lowStock}
-- Backend: https://ascovitahealthcare-cell-github-io.onrender.com
+- Backend: https://backend-s7ih.onrender.com
 
 Products: ${allProducts.slice(0,5).map(p=>p.name+'(₹'+p.price+')').join(', ')}
 
@@ -7382,7 +7382,7 @@ const INTEGRATIONS = [
     checkUrl: () => `${API}/health`,
     checkAuth: false,
     setupSteps: [
-      'Backend already deployed at ozylix-github-io.onrender.com',
+      'Backend already deployed at backend-s7ih.onrender.com',
       'Set all env variables in Render → Environment tab',
       'Free tier sleeps after 15 min — upgrade to avoid cold starts',
       'Connect GitHub for auto-deploy on push'
