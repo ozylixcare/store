@@ -133,7 +133,7 @@ import { isCdnRequest, handleCdnRequest } from './image-cdn.js';
 const SITE_MEDIA_URL = 'https://backend-s7ih.onrender.com/api/site-media';
 const SITE_MEDIA_EDGE_TTL = 60; // seconds — admin changes visible within 1 min
 const SITE_MEDIA_STALE_TTL = 31536000; // serve stale up to 1 year while refreshing
-const SITE_MEDIA_CACHE_KEY = new Request('https://ozylix-cdn/edge/site-media-ascovita-temporary', { method: 'GET' });
+const SITE_MEDIA_CACHE_KEY = new Request('https://ozylix-cdn/edge/site-media-backend-s7ih-v2', { method: 'GET' });
 
 // Response-level protections for Worker-generated public pages and JSON. The
 // matching _headers file covers static assets that bypass this Worker.
