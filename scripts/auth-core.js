@@ -5604,7 +5604,10 @@ async function handleGoogleCredential(response) {
       ? { code: response.code, redirect_uri: window.location.origin }
       : { credential: response.credential };
     // Authorization codes are single use: never replay after an ambiguous timeout.
-    const timeouts = isCode ? [60000] : [8000, 15000, 30000];
+    // One Tap token verification may cold-start the backend and Google can
+    // take several seconds to answer on mobile. The old 8-second first try
+    // expired at the same time as the backend breaker and rejected valid login.
+    const timeouts = isCode ? [60000] : [35000, 60000];
     let session = null;
     for (let attempt = 0; attempt < timeouts.length; attempt++) {
       if (attempt > 0) await new Promise(resolve => setTimeout(resolve, 1500 * attempt));
@@ -8425,7 +8428,6 @@ function vitaSubmitLead() {
 }
 
 // Vita is initialized via the consolidated showPage above
-
 
 
 
