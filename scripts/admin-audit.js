@@ -838,6 +838,8 @@ if (typeof _auditOrigShowPage === 'function') {
         why === 'idle'     ? 'Signed out after 60 minutes of inactivity. Please sign in again.' :
         why === 'invalid-signature' ? 'The server could not verify this session’s signature — this usually means the JWT_SECRET environment variable on Render was changed or reset. Ask the developer to re-set the same JWT_SECRET in Render and restart the service, then sign in again.' :
         why === 'token-version-mismatch' ? 'The server says this session was deliberately revoked. Sign in again — if it repeats, the owner has suspended or reset this account.' :
+        why === 'token-version-missing' ? 'The server received a session without its security version. Please sign in again; if this repeats immediately, the backend deployment is not synchronized.' :
+        why === 'no-token' ? 'The browser sent no session token to the server. Please close this tab, reopen the admin panel, and sign in again.' :
         why === 'rejected' ? 'The server rejected your session. Sign in again — the server now auto-heals freshly minted tokens (v9.4.1+), so a bounce straight after signing in should not repeat; if it still does, check that this device’s clock is correct.'
                            : 'Your 1-hour session expired. Please sign in again.';
     }
@@ -1126,4 +1128,3 @@ async function azLoadPerms() {
   function escAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
   function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 })();
-
