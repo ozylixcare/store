@@ -3496,6 +3496,15 @@ async function handleCashfreeReturn(orderId) {
       orderId, pending.formData, 0, 'cashfree');
   }
 }
+function recoverCodSignIn() {
+  localStorage.removeItem('asc_jwt');
+  localStorage.removeItem('asc_user');
+  updateAccountNavBtn();
+  if (typeof hideProcessingScreen === 'function') hideProcessingScreen();
+  requireLoginForCheckout(function () { initiateCOD(); }, 'cod');
+  showAuthError('Your session is no longer valid on the store server. Sign in again to continue your COD order.');
+}
+
 var codOrderInFlight = false;
 async function initiateCOD() {
   if (codOrderInFlight) return;
@@ -3949,7 +3958,7 @@ async function finalizeOrder(orderId, formData, total, method, codCharge, paymen
   let _savedOrder = null;
   let _saveError = null;
   try {
-    const _jwt = localStorage.getItem('asc_jwt') || '';
+    let _jwt = localStorage.getItem('asc_jwt') || '';
     const isOnlinePayment = (method !== 'cod');
     const orderPayload = {
       id: orderId,
@@ -4049,8 +4058,11 @@ async function finalizeOrder(orderId, formData, total, method, codCharge, paymen
         // same way every time — don't burn the remaining retries on it.
         _saveError = result.error || result.message || ('Server returned ' + resp.status);
         if (resp.status === 401 && method === 'cod') {
-          localStorage.removeItem('asc_jwt');
-          _saveError = 'Your sign-in session has expired. Sign in again to place your order.';
+          const latestToken = localStorage.getItem('asc_jwt') || '';
+          if (latestToken && latestToken !== _jwt) { _jwt = latestToken; continue; }
+          recoverCodSignIn();
+          return; // authentication failed before any order write; keep the cart
+
         }
         if (resp.status >= 400 && resp.status < 500) break;
       } catch (e) {
@@ -5537,6 +5549,12 @@ const _GOOGLE_MAX_RETRIES = 8;
     console.error('[Auth] redirect exchange failed:', e.message);
     var el = document.getElementById('g-spinner');
     if (el) el.remove();
+    function showRedirectFailure() {
+      openAuth('login');
+      showAuthError('Google sign-in could not finish. Please try again or sign in with email. Your cart is safe.');
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showRedirectFailure, { once: true });
+    else showRedirectFailure();
   });
 })();
 
@@ -8425,6 +8443,7 @@ function vitaSubmitLead() {
 }
 
 // Vita is initialized via the consolidated showPage above
+
 
 
 
