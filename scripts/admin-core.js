@@ -392,7 +392,10 @@ async function apiFetch(path, opts={}) {
     // So: re-read the token from storage, and if it still looks valid,
     // try the request ONCE more before giving up.
     var stored = sessionStorage.getItem('ozylix_token') || '';
-    if (!authToken && stored && !tokenIsExpired(stored)) {
+    // Safari can keep this page alive while another tab (or a successful
+    // re-login after a cold start) writes a replacement token. The old
+    // `!authToken` guard skipped recovery when the stale token was non-empty.
+    if (stored && !tokenIsExpired(stored) && stored !== authToken) {
       authToken = stored;
       opts.headers = Object.assign({}, opts.headers || {});
       opts.headers['Authorization'] = 'Bearer ' + authToken;
@@ -8809,4 +8812,3 @@ async function geminiSend() {
     console.error('Gemini error:', e);
   }
 }
-
