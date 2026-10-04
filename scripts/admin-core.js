@@ -244,26 +244,39 @@ async function otpResend() {
 // twice per keypress, which with the new per-account lockout would have
 // burned two of the five allowed attempts on every single typo.
 // Shared success path entered after a successful password login.
-function __loginSuccess(d) {
-  sessionStorage.setItem('ozylix_token', d.token); // persist the fresh token
+async function __loginSuccess(d) {
+  authToken = d.token;
+  sessionStorage.setItem('ozylix_token', d.token);
   sessionStorage.setItem('ozylix_role', d.role || 'admin');
-  // Cache the session identity so the UI can hide owner/staff features
-  // instantly, without a round trip on every render.
-  try { apiFetch('/api/admin/me').then(m => {
-    if (m && !m.error) localStorage.setItem('ozylix_session', JSON.stringify({
-      username: m.username, role: m.role, is_owner: !!m.is_owner,
-      permissions: m.permissions, denied: m.denied,
-      security: m.security || null,
-    }));
-  }).catch(() => {}); } catch(e) {}
-  try { localStorage.removeItem('ozylix_logout_reason'); } catch(e) {}
-  document.getElementById('loginError').style.display = 'none';
-  const submitBtn = document.getElementById('loginSubmitBtn');
-  if (submitBtn) submitBtn.textContent = '✅ Logged in!';
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  applyRole(d.role);
-  initApp();
+  await startVerifiedAdminSession();
+}
+
+async function startVerifiedAdminSession() {
+  const token = authToken;
+  if (!token) return;
+  try {
+    // Validate the saved/new session before launching dashboard requests.
+    const response = await apiFetch('/api/admin/me');
+    const identity = await response.json();
+    if (!response.ok) throw new Error(identity.error || 'Could not verify the admin session.');
+    if (authToken !== token) return;
+    if (!identity || identity.error) throw new Error(identity?.error || 'Could not verify the admin session.');
+    localStorage.setItem('ozylix_session', JSON.stringify(identity));
+    localStorage.removeItem('ozylix_logout_reason');
+    document.getElementById('loginError').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    applyRole(identity.role || sessionStorage.getItem('ozylix_role'));
+    initApp();
+  } catch (error) {
+    if (authToken !== token) return; // rejected session already handled by apiFetch
+    const el = document.getElementById('loginError');
+    el.textContent = 'Unable to verify your admin session. Please retry sign-in.';
+    el.style.display = 'block';
+  } finally {
+    const btn = document.getElementById('loginSubmitBtn');
+    if (btn) { btn.disabled = false; btn.textContent = 'Sign In →'; }
+  }
 }
 
 function doLogout() {
@@ -327,6 +340,8 @@ async function apiFetch(path, opts={}) {
       return apiFetch(path, nextOpts);
     });
   }
+  if (!authToken) throw new Error('Sign in to access the admin panel.');
+  let requestToken = authToken;
   const headers = {'Content-Type':'application/json', 'Authorization':`Bearer ${authToken}`, ...(opts.headers||{})};
   const requestOpts = {...opts};
   delete requestOpts.__skipPasswordGate;
@@ -395,8 +410,9 @@ async function apiFetch(path, opts={}) {
     // Safari can keep this page alive while another tab (or a successful
     // re-login after a cold start) writes a replacement token. The old
     // `!authToken` guard skipped recovery when the stale token was non-empty.
-    if (stored && !tokenIsExpired(stored) && stored !== authToken) {
+    if (stored && !tokenIsExpired(stored) && stored !== requestToken) {
       authToken = stored;
+      requestToken = stored;
       opts.headers = Object.assign({}, opts.headers || {});
       opts.headers['Authorization'] = 'Bearer ' + authToken;
       headers.Authorization = 'Bearer ' + authToken;
@@ -405,28 +421,8 @@ async function apiFetch(path, opts={}) {
         if (rr.ok || rr.status !== 401) return rr;
       } catch (e) { /* fall through to a real logout below */ }
     }
-    // ── FIX (mobile session bounce): a token minted moments ago that
-    // gets a 401 is almost never a real revocation — it is the transient
-    // token-version race between the panel's startup burst and the
-    // server's in-memory cache (Render instance churn / a brief DB
-    // blip). Revocation is a rare, deliberate owner action; the panel
-    // must never kick an admin out of a session that is seconds old.
-    // A freshly minted token (a 60-minute session with more than 55
-    // minutes of life left) gets one extra attempt after a short
-    // backoff — by then the server's own self-heal has resynced its
-    // cache and the retry succeeds. Genuinely revoked sessions still
-    // log out on the second refusal.
-    var freshExp = tokenExpiryMs(stored || authToken);
-    var tokenFresh = freshExp > 0 && (freshExp - Date.now()) > 55 * 60_000;
-    if (tokenFresh && !window.__freshTokenRetryDone) {
-      window.__freshTokenRetryDone = true;   // bound to once per session
-      try {
-        await new Promise(res => setTimeout(res, 1500));
-        var retry = await fetch(`${API}${path}`, { ...requestOpts, headers, signal: AbortSignal.timeout(30000) });
-        if (retry.ok || retry.status !== 401) { delete window.__freshTokenRetryDone; return retry; }
-      } catch (e) { /* fall through to a real logout below */ }
-      delete window.__freshTokenRetryDone;
-    }
+    // An old in-flight response must never clear a replacement session.
+    if (authToken !== requestToken) throw new Error('Previous session request was rejected. Please retry.');
     try {
       if (!localStorage.getItem('ozylix_logout_reason')) {
         localStorage.setItem('ozylix_logout_reason',
@@ -638,12 +634,7 @@ if (authToken && tokenIsExpired(authToken)) {
   sessionStorage.removeItem('ozylix_token');
   authToken = '';
 }
-if(authToken) {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  applyRole(sessionStorage.getItem('ozylix_role'));
-  initApp();
-}
+if (authToken) startVerifiedAdminSession();
 
 // Redraw canvas charts on window resize
 window.addEventListener('resize', () => {
@@ -8812,3 +8803,4 @@ async function geminiSend() {
     console.error('Gemini error:', e);
   }
 }
+

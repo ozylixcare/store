@@ -84,7 +84,7 @@ const ADMIN_SECRET_PATH = '/ops-console-8f3d2c.html';
 const ADMIN_ENTRY = new Set([ADMIN_SECRET_PATH]);
 const ADMIN_LEGACY_PATHS = new Set(['/','/admin','/admin/','/admin.html']);
 const PUBLIC_LEGACY_ADMIN_PATHS = new Set(['/admin','/admin/','/admin.html']);
-const ADMIN_CSP = "default-src 'none'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://accounts.google.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://sdk.cashfree.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://syayxfxyqnnvmvrjoxyw.supabase.co https://frwsjgrrtzhjfflcdjjs.supabase.co https://wyvpuafzirwlwweifzao.supabase.co https://i.ibb.co https://ozylix.imgbb.com https://images.unsplash.com; media-src 'self' blob: https://syayxfxyqnnvmvrjoxyw.supabase.co https://frwsjgrrtzhjfflcdjjs.supabase.co https://wyvpuafzirwlwweifzao.supabase.co; connect-src 'self' https://backend-s7ih.onrender.com https://syayxfxyqnnvmvrjoxyw.supabase.co https://frwsjgrrtzhjfflcdjjs.supabase.co https://wyvpuafzirwlwweifzao.supabase.co https://accounts.google.com https://www.googleapis.com https://analytics.google.com https://sdk.cashfree.com http://localhost:* http://127.0.0.1:*; frame-src 'self' about:blank https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';";
+const ADMIN_CSP = "default-src 'none'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://accounts.google.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://sdk.cashfree.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://syayxfxyqnnvmvrjoxyw.supabase.co https://frwsjgrrtzhjfflcdjjs.supabase.co https://wyvpuafzirwlwweifzao.supabase.co https://i.ibb.co https://ozylix.imgbb.com https://images.unsplash.com; media-src 'self' blob: https://syayxfxyqnnvmvrjoxyw.supabase.co https://frwsjgrrtzhjfflcdjjs.supabase.co https://wyvpuafzirwlwweifzao.supabase.co; connect-src 'self' https://backend-s7ih.onrender.com https://syayxfxyqnnvmvrjoxyw.supabase.co https://frwsjgrrtzhjfflcdjjs.supabase.co https://wyvpuafzirwlwweifzao.supabase.co https://accounts.google.com https://www.googleapis.com https://analytics.google.com https://sdk.cashfree.com http://localhost:* http://127.0.0.1:*; frame-src 'self' https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';";
 
 // Never let the admin hostname into a search index, whatever it serves.
 function noIndex(res) {
@@ -309,4 +309,5 @@ export default {
 
 // Exported for the local routing test; ignored by the Workers runtime.
 export { isSpaPath, ADMIN_HOST, ADMIN_ENTRY, handleSiteMedia };
+
 
