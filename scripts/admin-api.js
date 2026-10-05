@@ -1096,10 +1096,21 @@ if (typeof _mktOrigShowPage === 'function') {
   var BEH_TABS = ['behaviour', 'segments', 'journeys', 'recovery', 'automations', 'attribution'];
 
   function api(path, opts) {
-    return fetch(window.MARKETING_BACKEND_URL + '/api/dash' + path, opts)
+    var init = Object.assign({}, opts || {});
+    if (!init.signal && typeof AbortSignal !== 'undefined' && AbortSignal.timeout) {
+      init.signal = AbortSignal.timeout(30000);
+    }
+    return fetch(window.MARKETING_BACKEND_URL + '/api/dash' + path, init)
       .then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
+        return r.text().then(function (raw) {
+          var body = null;
+          try { body = raw ? JSON.parse(raw) : null; } catch (_) {}
+          if (!r.ok) {
+            var message = body && (body.error || body.message);
+            throw new Error(message || ('Marketing service returned HTTP ' + r.status));
+          }
+          return body || {};
+        });
       });
   }
 
@@ -1227,14 +1238,15 @@ if (typeof _mktOrigShowPage === 'function') {
     })['catch'](function (e) { fail('beh-health', e); });
 
     api('/live').then(function (d) {
-      if (!d.visitors.length) {
+      var visitors = Array.isArray(d.visitors) ? d.visitors : [];
+      if (!visitors.length) {
         document.getElementById('beh-live').innerHTML = '<p class="mkt-empty">Nobody on the site right now.</p>';
         return;
       }
       document.getElementById('beh-live').innerHTML =
         '<table class="mkt-table"><thead><tr><th>Intent</th><th>Visitor</th><th>On page</th>' +
         '<th>Source</th><th>Device</th><th>Views</th><th>Time</th><th></th></tr></thead><tbody>' +
-        d.visitors.map(function (v) {
+        visitors.map(function (v) {
           return '<tr>' +
             '<td>' + scoreChip(v.intent_score) + '</td>' +
             '<td>' + esc(v.email || 'Anonymous') +
@@ -1251,14 +1263,15 @@ if (typeof _mktOrigShowPage === 'function') {
     })['catch'](function (e) { fail('beh-live', e); });
 
     api('/products').then(function (d) {
-      if (!d.products.length) {
+      var products = Array.isArray(d.products) ? d.products : [];
+      if (!products.length) {
         document.getElementById('beh-products').innerHTML = '<p class="mkt-empty">No product interest recorded yet.</p>';
         return;
       }
       document.getElementById('beh-products').innerHTML =
         '<table class="mkt-table"><thead><tr><th>Product</th><th>People</th><th>Views</th><th>Carts</th>' +
         '<th>Purchases</th><th>View→Cart</th><th>Cart→Buy</th></tr></thead><tbody>' +
-        d.products.slice(0, 25).map(function (p) {
+        products.slice(0, 25).map(function (p) {
           // A low view→cart rate on a well-viewed product is the clearest
           // signal in this whole panel: the traffic is there, the page or
           // the price is not converting it.
@@ -1281,13 +1294,14 @@ if (typeof _mktOrigShowPage === 'function') {
 
   window.mktLoadSegments = function () {
     api('/segments').then(function (d) {
-      if (!d.segments.length) {
+      var segments = Array.isArray(d.segments) ? d.segments : [];
+      if (!segments.length) {
         document.getElementById('seg-grid').innerHTML =
           '<p class="mkt-empty">No segments yet — run the migration and let the engine tick once.</p>';
         return;
       }
       document.getElementById('seg-grid').innerHTML = '<div class="mkt-seg-grid">' +
-        d.segments.map(function (s) {
+        segments.map(function (s) {
           return '<div class="mkt-seg-card" onclick="mktLoadSegmentMembers(\'' + esc(s.key) + '\',\'' + esc(s.name) + '\')">' +
             '<div class="mkt-seg-count">' + num(s.member_count) + '</div>' +
             '<div style="font-weight:700;font-size:13.5px;margin-bottom:3px;">' + esc(s.name) + '</div>' +
@@ -1300,7 +1314,7 @@ if (typeof _mktOrigShowPage === 'function') {
       var filter = document.getElementById('seg-customer-segment');
       if (filter) {
         var selected = filter.value;
-        filter.innerHTML = '<option value="">All segments</option>' + d.segments.map(function (s) {
+        filter.innerHTML = '<option value="">All segments</option>' + segments.map(function (s) {
           return '<option value="' + esc(s.key) + '">' + esc(s.name) + '</option>';
         }).join('');
         filter.value = selected;
@@ -1422,11 +1436,12 @@ if (typeof _mktOrigShowPage === 'function') {
     var el = document.getElementById('jrn-results');
     el.innerHTML = '<p class="mkt-empty">Loading…</p>';
     api('/scores').then(function (d) {
-      if (!d.top_intent.length) {
+      var topIntent = Array.isArray(d.top_intent) ? d.top_intent : [];
+      if (!topIntent.length) {
         el.innerHTML = '<p class="mkt-empty">No scored profiles yet.</p>';
         return;
       }
-      el.innerHTML = renderPeople(d.top_intent);
+      el.innerHTML = renderPeople(topIntent);
     })['catch'](function (e) { fail('jrn-results', e); });
   };
 
@@ -1443,8 +1458,9 @@ if (typeof _mktOrigShowPage === 'function') {
     mktGet('/api/dash/profiles?q=' + encodeURIComponent(q))
       .then(function (r) {
         if (r.error) throw new Error(r.error.message);
-        if (!r.data.length) { el.innerHTML = '<p class="mkt-empty">No match for “' + esc(q) + '”.</p>'; return; }
-        el.innerHTML = renderPeople(r.data);
+        var matches = Array.isArray(r.data) ? r.data : [];
+        if (!matches.length) { el.innerHTML = '<p class="mkt-empty">No match for “' + esc(q) + '”.</p>'; return; }
+        el.innerHTML = renderPeople(matches);
       })['catch'](function (e) { fail('jrn-results', e); });
   };
 
@@ -1564,7 +1580,7 @@ if (typeof _mktOrigShowPage === 'function') {
 
   window.mktLoadRecovery = function () {
     api('/recovery?days=30').then(function (d) {
-      var s = d.summary;
+      var s = d.summary || { active: {}, abandoned: {}, recovered: {}, converted: {} };
       var set = function (id, v) { var e = document.getElementById(id); if (e) e.textContent = v; };
       set('rec-kpi-active', num(s.active.count));      set('rec-kpi-active-v', money(s.active.value));
       set('rec-kpi-abandoned', num(s.abandoned.count)); set('rec-kpi-abandoned-v', money(s.abandoned.value));
@@ -1572,14 +1588,15 @@ if (typeof _mktOrigShowPage === 'function') {
       set('rec-kpi-rate', pct(s.recovery_rate));
       set('rec-kpi-converted', num(s.converted.count)); set('rec-kpi-converted-v', money(s.converted.value));
 
-      if (!d.carts.length) {
+      var carts = Array.isArray(d.carts) ? d.carts : [];
+      if (!carts.length) {
         document.getElementById('rec-carts').innerHTML = '<p class="mkt-empty">No carts in the last 30 days.</p>';
         return;
       }
       document.getElementById('rec-carts').innerHTML =
         '<table class="mkt-table"><thead><tr><th>Status</th><th>Customer</th><th>Items</th><th>Value</th>' +
         '<th>Intent</th><th>Last activity</th><th></th></tr></thead><tbody>' +
-        d.carts.map(function (c) {
+        carts.map(function (c) {
           var cls = (c.status === 'recovered' || c.status === 'converted') ? 'approved'
                   : c.status === 'abandoned' ? 'pause' : 'hold';
           return '<tr>' +
@@ -1603,11 +1620,12 @@ if (typeof _mktOrigShowPage === 'function') {
 
   window.mktLoadAutomations = function () {
     api('/automations').then(function (d) {
-      if (!d.workflows.length) {
+      var workflows = Array.isArray(d.workflows) ? d.workflows : [];
+      if (!workflows.length) {
         document.getElementById('aut-list').innerHTML = '<p class="mkt-empty">No workflows found — run the migration first.</p>';
         return;
       }
-      document.getElementById('aut-list').innerHTML = d.workflows.map(function (w) {
+      document.getElementById('aut-list').innerHTML = workflows.map(function (w) {
         var s = w.stats;
         // Skip reasons are shown prominently. A workflow with runs but no
         // sends is almost always a missing consent record or an unconfigured
@@ -1718,7 +1736,7 @@ if (typeof _mktOrigShowPage === 'function') {
       document.getElementById('att-campaign').innerHTML   = table(d.by_campaign, 'Campaign');
       document.getElementById('att-automation').innerHTML = table(d.by_automation, 'Automation');
 
-      var nr = d.new_vs_repeat;
+      var nr = d.new_vs_repeat || { first_orders: 0, first_revenue: 0, repeat_orders: 0, repeat_revenue: 0 };
       document.getElementById('att-newrepeat').innerHTML =
         '<table class="mkt-table"><tbody>' +
         '<tr><td>First orders</td><td>' + num(nr.first_orders) + '</td><td><strong>' + money(nr.first_revenue) + '</strong></td></tr>' +
