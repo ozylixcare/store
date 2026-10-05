@@ -462,11 +462,24 @@ async function adminProofUpload(path, formData, promptText) {
   if (typeof confirmCriticalAction !== 'function') throw new Error('Save-password confirmation is unavailable — reload the admin panel');
   return confirmCriticalAction(promptText || 'Authorize this design upload?', async function(proof) {
     const token = authToken || sessionStorage.getItem('ozylix_token') || '';
-    return fetch(`${API}${path}`, {
+    const request = {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token, 'X-Password-Proof': proof },
       body: formData,
-    });
+    };
+    try {
+      return await fetch(`${API}${path}`, { ...request, signal: AbortSignal.timeout(120000) });
+    } catch (e) {
+      if (e && (e.name === 'AbortError' || e.name === 'TimeoutError')) {
+        throw new Error('Upload timed out after two minutes. Check the file size and try again.');
+      }
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      try {
+        return await fetch(`${API}${path}`, { ...request, signal: AbortSignal.timeout(120000) });
+      } catch (retryError) {
+        throw new Error('Upload connection failed. Check your network and try again.');
+      }
+    }
   });
 }
 
@@ -3901,7 +3914,7 @@ async function deleteProductImageSlot(slot) {
   try {
     const filename = url.split('/').pop().split('?')[0];
     const r = await apiFetch(`/api/upload/image/${encodeURIComponent(filename)}`, {method:'DELETE'});
-    const d = await r.json().catch(()=>({}));
+    const d = await expectOk(Promise.resolve(r), 'Delete failed');
     field.value = '';
     renderImgSlot(slot);
     const cleared = d.clearedReferences;
@@ -6097,11 +6110,11 @@ async function resetSiteImage(key, currentUrl) {
   try {
     if (currentUrl) {
       const filename = currentUrl.split('/').pop().split('?')[0];
-      await apiFetch(`/api/upload/image/${encodeURIComponent(filename)}`, {method:'DELETE'}).catch(()=>{});
+      await expectOk(apiFetch(`/api/upload/image/${encodeURIComponent(filename)}`, {method:'DELETE'}), 'Image delete failed');
     }
     // Belt-and-suspenders: also clear the override row directly in case the file
     // wasn't one of ours (e.g. an old pasted link the cascade delete couldn't match).
-    await apiFetch(`/api/admin/site-media/${encodeURIComponent(key)}`, {method:'DELETE'}).catch(()=>{});
+    await expectOk(apiFetch(`/api/admin/site-media/${encodeURIComponent(key)}`, {method:'DELETE'}), 'Could not clear the site-media reference');
     toast('🗑️ Deleted — reverted to default');
     loadSiteImages();
     } catch(e) { toast(e.message,'error'); }
@@ -6127,9 +6140,9 @@ async function deleteEduCreative(key, url) {
   try {
     if (url) {
       const filename = url.split('/').pop().split('?')[0];
-      await apiFetch(`/api/upload/image/${encodeURIComponent(filename)}`, {method:'DELETE'}).catch(()=>{});
+      await expectOk(apiFetch(`/api/upload/image/${encodeURIComponent(filename)}`, {method:'DELETE'}), 'Image delete failed');
     }
-    await apiFetch(`/api/admin/site-media/${encodeURIComponent(key)}`, {method:'DELETE'}).catch(()=>{});
+    await expectOk(apiFetch(`/api/admin/site-media/${encodeURIComponent(key)}`, {method:'DELETE'}), 'Creative reference delete failed');
     toast('🗑️ Creative deleted — card now shows its default state');
     loadSiteImages();
   } catch(e) { toast(e.message,'error'); }
@@ -6270,12 +6283,12 @@ async function deleteBanner(prefix, n) {
     const row = _siteMediaAll.find(x => x.key === key);
     if (row && row.url) {
       const filename = String(row.url).split('/').pop().split('?')[0];
-      await apiFetch(`/api/upload/image/${encodeURIComponent(filename)}`, { method: 'DELETE' }).catch(() => {});
+      await expectOk(apiFetch(`/api/upload/image/${encodeURIComponent(filename)}`, { method: 'DELETE' }), 'Image delete failed');
     }
     // 2. delete the key + its alt/link companions
-    await apiFetch(`/api/admin/site-media/${encodeURIComponent(key)}`, { method: 'DELETE' }).catch(() => {});
-    await apiFetch(`/api/admin/site-media/${encodeURIComponent(key + '.alt')}`, { method: 'DELETE' }).catch(() => {});
-    await apiFetch(`/api/admin/site-media/${encodeURIComponent(key + '.link')}`, { method: 'DELETE' }).catch(() => {});
+    await expectOk(apiFetch(`/api/admin/site-media/${encodeURIComponent(key)}`, { method: 'DELETE' }), 'Banner reference delete failed');
+    await expectOk(apiFetch(`/api/admin/site-media/${encodeURIComponent(key + '.alt')}`, { method: 'DELETE' }), 'Banner alt-text delete failed');
+    await expectOk(apiFetch(`/api/admin/site-media/${encodeURIComponent(key + '.link')}`, { method: 'DELETE' }), 'Banner link delete failed');
     toast('🗑️ Banner removed');
     loadBannerManagers();
   } catch(e) { toast('Could not delete: ' + e.message, 'error'); }
@@ -8813,5 +8826,3 @@ async function geminiSend() {
     console.error('Gemini error:', e);
   }
 }
-
-

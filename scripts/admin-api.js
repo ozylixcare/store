@@ -49,8 +49,12 @@ function azBuildModal2(id, title, body, buttons){
     const btn = el.querySelector(`button[data-azmodal-idx="${i}"]`);
     if (btn) btn.addEventListener('click', async () => {
       btn.disabled = true;
+      const originalLabel = btn.textContent;
+      btn.textContent = 'Working…';
       try { await b.action(); } catch (e) { if (e?.message !== 'cancelled') toast('❌ ' + e.message, 'error'); }
-      finally { btn.disabled = false; }
+      finally {
+        if (btn.isConnected) { btn.disabled = false; btn.textContent = originalLabel; }
+      }
     });
   });
   el.classList.add('open');
@@ -106,7 +110,8 @@ async function confirmCriticalAction(promptText, actionFn){
         <div id="${msgId}" class="login-error" style="display:none"></div>
       </div>`, [
       { label: 'Confirm', cls: 'btn-gold', action: async function(){
-        const pw = document.getElementById('azProofPw').value;
+        const passwordInput = document.getElementById('azProofPw');
+        const pw = passwordInput ? passwordInput.value : '';
         const msg = document.getElementById(msgId);
         if (!pw) { msg.textContent = emptyMsg; msg.style.display = 'block'; return; }
         msg.style.display = 'none';
