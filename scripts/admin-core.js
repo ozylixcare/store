@@ -21,6 +21,16 @@ if (!AbortSignal.timeout) {
 // CONFIG
 // ═══════════════════════════════════════════════
 const API = 'https://backend-s7ih.onrender.com';
+// Discard sessions from before the synchronized versioned-login deployment.
+// Password and email OTP are required again; no rejected token is upgraded.
+const ADMIN_SESSION_SCHEMA = '20261005-versioned';
+if (sessionStorage.getItem('ozylix_session_schema') !== ADMIN_SESSION_SCHEMA) {
+  sessionStorage.removeItem('ozylix_token');
+  sessionStorage.removeItem('ozylix_role');
+  localStorage.removeItem('ozylix_session');
+  localStorage.removeItem('ozylix_logout_reason');
+  sessionStorage.setItem('ozylix_session_schema', ADMIN_SESSION_SCHEMA);
+}
 let authToken = sessionStorage.getItem('ozylix_token') || '';
 let allOrders = [], allProducts = [], allCustomers = [], allDiscounts = [], allPayments = [];
 
@@ -8803,4 +8813,5 @@ async function geminiSend() {
     console.error('Gemini error:', e);
   }
 }
+
 
