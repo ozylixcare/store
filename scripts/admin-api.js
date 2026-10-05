@@ -69,37 +69,25 @@ function closeModal(id){ document.getElementById(id).classList.remove('open'); }
    one-use proof valid 5 minutes — which is sent with the real action
    as X-Password-Proof. Never rely on the open session alone. */
 let __proof = null, __proofExp = 0;
+let __confirmQueue = Promise.resolve();
 function azSessionUser(){ try{ return JSON.parse(localStorage.getItem('ozylix_session')||'{}'); }catch(e){ return {}; } }
 // Dual security (Aug 2026): when the backend has SAVE_PASSWORD configured,
 // critical actions require that separate save/transaction password — never
 // the login password — so a leaked login password can't approve changes.
-// The flag arrives via /api/admin/me and is cached on the session object.
+// The client stays fail-closed; the backend remains authoritative for every proof.
 function azSavePwRequired(){ return true; }
-async function azSavePwRequiredFresh(){
-  const cached = azSessionUser();
-  try {
-    const r = await apiFetch('/api/admin/me');
-    if (r && r.ok) {
-      const fresh = await r.json();
-      const next = { ...cached, username:fresh.username, role:fresh.role, is_owner:!!fresh.is_owner, permissions:fresh.permissions, denied:fresh.denied, security:fresh.security || null };
-      localStorage.setItem('ozylix_session', JSON.stringify(next));
-      // Fail closed: a missing, stale, or false flag must never downgrade a critical action to the login password.
-      return true;
-    }
-  } catch (_) {}
-  return true;
-}
-async function confirmCriticalAction(promptText, actionFn){
-  // Refresh the save-password requirement and identity cache before every
-  // critical action; the server binds the proof to the authenticated JWT.
-  const saveRequired = await azSavePwRequiredFresh();
+function confirmCriticalAction(promptText, actionFn){
+  // The save-password requirement is deliberately fail-closed and fixed by
+  // policy. Do not make every button click wait for a redundant /me request.
+  // The server remains authoritative and rejects a missing/invalid proof.
+  const run = () => new Promise(function(resolve, reject){
+    const saveRequired = azSavePwRequired();
   // Proofs are one-use on the server. Never cache or replay one after a
   // successful action; every save/approval gets a fresh confirmation.
   const modalTitle = saveRequired ? 'Confirm with your save password' : 'Confirm with your password';
   const fieldLabel = saveRequired ? 'Save (transaction) password' : 'Password';
   const emptyMsg = saveRequired ? 'Enter your save password.' : 'Enter your password.';
   const hintHtml = saveRequired ? '<div style="font-size:.72rem;color:var(--accent);margin-bottom:10px">This is the separate save password you set in Render — not your login password.</div>' : '';
-  return new Promise(function(resolve, reject){
     const msgId = 'azProofMsg';
     azBuildModal2('azProofModal', modalTitle, `
       <div style="padding:4px 0">
@@ -139,6 +127,12 @@ async function confirmCriticalAction(promptText, actionFn){
       { label: 'Cancel', cls: 'btn-secondary', action: function(){ closeModal('azProofModal'); reject(new Error('cancelled')); } },
     ]);
   });
+  // Several app-wide save handlers can fire together (for example, a
+  // double-tap or two controls in a mobile layout). Serialize them so a new
+  // modal never overwrites an existing prompt or loses its resolver.
+  const queued = __confirmQueue.then(run, run);
+  __confirmQueue = queued.catch(() => {});
+  return queued;
 }
 
 function azStaffPermLabel(k){ const f = AZ_STAFF_PERMS.find(p=>p[0]===k); return f ? f[1] : k; }
