@@ -8,3 +8,15 @@ const fn=source.slice(source.indexOf('async function apiFetch('),source.indexOf(
  assert.match(source,/if \(authToken\) startVerifiedAdminSession\(\)/);assert.doesNotMatch(fs.readFileSync(__dirname+'/../admin.html','utf8'),/frame-ancestors|frame-src[^;]*about:blank/);assert.match(fs.readFileSync(__dirname+'/../worker/index.js','utf8'),/frame-ancestors 'none'/);
  console.log('PASS: rejection logs out once, empty-token calls blocked, replacement token recovered, bootstrap verified, frame protection retained in headers');
 })().catch(e=>{console.error(e);process.exitCode=1});
+
+
+// One-time browser migration clears old sessions but preserves current ones.
+{
+ const migration=source.slice(source.indexOf("const ADMIN_SESSION_SCHEMA ="),source.indexOf("let authToken ="));
+ const saved=new Map([['ozylix_token','legacy'],['ozylix_role','owner']]);
+ const local=new Map([['ozylix_session','legacy'],['ozylix_logout_reason','token-version-missing']]);
+ const storage=m=>({getItem:k=>m.get(k),setItem:(k,v)=>m.set(k,v),removeItem:k=>m.delete(k)});
+ const run=()=>vm.runInNewContext(migration,{sessionStorage:storage(saved),localStorage:storage(local)});
+ run();assert.equal(saved.has('ozylix_token'),false);assert.equal(local.has('ozylix_session'),false);
+ saved.set('ozylix_token','fresh');run();assert.equal(saved.get('ozylix_token'),'fresh');
+}
