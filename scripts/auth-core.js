@@ -1997,13 +1997,14 @@ async function submitReview() {
     if (!resp.ok) throw new Error(result.error || 'Could not save your review');
     if (!result.ok || !result.review?.id) throw new Error('The server did not confirm the save. Please retry.');
     const r = result.review;
-    // Only show a review after the database write is confirmed. Invalidate
-    // any read started before this save so it cannot overwrite the new row.
-    REVIEW_REQUEST_VERSION[product.id] = (REVIEW_REQUEST_VERSION[product.id] || 0) + 1;
-    const saved = { id: r.id, user: r.user_name, rating: Number(r.rating),
-      text: r.review_text, date: r.created_at, verified: !!r.verified };
-    REVIEWS[product.id] = [saved, ...(REVIEWS[product.id] || []).filter(x => String(x.id) !== String(saved.id))];
-    REVIEWS_LOADED[product.id] = true;
+    if (Number(r.product_id) !== Number(product.id)) throw new Error('The server returned a different product. Your draft has been kept.');
+    // Read the same server feed used after reload. Never add a temporary
+    // review to the page that the public endpoint cannot return.
+    const rows = await loadProductReviews(product.id, { force: true });
+    const pending = r.status === 'pending';
+    if (!pending && (!Array.isArray(rows) || !rows.some(row => String(row.id) === String(r.id)))) {
+      throw new Error('Your review was submitted, but publication could not be confirmed. Your draft has been kept; retry to update the same review.');
+    }
     _reviewsBatchDone = null;
     _loadProductRatingsDone = null;
     FEATURED_REVIEWS_CACHE = null;
@@ -2011,7 +2012,7 @@ async function submitReview() {
       if (document.getElementById('rvText') === input) { input.value = ''; setRating(0); }
       refreshProductReviewUI(product.id);
     }
-    showToast('Review saved. Thank you 🌿');
+    showToast(pending ? 'Review saved. It is awaiting approval.' : 'Review saved and published. Thank you 🌿');
   } catch (e) {
     // Keep the original text and stars available for retry; never claim a
     // failed or timed-out request has been stored.
