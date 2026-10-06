@@ -199,3 +199,32 @@ body::before, body::after { display:none !important; }
 @media (prefers-contrast: more) {
   #app .card, #app .kpi, #app .nav-item, #app .btn, #app input, #app select { border-color:var(--os-line-strong) !important; }
 }
+
+
+/* 2026-10-06: focused usability improvements, preserving every theme. */
+#app :is(button,a,input,select,textarea,[tabindex]):focus-visible,
+#loginScreen :is(button,input):focus-visible {
+  outline: 2px solid var(--os-green, #08796d) !important;
+  outline-offset: 3px !important;
+}
+#app .page-hdr { flex-wrap: wrap; }
+#app .page-actions { flex-wrap: wrap; }
+#app .page-title { line-height: 1.15 !important; letter-spacing: -.045em !important; }
+#app :is(.btn,.btn-export,.filter-chip,.ep-chip,.filter-select,.filter-input,.view-btn) {
+  min-height: 40px !important; font-size: 12px !important;
+}
+#app table { font-variant-numeric: tabular-nums; }
+#app .table-wrap { overscroll-behavior-x: contain; }
+#app tbody tr:focus-within { background: var(--os-surface-2); }
+#loginUser, #loginPass, #loginOtp { min-height: 46px; }
+#pwToggle { min-width: 44px; min-height: 44px; }
+@media (max-width: 600px) {
+  #app :is(.btn,.btn-export,.filter-chip,.ep-chip,.filter-select,.filter-input,.view-btn) { min-height: 44px !important; }
+  #app :is(input:not([type=checkbox]):not([type=radio]),select,textarea),
+  #loginUser, #loginPass, #loginOtp { font-size: 16px !important; }
+  #app .page-actions { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #app .page.active { animation: none !important; }
+  #app :is(.btn,.btn-export,.filter-chip,.ep-chip) { transition: none !important; }
+}
