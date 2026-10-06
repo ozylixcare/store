@@ -393,12 +393,12 @@
   #shaderHero .shader-hero-inner { text-align: center; }
   #shaderHero .shader-cta-row { justify-content: center; }
 </style>
-<link rel="stylesheet" href="/styles/store-main.min.css?v=20261006-images1" media="print" onload="this.media='all';this.onload=null">
-<noscript><link rel="stylesheet" href="/styles/store-main.min.css?v=20261006-images1"></noscript>
+<link rel="stylesheet" href="/styles/store-main.min.css?v=20261006-compact-home" media="print" onload="this.media='all';this.onload=null">
+<noscript><link rel="stylesheet" href="/styles/store-main.min.css?v=20261006-compact-home"></noscript>
 <style id="hero-restore-overrides">
   /* Use the compact centered storefront hero consistently on every device. */
   #shaderHero .shader-hero-inner { text-align: center; }
-  #shaderHero .shader-hero { min-height: auto !important; padding: 14px 0 18px !important; }
+  #shaderHero.shader-hero { min-height: auto !important; padding: 14px 0 18px !important; }
   #shaderHero .sh-line-2,
   #shaderHero .sh-line-3 { font-size: clamp(1.05rem, 4.6vw, 1.4rem); line-height: 1.15; }
   #shaderHero .shader-sub { display: none; }
@@ -410,7 +410,7 @@
   /* Scale the same centered lockup up for tablets and desktops instead of
      leaving a phone-sized heading floating in a large empty hero. */
   @media (min-width: 769px) {
-    #shaderHero .shader-hero {
+    #shaderHero.shader-hero {
       min-height: clamp(300px, 34vw, 560px) !important;
       padding: clamp(28px, 5vw, 80px) 0 clamp(24px, 4vw, 58px) !important;
     }
@@ -3762,5 +3762,6 @@ img.az-fade.az-in{opacity:1}
 <!-- ═════════ OZYLIX v10 STORE LOADER — style presets, combos & content edits ═════════ -->
 </body>
 </html>
+
 
 

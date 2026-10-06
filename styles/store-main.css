@@ -5533,3 +5533,36 @@ button, [role="button"] {
   .page.active .product-card:active,
   .page.active .product-card .p-img-wrap img { transform: none !important; will-change: auto; }
 }
+
+
+/* Compact home introduction: keep products closer to the first viewport.
+   The hero ID and class are on the SAME element, not a nested descendant. */
+#page-home #shaderHero.shader-hero {
+  min-height: 0 !important;
+  padding: clamp(24px, 3vw, 42px) 0 !important;
+}
+#page-home .fizz-counters { padding: 20px 0 16px; }
+#page-home .fizz-counters-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+#page-home .fizz-counter { padding: 20px 14px; }
+#page-home .promise-section .trust-grid { margin: 10px 0 14px; }
+@media (max-width: 768px) {
+  #page-home #shaderHero.shader-hero { padding: 16px 0 !important; }
+  #page-home #shaderHero .shader-badge { margin: 0 0 6px; padding: 0; font-size: .625rem; }
+  #page-home #shaderHero .shader-headline { margin-bottom: 12px; }
+  #page-home #shaderHero .sh-line-1 { font-size: .7rem; margin-bottom: 4px; }
+  #page-home #shaderHero .sh-line-2,
+  #page-home #shaderHero .sh-line-3 { font-size: clamp(1.25rem, 5.5vw, 1.85rem); line-height: 1.08; }
+  #page-home #shaderHero .shader-btn-primary { min-height: 44px; padding: 10px 20px; }
+  #page-home .fizz-counters { padding: 12px 0 8px; }
+  #page-home .fizz-counters-grid { gap: 8px; }
+  #page-home .fizz-counter { min-width: 0; padding: 12px 5px; border-radius: 12px; }
+  #page-home .fc-num { font-size: clamp(1.35rem, 5.6vw, 1.9rem); }
+  #page-home .fc-label { margin-top: 5px; font-size: .625rem; letter-spacing: .025em; line-height: 1.3; overflow-wrap: anywhere; }
+  #page-home .promise-section .sec-head { margin: 6px 0 0 !important; }
+  #page-home .promise-section .section-label { font-size: .625rem; margin-bottom: 3px; }
+  #page-home .promise-section .section-title { font-size: 1.1rem !important; }
+  #page-home .promise-section .trust-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin: 8px 0 10px; }
+  #page-home .promise-section .trust-tile { min-width: 0; padding: 9px 4px; border-radius: 10px; }
+  #page-home .promise-section .tt-ico { font-size: 1.1rem; margin-bottom: 4px; }
+  #page-home .promise-section .tt-lbl { font-size: .6875rem; line-height: 1.3; letter-spacing: 0; overflow-wrap: anywhere; }
+}
