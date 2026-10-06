@@ -5484,3 +5484,36 @@ button, [role="button"] {
   background: var(--paper, #FBF3E8); display: inline-block;
   border-radius: 999px; padding: 2px 9px;
 }
+
+
+/* 2026-10-06: usability polish within the existing Ozylix design. */
+.product-card .p-info { flex: 1; gap: 7px; }
+.product-card .p-name { line-height: 1.4; min-height: 2.8em; overflow-wrap: break-word; }
+.product-card .p-price { flex-wrap: wrap; gap: 6px 10px; font-variant-numeric: tabular-nums; }
+.product-card .p-enter { margin-top: auto; padding-top: 12px; min-height: 36px; }
+.product-card .p-rating { line-height: 1.5; }
+.product-card .btn-wishlist { min-width: 44px; min-height: 44px; }
+.product-card .btn-qadd, .product-card .btn-buynow { min-height: 44px; line-height: 1.35; }
+#shopPills .cpill { min-height: 44px; }
+#shopSearch { min-height: 46px; }
+#shopFilterSidebar label { line-height: 1.6; }
+:where(button, a, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--indigo, #ab344c);
+  outline-offset: 3px;
+}
+/* A quieter lift keeps neighbouring products easy to scan. */
+@media (hover: hover) and (pointer: fine) {
+  .product-card:hover { transform: translateY(-4px); }
+  .product-card:hover .p-img-wrap img { transform: scale(1.035); }
+}
+@media (max-width: 600px) {
+  .product-card .p-info { padding: 13px 9px; gap: 6px; }
+  .product-card .p-name { font-size: .88rem; }
+  .product-card .p-actions { gap: 6px; }
+  #shopSearch, #sortSel { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .product-card, .product-card .p-img-wrap img { transition: none; }
+  .product-card:hover, .product-card:active,
+  .product-card:hover .p-img-wrap img { transform: none; }
+}

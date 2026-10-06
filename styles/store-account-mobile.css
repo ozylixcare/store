@@ -388,3 +388,19 @@ body:not(.oz-product) #stickyCart { display: none !important; }
 @media (hover:none) {
   #page-home .trust-tile:hover { transform:none; }
 }
+
+
+/* 2026-10-06: retain account structure; improve reading and touch targets. */
+#page-account .account-panel { min-width: 0; }
+#page-account .account-panel :is(h2,h3,h4) { line-height: 1.35; }
+#page-account .account-panel :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select) { min-height: 44px; }
+#page-account .account-panel :is(input,select,textarea) { max-width: 100%; }
+#page-account .account-panel :is(td,th), #page-account .aw-stat { font-variant-numeric: tabular-nums; }
+#page-account .account-nav-item:focus-visible { outline: 2px solid var(--indigo, #ab344c); outline-offset: 3px; }
+@media (max-width: 600px) {
+  #page-account .account-nav-copy strong { font-size: .72rem; line-height: 1.3; }
+  #page-account .account-nav-item { min-height: 64px; padding: 9px 4px; }
+  #page-account .account-nav-signout { min-height: 44px; }
+  #page-account .account-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea) { font-size: 16px; }
+  #page-account .account-panel button { min-height: 44px; }
+}

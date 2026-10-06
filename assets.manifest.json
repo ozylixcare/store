@@ -12,8 +12,8 @@
   "scripts/theme-builder.js": "105ac1598fdd5cc9",
   "styles/admin-main.css": "063bf10f95877ca6",
   "styles/admin-palettes.css": "605130aa31169755",
-  "styles/admin-reference-os.css": "8a0b389155d89a41",
-  "styles/store-account-mobile.css": "62f9d43948e37436",
-  "styles/store-main.css": "4a3ef71e14c93788",
+  "styles/admin-reference-os.css": "d059003d423e2624",
+  "styles/store-account-mobile.css": "95170d18ea92284f",
+  "styles/store-main.css": "80b4899e103ae48d",
   "styles/store-editorial.css": "3935ac6e4381d205"
 }
