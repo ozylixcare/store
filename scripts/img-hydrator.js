@@ -35,3 +35,32 @@
   window._hpiFlush();
 })();
 function hydrateProductImgs() { if (window._hpiFlush) window._hpiFlush(); }
+
+
+// Recover transient image failures without replacing the existing fallback UI.
+// Capture runs before inline onerror handlers overwrite src with a placeholder.
+(function installImageRecovery() {
+  var retries = new WeakMap();
+  document.addEventListener('error', function(event) {
+    var img = event.target;
+    if (!img || img.tagName !== 'IMG') return;
+    var source = img.getAttribute('src') || '';
+    if (!/^(https?:\/\/|\/(?!\/))/.test(source)) return;
+    var state = retries.get(img);
+    if (!state || state.source !== source) {
+      state = { source: source, count: 0, pending: false };
+      retries.set(img, state);
+    }
+    if (state.pending || state.count >= 2) return;
+    state.pending = true;
+    state.count += 1;
+    setTimeout(function() {
+      state.pending = false;
+      if (!img.isConnected || retries.get(img) !== state) return;
+      var current = img.getAttribute('src') || '';
+      // Never overwrite a newer product image selected while waiting.
+      if (current !== source && !/^data:image\//.test(current)) return;
+      img.src = source;
+    }, state.count * 1500);
+  }, true);
+})();
