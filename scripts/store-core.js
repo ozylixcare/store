@@ -1257,8 +1257,8 @@ if (document.readyState === 'loading') {
 
 const REVIEW_REQUEST_VERSION = {};
 const REVIEW_REQUEST_PENDING = {};
-async function loadProductReviews(productId) {
-  if (REVIEW_REQUEST_PENDING[productId]) return REVIEW_REQUEST_PENDING[productId];
+async function loadProductReviews(productId, options = {}) {
+  if (!options.force && REVIEW_REQUEST_PENDING[productId]) return REVIEW_REQUEST_PENDING[productId];
   const version = (REVIEW_REQUEST_VERSION[productId] || 0) + 1;
   REVIEW_REQUEST_VERSION[productId] = version;
   const task = (async () => {
@@ -1269,6 +1269,7 @@ async function loadProductReviews(productId) {
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || 'Reviews are temporarily unavailable');
+      if (!Array.isArray(payload.reviews)) throw new Error('The server returned an invalid review list');
       if (REVIEW_REQUEST_VERSION[productId] !== version) return;
       REVIEWS[productId] = (Array.isArray(payload.reviews) ? payload.reviews : []).map(r => ({
         id: r.id, user: r.user_name, rating: Number(r.rating), text: r.review_text,
@@ -1276,14 +1277,16 @@ async function loadProductReviews(productId) {
       }));
       REVIEWS_LOADED[productId] = true;
       if (typeof refreshProductReviewUI === 'function') refreshProductReviewUI(productId);
+      return REVIEWS[productId];
     } catch (e) {
       if (REVIEW_REQUEST_VERSION[productId] !== version) return;
       if (currentProduct?.id === productId && !REVIEWS_LOADED[productId]) {
         const wrap = document.getElementById('rvListWrap');
         if (wrap) wrap.innerHTML = '<p>Reviews could not load. <button type="button" onclick="loadProductReviews(' + Number(productId) + ')">Retry</button></p>';
       }
+      if (options.force) throw e;
     } finally {
-      delete REVIEW_REQUEST_PENDING[productId];
+      if (REVIEW_REQUEST_VERSION[productId] === version) delete REVIEW_REQUEST_PENDING[productId];
     }
   })();
   REVIEW_REQUEST_PENDING[productId] = task;
