@@ -5517,3 +5517,19 @@ button, [role="button"] {
   .product-card:hover, .product-card:active,
   .product-card:hover .p-img-wrap img { transform: none; }
 }
+
+
+/* Touch-device image stability: avoid nested skipped-paint/3D surfaces.
+   Keep native lazy image loading and hidden SPA pages; only active content
+   uses ordinary painting. This trades a little render work for stability. */
+@media (hover: none), (pointer: coarse) {
+  .page.active :is(.section, .fizz-counters, .trust-bar, #promo-media-section),
+  .page.active img { content-visibility: visible !important; }
+  .page.active .section { perspective: none; contain-intrinsic-size: none; }
+  .page.active .section > .container,
+  .page.active .product-card { transform-style: flat; }
+  .page.active .product-card,
+  .page.active .product-card:hover,
+  .page.active .product-card:active,
+  .page.active .product-card .p-img-wrap img { transform: none !important; will-change: auto; }
+}
