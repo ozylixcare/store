@@ -4748,9 +4748,7 @@ if (document.readyState === 'loading') {
 function _vitaKey(email) {
   const e = (email || '').toLowerCase().trim();
   if (!e) return null;
-  let h = 0;
-  for (let i = 0; i < e.length; i++) { h = ((h << 5) - h + e.charCodeAt(i)) | 0; }
-  return 'asc_vita_' + Math.abs(h).toString(36);
+  return 'ozylix_vita_' + encodeURIComponent(e);
 }
 
 function _vitaBlank() { return { balance: 0, pending: [], lifetime: 0, coupons: 0, history: [] }; }
@@ -4764,7 +4762,7 @@ function getVitaState() {
     const raw = JSON.parse(localStorage.getItem(k) || 'null');
     if (!raw) return _vitaBlank();
     // Refuse a record that does not belong to this session.
-    if (raw.owner && raw.owner !== u.email.toLowerCase().trim()) return _vitaBlank();
+    if (raw.owner !== u.email.toLowerCase().trim()) return _vitaBlank();
     return Object.assign(_vitaBlank(), raw);
   } catch(e) { return _vitaBlank(); }
 }
@@ -4818,6 +4816,7 @@ async function vitaRefreshFromServer() {
     const sum  = await sumRes.json();
     const hist = histRes.ok ? await histRes.json() : { history: [] };
 
+    if (!accountSessionMatches(jwt)) return false;
     const st = getVitaState();
     // `balance` is AVAILABLE only — points still pending delivery are
     // deliberately NOT spendable and are surfaced separately.
@@ -5364,6 +5363,7 @@ function getCurrentUser() {
     try {
       const segment = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
       const claims = JSON.parse(atob(segment.padEnd(Math.ceil(segment.length / 4) * 4, '=')));
+      if (String(claims.id || '') !== String(user.id || '') || String(claims.email || '').trim().toLowerCase() !== String(user.email || '').trim().toLowerCase()) return null;
       if (!Number.isFinite(claims.exp) || claims.exp * 1000 <= Date.now() + 5000) return null;
     } catch (_) { return null; }
     return user;
@@ -5929,6 +5929,7 @@ function _initGoogleOneTap() {
 
 // ── Sign out ──
 function doLogout() {
+  resetAccountSession();
   // Disable Google auto-select so it doesn't auto-sign in again
   if (typeof google !== 'undefined' && google.accounts?.id) {
     try { google.accounts.id.disableAutoSelect(); } catch(e) {}
@@ -5950,6 +5951,7 @@ function doLogout() {
 
 // ── Update nav avatar button ──
 function updateAccountNavBtn() {
+  syncAccountSession();
   const user = getCurrentUser();
   // When user logs in, tell Google to stop showing One Tap prompts
   if (user && typeof google !== 'undefined' && google.accounts?.id) {
@@ -5959,18 +5961,13 @@ function updateAccountNavBtn() {
   const btn  = document.getElementById('accountNavBtn');
   if (!btn) return;
   if (user) {
-    if (user.picture) {
-      btn.innerHTML = `<img src="${user.picture}" alt="Your account photo" 
-        style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid white"
-        onerror="this.outerHTML='<span decoding="async">${(user.name||'U')[0].toUpperCase()}</span>'"
-        alt="${user.name || 'User'}">`;
-    } else {
-      btn.textContent = (user.name || 'U')[0].toUpperCase();
-    }
-    btn.title = user.name || 'My Account';
-    btn.style.cssText = 'background:var(--green);color:white;border-radius:50%;width:36px;height:36px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0;overflow:hidden';
+    btn.textContent = 'My Account';
+    btn.title = 'Open your Account Hub';
+    btn.setAttribute('aria-label', 'Open your Account Hub');
+    btn.style.cssText = '';
   } else {
-    btn.innerHTML = '<svg width="20" height="20"><use href="#ico-user"/></svg>';
+    btn.textContent = 'Sign in';
+    btn.setAttribute('aria-label', 'Sign in to your Account Hub');
     btn.title = 'Account';
     btn.style.cssText = '';
   }
@@ -6050,11 +6047,12 @@ function showForgotPassword() {
 // ═══════════════════════════════════════════════════════
 
 function loadAccountPage() {
+  syncAccountSession();
   const user = getCurrentUser();
   if (!user) { openAuth('login'); return; }
   document.getElementById('accName')?.textContent != null && (document.getElementById('accName').textContent = user.name);
   document.getElementById('accEmail')?.textContent != null && (document.getElementById('accEmail').textContent = user.email);
-  const parts = user.name.split(' ');
+  const parts = (user.name || 'Member').split(' ');
   const av=document.getElementById('accAvatar'); if(av) av.textContent = (parts[0][0] + (parts[1]?parts[1][0]:'')).toUpperCase();
   loadOrdersList();
   loadInvoicesList();
@@ -6135,6 +6133,7 @@ async function renderReturnsPanel() {
     } else {
       console.warn('[renderReturnsPanel] request history unavailable; showing eligible orders');
     }
+    if (!accountSessionMatches(h.Authorization.slice(7))) return;
     RETURN_REASONS = eD.reasons || [];
 
     const existing = (mD && mD.returns) || [];
@@ -6355,18 +6354,23 @@ async function cancelReturn(id) {
 }
 
 function switchAccountPanel(panel) {
+  if (!getCurrentUser()) { openAuth('login'); return; }
+  if (!document.getElementById('panel-' + panel)) return;
   document.querySelectorAll('.account-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.account-nav-item').forEach(b => b.classList.remove('active'));
   const el = document.getElementById('panel-' + panel);
   if (el) el.classList.add('active');
   const navItems = document.querySelectorAll('.account-nav-item');
-  const labels = ['orders','tracking','invoices','vita','returns','profile'];
+  const labels = ['orders','tracking','invoices','vita','returns','profile','preferences'];
   if (panel === 'returns') { try { renderReturnsPanel(); } catch(e) { console.error('[renderReturnsPanel]', e); } }
   if (panel === 'vita') { try { renderVitaPanel(); } catch(e) { console.error('[renderVitaPanel]', e); } }
   if (panel === 'orders') { try { refreshAccountWelcome(); } catch(e) { console.error('[refreshAccountWelcome]', e); } }
   try { refreshAccountWelcome(); } catch(e) {}
   const idx = labels.indexOf(panel);
   if (idx >= 0 && navItems[idx]) navItems[idx].classList.add('active');
+  navItems.forEach(b => b.setAttribute('aria-current', b.classList.contains('active') ? 'page' : 'false'));
+  document.querySelector('#panel-' + panel + ' .account-panel-title')?.setAttribute('tabindex', '-1');
+  document.querySelector('#panel-' + panel + ' .account-panel-title')?.focus({preventScroll:true});
 }
 
 function _renderOrderCards(orders, container) {
@@ -6492,23 +6496,8 @@ async function loadOrdersList() {
     } catch(e) { console.warn('[Orders] Backend fetch failed:', e.message); }
   }
 
-  // 2. Merge with localStorage orders (for orders placed before account existed)
-  const localOrders = JSON.parse(localStorage.getItem('asc_orders') || '[]');
-  const userEmail = user.email.toLowerCase().trim();
-  const localUserOrders = localOrders.filter(o =>
-    (o.userEmail || o.email || '').toLowerCase().trim() === userEmail
-  );
-
-  // Deduplicate: backend wins for same orderId
-  const backendIds = new Set(backendOrders.map(o => o.id));
-  const localOnly  = localUserOrders.filter(o => !backendIds.has(o.orderId) && !backendIds.has(o.id));
-
-  // Merge and sort by date descending
-  const merged = [
-    ...backendOrders,
-    ...localOnly.map(o => ({ ...o, id: o.orderId, _local: true })),
-  ].sort((a, b) => new Date(b.created_at || b.date || 0) - new Date(a.created_at || a.date || 0));
-
+  if (!accountSessionMatches(jwt)) return;
+  const merged = backendOrders.sort((a,b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
   // Keep the exact same order objects available to every invoice action,
   // including the Orders panel. Previously only the Invoices panel populated
   // __INVOICE_ORDERS, so Print/Invoice from My Account could fall back to an
@@ -6516,8 +6505,8 @@ async function loadOrdersList() {
   window.__INVOICE_ORDERS = merged;
   _renderOrderCards(merged, container);
 
-  if (!backendLoaded && merged.length === 0) {
-    container.innerHTML = `<div class="no-orders"><div class="no-orders-ico">📦</div><h3 style="margin-bottom:8px">No orders yet</h3><p style="color:var(--gray);margin-bottom:20px">Your order history will appear here after your first purchase.</p><button class="btn-primary" onclick="showPage('shop')">Start Shopping →</button></div>`;
+  if (!backendLoaded) {
+    container.innerHTML = '<div class="no-orders" role="status"><h3>Order history is unavailable</h3><p>Please retry to load your verified orders.</p><button class="btn-outline" onclick="loadOrdersList()">Retry</button></div>';
   }
 }
 
@@ -6529,6 +6518,7 @@ async function loadInvoicesList() {
 
   const jwt = localStorage.getItem('asc_jwt') || '';
   let orders = [];
+  let invoicesLoaded = false;
 
   // Fetch from backend
   if (jwt) {
@@ -6538,6 +6528,7 @@ async function loadInvoicesList() {
       }, 8000);
       if (r.ok) {
         const data = await r.json();
+        invoicesLoaded = true;
         orders = (data.data || data || []).filter(o =>
           (o.customer_email || '').toLowerCase().trim() === user.email.toLowerCase().trim()
         );
@@ -6545,13 +6536,8 @@ async function loadInvoicesList() {
     } catch(e) {}
   }
 
-  // Fallback: localStorage
-  if (!orders.length) {
-    const local = JSON.parse(localStorage.getItem('asc_orders') || '[]');
-    orders = local.filter(o => (o.userEmail||o.email||'').toLowerCase().trim() === user.email.toLowerCase().trim())
-      .map(o => ({ ...o, id: o.orderId, payment_status: 'Paid' }));
-  }
-
+  if (!accountSessionMatches(jwt)) return;
+  if (!invoicesLoaded) { container.innerHTML = '<div class="no-orders" role="status">Invoices are unavailable. <button class="btn-outline" onclick="loadInvoicesList()">Retry</button></div>'; return; }
   if (!orders.length) {
     container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--gray)">No invoices yet. They'll appear here after you place an order.</div>`;
     return;
@@ -6634,17 +6620,7 @@ async function doTrackOrder() {
     } catch (e) { console.warn('[Tracking] backend lookup failed:', e && e.message); }
   }
 
-  // Legacy local orders remain a fallback, but only after an email ownership
-  // check. The previous implementation could display another local order if
-  // a visitor guessed its ID.
-  if (!order && user?.email) {
-    try {
-      const local = JSON.parse(localStorage.getItem('asc_orders') || '[]');
-      order = local.filter(o => (o.userEmail || o.email || '').toLowerCase().trim() === user.email.toLowerCase().trim())
-        .find(o => matchesId(o.orderId || o.id));
-    } catch (e) {}
-  }
-
+  if (!accountSessionMatches(jwt)) return;
   if (!order) {
     res.innerHTML = '<div style="background:var(--st-danger-bg);border:1px solid var(--st-danger-bg);border-radius:var(--radius);padding:14px;font-size:0.84rem;color:var(--red)">Order not found in your account. <a href="https://www.shiprocket.in/shipment-tracking/" target="_blank" rel="noopener" style="color:var(--green);font-weight:700">Try Shiprocket directly ↗</a></div>';
     return;
@@ -6699,17 +6675,12 @@ function fetchInvoicePDF(orderId) {
 }
 
 function findInvoiceOrder(orderId) {
+  if (!getCurrentUser()) return null;
   var o = null;
   if (Array.isArray(window.__INVOICE_ORDERS)) {
     o = window.__INVOICE_ORDERS.find(function(x) {
       return String(x.id || x.orderId || x.order_id) === String(orderId);
     });
-  }
-  if (!o) {
-    try {
-      var local = JSON.parse(localStorage.getItem('asc_orders') || '[]');
-      o = local.find(function(ord) { return String(ord.orderId) === String(orderId); });
-    } catch (e) {}
   }
   return o;
 }
@@ -6789,12 +6760,12 @@ function prefillProfile(user) {
   setVal('profileLast', parts.slice(1).join(' '));
   setVal('profileEmail', user.email);
   setVal('profilePhone', user.phone);
-  if (user.address) {
-    setVal('profileAddr1', user.address.addr1);
-    setVal('profileAddr2', user.address.addr2);
-    setVal('profileCity', user.address.city);
-    setVal('profileState', user.address.state);
-    setVal('profilePin', user.address.pin);
+  {
+    setVal('profileAddr1', user.address?.addr1);
+    setVal('profileAddr2', user.address?.addr2);
+    setVal('profileCity', user.address?.city);
+    setVal('profileState', user.address?.state);
+    setVal('profilePin', user.address?.pin);
   }
 }
 
@@ -6811,14 +6782,7 @@ function saveProfile() {
     state: getVal('profileState'),
     pin: getVal('profilePin'),
   };
-  // Update in users list
-  try {
-    const users = JSON.parse(localStorage.getItem('asc_users') || '[]');
-    const idx = users.findIndex(u => u.email === user.email);
-    if (idx >= 0) users[idx] = { ...users[idx], ...user };
-    else users.push(user);
-    localStorage.setItem('asc_users', JSON.stringify(users));
-  } catch(e) {}
+  // Profile remains local to this signed-in account on this device.
   localStorage.setItem('asc_user', JSON.stringify(user));
   const an=document.getElementById('accName'); if(an) an.textContent = user.name;
   updateAccountNavBtn();
@@ -6898,9 +6862,9 @@ function checkSavedAddressForCheckout() {
   const signInLink = document.getElementById('ckSignInLink');
   if (signInLink) signInLink.style.display = user ? 'none' : '';
   if (!bar) return;
-  if (user && user.address && user.address.addr1) {
+  if (user && user.address && user.address?.addr1) {
     const sn=document.getElementById('savedAddrName'); if(sn) sn.textContent = user.name;
-    const sd=document.getElementById('savedAddrDetails'); if(sd) sd.textContent = `${user.address.addr1}, ${user.address.city} - ${user.address.pin}`;
+    const sd=document.getElementById('savedAddrDetails'); if(sd) sd.textContent = `${user.address?.addr1}, ${user.address?.city} - ${user.address?.pin}`;
     bar.style.display = 'flex';
   } else {
     bar.style.display = 'none';
@@ -8468,3 +8432,28 @@ function refreshProductSelections() {
     if (!isStoreProductActive(PRODUCTS.find(p => p.id === Number(card.dataset.productId)))) card.remove();
   });
 }
+
+// Discard data from requests made by an outgoing customer session.
+var accountSessionToken = null;
+function accountSessionMatches(token) { return !!getCurrentUser() && token === localStorage.getItem('asc_jwt'); }
+function resetAccountSession() {
+  clearInterval(window._ordersRefreshTimer);
+  window.__INVOICE_ORDERS = null;
+  window.__appBackendOrderCount = 0;
+  ['ordersList','invoicesList','returnsPanelBody','vitaPanelBody','trackingResult'].forEach(id => { const el=document.getElementById(id); if(el) el.replaceChildren(); });
+  document.querySelectorAll('#page-account input, #page-checkout input').forEach(el => { if(!['checkbox','radio','hidden'].includes(el.type)) el.value=''; });
+  ['accName','accEmail','awName','awEmail'].forEach(id => {const el=document.getElementById(id);if(el)el.textContent='';});
+  ['awOrders','awPoints','awSaved','accOrdersCount','accVitaCount'].forEach(id => {const el=document.getElementById(id);if(el)el.textContent='—';});
+  ['asc_orders','asc_last_order','asc_users','asc_subs','asc_token'].forEach(key => localStorage.removeItem(key));
+}
+function syncAccountSession() {
+  const token=localStorage.getItem('asc_jwt') || '';
+  if(accountSessionToken !== token) {resetAccountSession(); accountSessionToken=token;}
+}
+window.addEventListener('storage', e => {
+  if(['asc_jwt','asc_user'].includes(e.key) || e.key === null) {
+    syncAccountSession(); updateAccountNavBtn();
+    if(currentPage === 'account') { if(getCurrentUser()) loadAccountPage(); else showPage('home'); }
+  }
+});
+syncAccountSession();

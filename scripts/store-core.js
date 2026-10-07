@@ -156,7 +156,23 @@ function fetchWithTimeout(url, options, ms) {
     controller.abort();
   }, ms);
 
-  return fetch(url, requestOptions)
+  const sessionToken = localStorage.getItem('asc_jwt') || '';
+  const authHeader = new Headers(input.headers || {}).get('Authorization');
+  const customerRequest = authHeader === 'Bearer ' + sessionToken && !!sessionToken;
+  function guardSession() {
+    if(customerRequest && (localStorage.getItem('asc_jwt') !== sessionToken || (typeof getCurrentUser === 'function' && !getCurrentUser()))) {
+      const error = new Error('Account session changed'); error.name='AbortError'; throw error;
+    }
+  }
+  return fetch(url, customerRequest ? {...requestOptions, cache:'no-store'} : requestOptions)
+    .then(function(response) {
+      guardSession();
+      for(const method of ['json','text','blob']) {
+        const read=response[method].bind(response);
+        response[method]=async function() { const value=await read(); guardSession(); return value; };
+      }
+      return response;
+    })
     .catch(function (error) {
       if (timedOut) throw timeoutError();
       throw error;
