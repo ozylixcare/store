@@ -1294,7 +1294,7 @@ async function loadProductReviews(productId, options = {}) {
       if (REVIEW_REQUEST_VERSION[productId] !== version) return;
       REVIEWS[productId] = (Array.isArray(payload.reviews) ? payload.reviews : []).map(r => ({
         id: r.id, user: r.user_name, rating: Number(r.rating), text: r.review_text,
-        date: r.created_at, verified: r.verified
+        date: r.created_at, updatedAt: r.updated_at, verified: r.verified
       }));
       REVIEWS_LOADED[productId] = true;
       if (typeof refreshProductReviewUI === 'function') refreshProductReviewUI(productId);
