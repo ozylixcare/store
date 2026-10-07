@@ -286,6 +286,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/ozylix-icon-16.png">
   <link rel="apple-touch-icon" href="/assets/ozylix-icon-180.png">
   <link rel="manifest" href="/manifest.json">
+  <script defer src="/scripts/platform-copy.js?v=20261007-install2"></script>
   <link rel="sitemap" type="application/xml" href="https://www.ozylix.com/sitemap.xml">
   <!-- GoKwik Payment — no SDK required -->
 
@@ -2575,10 +2576,15 @@
       <div class="app-platform-grid">
         <article class="app-platform-card app-platform-android" id="androidInstallCard">
           <div class="app-platform-top"><span class="app-platform-icon">▣</span><span class="app-platform-label">ANDROID</span></div>
-          <h2>Install directly from this website</h2>
-          <p>Use Chrome on your Android phone. The install button opens the official browser installation prompt; no APK file or unknown download is used.</p>
-          <button class="btn-primary app-install-button" id="androidInstallButton" type="button" onclick="installOzylixAndroid()">Install Ozylix app</button>
-          <p class="app-install-help" id="androidInstallHelp">If Chrome does not open the prompt, tap Chrome’s ⋮ menu and choose “Install app” or “Add to Home screen”. No APK download is required.</p>
+          <h2>Ozylix on your home screen</h2>
+          <p>Install Ozylix from Chrome on Android to open it like an app. Installation uses your browser; there is no separate APK file to download.</p>
+          <button class="btn-primary app-install-button" id="androidInstallButton" type="button" onclick="installOzylixAndroid()" aria-describedby="androidInstallHelp">Show install steps</button>
+          <p class="app-install-help" id="androidInstallHelp">When Chrome is ready, this button changes to “Install Ozylix app”. You can also install from Chrome’s menu below.</p>
+          <div class="android-install-guide" id="androidInstallGuide">
+            <h3>Install from Chrome</h3>
+            <ol><li>Open <strong>ozylix.com</strong> in Chrome on your Android phone.</li><li>Tap Chrome’s <strong>⋮</strong> menu at the top right.</li><li>Choose <strong>Add to Home screen</strong> or <strong>Install app</strong>, then confirm.</li></ol>
+            <p>If you opened Ozylix inside Instagram, Facebook or another app, first use its menu to open this page in your browser.</p>
+          </div>
         </article>
         <article class="app-platform-card app-platform-ios">
           <div class="app-platform-top"><span class="app-platform-icon">□</span><span class="app-platform-label">IPHONE / IPAD</span></div>
@@ -3023,7 +3029,7 @@
         </div>
         <div class="account-nav-heading">Account centre</div>
         <nav class="account-nav">
-          <button class="account-nav-item active" type="button" onclick="switchAccountPanel('orders')" title="My Orders" aria-label="My Orders" data-mobile-label="Orders"><span class="nav-ico" aria-hidden="true"><span class="desktop-account-icon">📦</span><svg class="mobile-rail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m3 7 9-4 9 4-9 4-9-4Zm0 0v10l9 4 9-4V7M12 11v10M7.5 5 17 9"/></svg></span><span class="account-nav-copy"><strong>My Orders</strong><small>View history</small></span><span class="account-nav-count" id="accOrdersCount">0</span></button>
+          <button class="account-nav-item active" type="button" onclick="switchAccountPanel('orders')" aria-current="page" title="My Orders" aria-label="My Orders" data-mobile-label="Orders"><span class="nav-ico" aria-hidden="true"><span class="desktop-account-icon">📦</span><svg class="mobile-rail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m3 7 9-4 9 4-9 4-9-4Zm0 0v10l9 4 9-4V7M12 11v10M7.5 5 17 9"/></svg></span><span class="account-nav-copy"><strong>My Orders</strong><small>View history</small></span><span class="account-nav-count" id="accOrdersCount">0</span></button>
           <button class="account-nav-item" type="button" onclick="switchAccountPanel('tracking')" title="Track Shipment" aria-label="Track Shipment" data-mobile-label="Track"><span class="nav-ico" aria-hidden="true"><span class="desktop-account-icon">🚚</span><svg class="mobile-rail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M3 5h11v12H3zM14 9h4l3 4v4h-7M5 17a2 2 0 1 0 4 0M16 17a2 2 0 1 0 4 0"/></svg></span><span class="account-nav-copy"><strong>Track Shipment</strong><small>Live delivery updates</small></span><span class="account-nav-arrow" aria-hidden="true">›</span></button>
           <button class="account-nav-item" type="button" onclick="switchAccountPanel('invoices')" title="Invoices &amp; Payments" aria-label="Invoices &amp; Payments" data-mobile-label="Invoices"><span class="nav-ico" aria-hidden="true"><span class="desktop-account-icon">🧾</span><svg class="mobile-rail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3ZM9 7h6M9 11h6M9 15h3"/></svg></span><span class="account-nav-copy"><strong>Invoices &amp; Payments</strong><small>Receipts and billing</small></span><span class="account-nav-arrow" aria-hidden="true">›</span></button>
           <button class="account-nav-item" type="button" onclick="switchAccountPanel('vita')" title="VitaPoints" aria-label="VitaPoints" data-mobile-label="Rewards"><span class="nav-ico" aria-hidden="true"><span class="desktop-account-icon">💎</span><svg class="mobile-rail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m3 9 4-5h10l4 5-9 12L3 9ZM3 9h18M7 4l5 17 5-17"/></svg></span><span class="account-nav-copy"><strong>VitaPoints</strong><small>Rewards balance</small></span><span class="account-nav-count account-nav-count-gold" id="accVitaCount">0</span></button>
@@ -3060,11 +3066,13 @@
         </section>
         <div class="account-panel active" id="panel-orders">
           <div class="account-panel-title">📦 My Orders</div>
+          <p class="account-section-copy">Follow your purchases from checkout to delivery.</p>
           <div id="ordersList"></div>
         </div>
 
         <div class="account-panel" id="panel-tracking">
           <div class="account-panel-title">🚚 Track Your Shipment</div>
+          <p class="account-section-copy">Check the latest delivery update for your order.</p>
           <div style="background:var(--sub-1);border-radius:var(--radius);border:1px solid rgba(0,0,0,0.08);padding:28px;max-width:500px">
             <p style="font-size:0.86rem;color:var(--gray);margin-bottom:16px">Enter your Order ID or Shiprocket tracking number to get live updates.</p>
             <div class="promo-row" style="margin-bottom:12px">
@@ -3080,21 +3088,25 @@
 
         <div class="account-panel" id="panel-invoices">
           <div class="account-panel-title">🧾 Invoices & Payments</div>
+          <p class="account-section-copy">Find receipts and payment details in one place.</p>
           <div id="invoicesList"></div>
         </div>
 
         <div class="account-panel" id="panel-returns">
           <div class="account-panel-title">↩️ Returns &amp; Refunds</div>
+          <p class="account-section-copy">Follow your return and refund requests.</p>
           <div id="returnsPanelBody"></div>
         </div>
 
         <div class="account-panel" id="panel-vita">
           <div class="account-panel-title">💎 VitaPoints</div>
+          <p class="account-section-copy">See your points and how to use them.</p>
           <div id="vitaPanelBody"></div>
         </div>
 
         <div class="account-panel" id="panel-profile">
           <div class="account-panel-title">✏️ Profile & Saved Address</div>
+          <p class="account-section-copy">Keep your contact and delivery details up to date.</p>
           <div class="profile-form">
             <div class="profile-row">
               <div class="auth-form-group"><label class="auth-label">First Name</label><input class="auth-input" type="text" id="profileFirst" placeholder="First name"></div>
@@ -3661,7 +3673,6 @@ img.az-fade.az-in{opacity:1}
 <script defer src="/scripts/account-welcome.js?v=20261001-3"></script>
 
 
-<script defer src="/scripts/platform-copy.js?v=20261001-3"></script>
 
 <!-- ══════════════════════════════════════════════════════════════════
      SERVICE WORKER REGISTRATION
@@ -3760,9 +3771,10 @@ img.az-fade.az-in{opacity:1}
 <script defer src="/scripts/themes.js?v=20261003-origin-refresh-1"></script>
 
 <!-- ═════════ OZYLIX v10 STORE LOADER — style presets, combos & content edits ═════════ -->
-<link rel="stylesheet" href="/styles/account-refinements.css?v=20261007-rail1">
+<link rel="stylesheet" href="/styles/account-refinements.css?v=20261007-polish2">
 </body>
 </html>
+
 
 
 
