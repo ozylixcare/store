@@ -705,7 +705,7 @@ async function initHome() {
   // honest "No ratings yet" replaced it.
   try { await loadProductRatings(); } catch (e) { /* cards fall back below */ }
   // ✅ FIX 2: Filter out _hidden (active:false) products from all grids.
-  const visibleProducts = PRODUCTS.filter(p => !p._hidden && p.active !== false);
+  const visibleProducts = PRODUCTS.filter(isStoreProductActive);
   // Do not gate the entire homepage on media availability. The static
   // catalogue intentionally boots before /api/products returns on slower
   // mobile connections; filtering out image-less products here used to
@@ -779,7 +779,7 @@ function filterCat(cat, btn) {
 
 function applyFilters() {
   // ✅ FIX 2: Never show hidden/inactive products in shop
-  let prods = PRODUCTS.filter(p => !p._hidden && p.active !== false);
+  let prods = PRODUCTS.filter(isStoreProductActive);
   const goalTags = ['skin','immunity','energy','brain','weight'];
   const query = String(shopQuery || '').trim().toLowerCase();
   if (query) {
@@ -1557,7 +1557,7 @@ function buildProductPage(p) {
   // Only show a computed average when real reviews exist.
   const hasRealReviews = REVIEWS_LOADED[p.id] && rvs.length > 0;
   const avg = hasRealReviews ? rvs.reduce((s,r)=>s+r.rating,0)/rvs.length : null;
-  const related = PRODUCTS.filter(r=>r.category===p.category&&r.id!==p.id).slice(0,4);
+  const related = PRODUCTS.filter(r=>isStoreProductActive(r)&&r.category===p.category&&r.id!==p.id).slice(0,4);
   const rg=document.getElementById('relatedGrid'); if(rg) rg.innerHTML = related.map(r=>renderProductCard(r)).join('');
 
   // Determine tier for display
@@ -2176,7 +2176,7 @@ function renderCartUpsell() {
   if (hasWeight) PRODUCTS.filter(function(p){return p.tags&&p.tags.indexOf('weight')>-1&&cartIds.indexOf(p.id)===-1;}).forEach(function(p){candidates.push(p);});
   PRODUCTS.filter(function(p){return p.tags&&p.tags.indexOf('bestseller')>-1&&cartIds.indexOf(p.id)===-1;}).forEach(function(p){candidates.push(p);});
   var seen = {};
-  var ups = candidates.filter(function(p){ if(seen[p.id])return false; seen[p.id]=true; return true; }).slice(0,4);
+  var ups = candidates.filter(function(p){ if(!isStoreProductActive(p)||seen[p.id])return false; seen[p.id]=true; return true; }).slice(0,4);
   if (!ups.length) return '';
   var sub = STORE.cart.reduce(function(s,item){ var p=PRODUCTS.find(function(x){return x.id===item.id;}); if(!p)return s; var up=item.tierRate!==undefined?item.tierRate:(p.salePrice||p.price); return s+up*item.qty; }, 0);
   var shipMsg = sub < 599
@@ -2201,7 +2201,7 @@ function renderCartUpsell() {
 
 function addUpsellToCart(productId) {
   var p = PRODUCTS.find(function(x){ return x.id === productId; });
-  if (!p) return;
+  if (!isStoreProductActive(p)) return;
   var existing = STORE.cart.find(function(i){ return i.id === productId && i.tierIdx === undefined; });
   if (existing) { existing.qty++; } else { STORE.cart.push({id:productId, qty:1}); }
   STORE.save(); STORE.updateCartUI();
@@ -2657,7 +2657,7 @@ async function renderLiveRatingStat() {
 function hydrateAboutStats() {
   const el = document.getElementById('aboutProductCount');
   if (!el || typeof PRODUCTS === 'undefined') return;
-  const n = PRODUCTS.filter(p => !p._hidden && p.active !== false).length;
+  const n = PRODUCTS.filter(isStoreProductActive).length;
   el.textContent = n ? String(n) : '—';
 }
 
@@ -7195,7 +7195,7 @@ function initSubscriptionsPage() {
   if (!grid) return;
 
   // Show subscribable products (all non-combo)
-  const eligible = PRODUCTS.filter(p => !p.category.includes('combos'));
+  const eligible = PRODUCTS.filter(p => isStoreProductActive(p) && !p.category.includes('combos'));
   grid.innerHTML = eligible.map(p => {
     const price = p.salePrice || p.price;
     return `
@@ -7569,7 +7569,7 @@ function renderUpsells() {
   const container = document.getElementById('upsellItems');
   if (!bar || !container) return;
   const cartIds = STORE.cart.map(i => i.id);
-  const suggestions = UPSELL_SUGGESTIONS.filter(u => !cartIds.includes(u.id)).slice(0, 2);
+  const suggestions = UPSELL_SUGGESTIONS.filter(u => !cartIds.includes(u.id) && isStoreProductActive(PRODUCTS.find(p => p.id === u.id))).slice(0, 2);
   if (!suggestions.length) { bar.style.display = 'none'; return; }
   bar.style.display = 'block';
   container.innerHTML = suggestions.map(u =>
@@ -7593,6 +7593,7 @@ const QUIZ_RECS={0:[4,3,14],1:[5,14,8],2:[15,20,8],3:[8,5,22]};
 let quizStep=0,quizAnswers=[];
 function closeQuiz(){const o=document.getElementById('quizOverlay');if(o)o.style.display='none';}
 function renderQuizStep(){
+  const resultOverlay=document.getElementById('quizOverlay');if(resultOverlay)delete resultOverlay.dataset.result;
   const ov=document.getElementById('quizOverlay');if(!ov)return;
   if(quizStep>=QUIZ_DATA.length){renderQuizResult();return;}
   const d=QUIZ_DATA[quizStep],pct=Math.round((quizStep/QUIZ_DATA.length)*100);
@@ -7605,7 +7606,8 @@ function quizBack(){if(quizStep>0){quizStep--;renderQuizStep();}}
 function renderQuizResult(){
   const ov=document.getElementById('quizOverlay');if(!ov)return;
   const ids=QUIZ_RECS[quizAnswers[0]||0]||QUIZ_RECS[0];
-  const rp=ids.map(id=>PRODUCTS.find(p=>p.id===id)).filter(Boolean);
+  const rp=ids.map(id=>PRODUCTS.find(p=>p.id===id)).filter(isStoreProductActive);
+  ov.dataset.result = 'true';
   ov.innerHTML='<div class="quiz-modal"><div class="qm-head"><div class="qm-title">🎯 Your Personalised Stack<\/div><button class="qm-close" onclick="closeQuiz()">✕<\/button><\/div><div class="qm-body"><div class="qm-result"><div class="qm-result-ico">🌿<\/div><div class="qm-result-title">Here\'s what your body needs<\/div><div class="qm-result-sub">Based on your answers, our nutritionists recommend this personalised Ozylix stack.<\/div><div class="qm-result-prods">'+rp.map(p=>'<div class="qm-rp" onclick="closeQuiz();openProduct('+p.id+')"><img src="'+(esc(typeof getProductSurfaceImg==='function' ? getProductSurfaceImg(p) : cdnImg(p.image||'')))+ '" alt="'+esc(p.name)+' — Ozylix supplement" width="72" height="72" loading="lazy" decoding="async" style="width:72px;height:72px;object-fit:cover;border-radius:10px;display:block;margin:0 auto 8px" onerror="this.style.display=\'none\'"><div class="qm-rp-name">'+esc(p.name||'')+'<\/div><div class="qm-rp-price">₹'+(p.salePrice||p.price||0)+'<\/div><\/div>').join('')+'<\/div><button class="btn-primary" onclick="closeQuiz();showPage(\'shop\')" style="margin-bottom:12px">Shop My Recommendations →<\/button><\/div><\/div><\/div>';
 }
 
@@ -7632,9 +7634,9 @@ function renderQuizResult(){
 // bundleQty tracks chosen units per product id; a stepper (+/−) sits on
 // every eligible row and the summary lists each line with its own remove.
 var bundleQty = {};
-function renderBundleBuilder(){const list=document.getElementById('bundleProdList');if(!list||!PRODUCTS)return;list.innerHTML=PRODUCTS.filter(p=>p.price||p.salePrice).map(p=>{const img=typeof getProductSurfaceImg==='function'?getProductSurfaceImg(p):(p.image||PRODUCT_FALLBACKS&&PRODUCT_FALLBACKS.default||'');const q=bundleQty[p.id]||0;return'<div class="b-prod-row'+(q>0?' sel':'')+'" id="brow-'+p.id+'"><div class="b-prod-img"><img src="'+esc(img)+'" alt="'+esc(p.name)+' — Ozylix supplement" width="54" height="54" loading="lazy" decoding="async" style="width:54px;height:54px;object-fit:cover;border-radius:10px" onerror="this.style.opacity=0"></div><div class="b-prod-info"><div class="b-prod-name">'+esc(p.name)+'</div><div class="b-prod-cat">'+esc(p.category||'supplement')+'</div>'+(p.badge?'<div class="b-prod-badge">'+esc(p.badge)+'</div>':'')+'</div><div style="display:flex;align-items:center;gap:8px">'+(q>0?'<button class="b-qty-btn" onclick="bundleQtyChange('+p.id+',-1,event)" aria-label="Remove one">−</button><span class="b-qty-val">'+q+'</span><button class="b-qty-btn" onclick="bundleQtyChange('+p.id+',1,event)" aria-label="Add one">+</button><button class="b-rm-btn" onclick="bundleQtySet('+p.id+',0,event)" aria-label="Remove product">✕</button>':'<button class="b-qty-btn b-add-btn" onclick="bundleQtyChange('+p.id+',1,event)" aria-label="Add to mix">+ Add</button>')+'</div></div>';}).join('');}
+function renderBundleBuilder(){const list=document.getElementById('bundleProdList');if(!list||!PRODUCTS)return;list.innerHTML=PRODUCTS.filter(p=>isStoreProductActive(p)&&(p.price||p.salePrice)).map(p=>{const img=typeof getProductSurfaceImg==='function'?getProductSurfaceImg(p):(p.image||PRODUCT_FALLBACKS&&PRODUCT_FALLBACKS.default||'');const q=bundleQty[p.id]||0;return'<div class="b-prod-row'+(q>0?' sel':'')+'" id="brow-'+p.id+'"><div class="b-prod-img"><img src="'+esc(img)+'" alt="'+esc(p.name)+' — Ozylix supplement" width="54" height="54" loading="lazy" decoding="async" style="width:54px;height:54px;object-fit:cover;border-radius:10px" onerror="this.style.opacity=0"></div><div class="b-prod-info"><div class="b-prod-name">'+esc(p.name)+'</div><div class="b-prod-cat">'+esc(p.category||'supplement')+'</div>'+(p.badge?'<div class="b-prod-badge">'+esc(p.badge)+'</div>':'')+'</div><div style="display:flex;align-items:center;gap:8px">'+(q>0?'<button class="b-qty-btn" onclick="bundleQtyChange('+p.id+',-1,event)" aria-label="Remove one">−</button><span class="b-qty-val">'+q+'</span><button class="b-qty-btn" onclick="bundleQtyChange('+p.id+',1,event)" aria-label="Add one">+</button><button class="b-rm-btn" onclick="bundleQtySet('+p.id+',0,event)" aria-label="Remove product">✕</button>':'<button class="b-qty-btn b-add-btn" onclick="bundleQtyChange('+p.id+',1,event)" aria-label="Add to mix">+ Add</button>')+'</div></div>';}).join('');}
 function bundleQtyChange(id,d,e){if(e)e.stopPropagation();const q=(bundleQty[id]||0)+d;bundleQtySet(id,Math.max(0,q),e);}
-function bundleQtySet(id,q,e){if(e)e.stopPropagation();if(q<=0)delete bundleQty[id];else bundleQty[id]=q;renderBundleBuilder();updateBundleSummary();}
+function bundleQtySet(id,q,e){if(e)e.stopPropagation();if(q<=0||!isStoreProductActive(PRODUCTS.find(p=>p.id===Number(id))))delete bundleQty[id];else bundleQty[id]=q;renderBundleBuilder();updateBundleSummary();}
 // Mix & Match preview. Mirrors mixAndMatchDiscount() in backend/server.js:
 // units sorted ascending, then index 0, 4, 8... is free — the cheapest of
 // each group of four. Eight products picked means two free, not one, which
@@ -7649,8 +7651,9 @@ function mmPreview(prices){
   return { saving, groups, need: groups>0 ? 0 : MM_GROUP-(units.length%MM_GROUP||0) };
 }
 function updateBundleSummary(){
+  Object.keys(bundleQty).forEach(id=>{if(!isStoreProductActive(PRODUCTS.find(p=>p.id===Number(id))))delete bundleQty[id];});
   const ids=Object.keys(bundleQty).map(Number);
-  const sel=ids.map(id=>PRODUCTS.find(p=>p.id===id)).filter(Boolean);
+  const sel=ids.map(id=>PRODUCTS.find(p=>p.id===id)).filter(isStoreProductActive);
   const lines=sel.map(p=>({p,qty:bundleQty[p.id]||1}));
   const nUnits=lines.reduce((s,l)=>s+l.qty,0);
   // Unit prices: a line's per-unit price is the product's chosen tier rate
@@ -7683,7 +7686,7 @@ function updateBundleSummary(){
     }
   }
 }
-function addBundleToCart(){const ids=Object.keys(bundleQty).map(Number);const sel=ids.map(id=>PRODUCTS.find(p=>p.id===id)).filter(Boolean);if(!sel.length){showToast('Select at least one product 🌿','error');return;}sel.forEach(p=>STORE.addToCart(p.id,bundleQty[p.id]||1));openSideCart();const totalUnits=sel.reduce((s,p)=>s+(bundleQty[p.id]||1),0);showPtsToast('Earns VitaPoints on '+totalUnits+' '+(totalUnits===1?'item':'items')+' when delivered');bundleQty={};renderBundleBuilder();updateBundleSummary();}
+function addBundleToCart(){const ids=Object.keys(bundleQty).map(Number);const sel=ids.map(id=>PRODUCTS.find(p=>p.id===id)).filter(isStoreProductActive);if(!sel.length){showToast('Select at least one product 🌿','error');return;}sel.forEach(p=>STORE.addToCart(p.id,bundleQty[p.id]||1));openSideCart();const totalUnits=sel.reduce((s,p)=>s+(bundleQty[p.id]||1),0);showPtsToast('Earns VitaPoints on '+totalUnits+' '+(totalUnits===1?'item':'items')+' when delivered');bundleQty={};renderBundleBuilder();updateBundleSummary();}
 
 let stickyQty=1,stickyProdId=null;
 function initStickyCart(prod){if(!prod)return;stickyProdId=prod.id;stickyQty=1;const ne=document.getElementById('scProdName'),pe=document.getElementById('scProdPrice'),qe=document.getElementById('scQtyVal');if(ne)ne.textContent=prod.name;if(pe)pe.textContent='₹'+(prod.salePrice||prod.price);if(qe)qe.textContent=1;const sc=document.getElementById('stickyCart'),ab=document.getElementById('addCartBtn');if(!sc||!ab)return;const obs=new IntersectionObserver(en=>{if(!en[0].isIntersecting){sc.style.display='flex';requestAnimationFrame(()=>{sc.style.transform='translateY(0)';});}else{sc.style.transform='translateY(100%)';setTimeout(()=>{if(sc.style.transform==='translateY(100%)')sc.style.display='none';},300);}},{threshold:0.1});obs.observe(ab);}
@@ -7867,7 +7870,7 @@ function vmHas(p, term) {
 function vitaMatchScore(ans) {
   const banned = Object.keys(ans).flatMap(k => VITA_MATCH_EXCLUDE[ans[k]] || []);
   const list = (typeof PRODUCTS !== 'undefined' ? PRODUCTS : [])
-    .filter(p => p && (Number(p.salePrice) > 0 || Number(p.price) > 0))
+    .filter(p => isStoreProductActive(p) && (Number(p.salePrice) > 0 || Number(p.price) > 0))
     .filter(p => !banned.some(term => vmHas(p, term)));
   const scored = list.map(p => {
     let score = 0; const why = [];
@@ -8296,11 +8299,11 @@ function vitaRenderRecs(ids, reasons) {
   let any = false;
   ids.forEach((id, i) => {
     const p = (typeof PRODUCTS !== 'undefined' ? PRODUCTS : []).find(pp => pp.id === id);
-    if (!p) return;
+    if (!isStoreProductActive(p)) return;
     any = true;
     const price = p.salePrice || p.price;
     const img = p.image || (p.image2 || '');
-    wrap.innerHTML += `<div class="vita-rec-card" onclick="openProduct(${p.id})">
+    wrap.innerHTML += `<div class="vita-rec-card" data-product-id="${p.id}" onclick="openProduct(${p.id})">
       ${img ? `<img class="vita-rec-img" src="${img}" alt="${p.name}" loading="lazy" decoding="async">` : `<div class="vita-rec-img"></div>`}
       <div class="vita-rec-info">
         <div class="vita-rec-name">${p.name}</div>
@@ -8450,3 +8453,18 @@ function vitaSubmitLead() {
 
 
 
+
+
+// Reconcile every selection surface whenever the shop receives fresh products.
+function refreshProductSelections() {
+  updateBundleSummary();
+  renderBundleBuilder();
+  renderUpsells();
+  if (document.getElementById('page-cart')?.classList.contains('active')) renderCart();
+  if (document.getElementById('vitaMatchCard')) vitaMatchRender();
+  const quiz = document.getElementById('quizOverlay');
+  if (quiz && quiz.dataset.result === 'true') renderQuizResult();
+  document.querySelectorAll('.vita-rec-card[data-product-id]').forEach(card => {
+    if (!isStoreProductActive(PRODUCTS.find(p => p.id === Number(card.dataset.productId)))) card.remove();
+  });
+}
