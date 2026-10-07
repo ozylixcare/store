@@ -1332,7 +1332,11 @@ function rvViewState(id) {
 }
 
 function rvCardHTML(r) {
-  return `<div class="rv-card"><div class="rv-hdr"><div><span class="rv-name">${esc(r.user)}</span>${r.verified?'<span class="rv-verified">&#x2713; Verified</span>':''}</div><span class="rv-date">${esc(r.date)}</span></div><div class="rv-stars">${'&#x2605;'.repeat(starCount(r.rating))}${'&#x2606;'.repeat(5-starCount(r.rating))}</div><p class="rv-text">${esc(r.text)}</p></div>`;
+  const edited = r.updatedAt && new Date(r.updatedAt).getTime() > new Date(r.date).getTime() + 60000;
+  const when = edited ? r.updatedAt : r.date;
+  const parsed = new Date(when);
+  const label = Number.isFinite(parsed.getTime()) ? (edited ? 'Updated ' : '') + parsed.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  return `<div class="rv-card" id="review-${esc(r.id)}"><div class="rv-hdr"><div><span class="rv-name">${esc(r.user)}</span>${r.verified?'<span class="rv-verified">&#x2713; Verified</span>':''}</div><span class="rv-date">${esc(label)}</span></div><div class="rv-stars">${'&#x2605;'.repeat(starCount(r.rating))}${'&#x2606;'.repeat(5-starCount(r.rating))}</div><p class="rv-text">${esc(r.text)}</p></div>`;
 }
 
 /* Paging from the bottom of a fifty-card list leaves the reader looking at
@@ -2010,9 +2014,18 @@ async function submitReview() {
     FEATURED_REVIEWS_CACHE = null;
     if (currentProduct?.id === product.id) {
       if (document.getElementById('rvText') === input) { input.value = ''; setRating(0); }
+      // An edit keeps the review count unchanged. Show the saved review
+      // immediately, even when the reader was on a later review page.
+      const view = rvViewState(product.id);
+      view.expanded = false;
+      view.page = 0;
       refreshProductReviewUI(product.id);
+      if (!pending) {
+        const card = document.getElementById('review-' + r.id);
+        card?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+      }
     }
-    showToast(pending ? 'Review saved. It is awaiting approval.' : 'Review saved and published. Thank you 🌿');
+    showToast(pending ? 'Review saved. It is awaiting approval.' : result.updated ? 'Your existing review was updated and published. Thank you 🌿' : 'Review saved and published. Thank you 🌿');
   } catch (e) {
     // Keep the original text and stars available for retry; never claim a
     // failed or timed-out request has been stored.
