@@ -7,7 +7,6 @@ let onIntersection, onMutation;
 const observed = new Set();
 class Image {
   constructor(url) { this.dataset = {src:url}; this.src = ''; }
-  addEventListener() {}
   matches() { return !!this.dataset.src; }
   removeAttribute() { delete this.dataset.src; }
   querySelectorAll() { return []; }
@@ -20,7 +19,7 @@ class IO {
 }
 const context = { window:{IntersectionObserver:IO}, IntersectionObserver:IO, Element:Image,
   MutationObserver:class { constructor(cb) { onMutation=cb; } observe() {} },
-  document:{body:{},querySelectorAll:()=>[image]} };
+  document:{body:{},addEventListener(){},querySelectorAll:()=>[image]} };
 vm.runInNewContext(fs.readFileSync(path.join(root,'scripts/img-hydrator.js'),'utf8'),context);
 assert.equal(image.src,''); assert.ok(observed.has(image));
 context.window._hpiFlush(); assert.equal(image.src,'');
