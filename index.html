@@ -1072,7 +1072,7 @@
     </ul>
     <div class="nav-actions">
       <button class="nav-icon-btn" onclick="showPage('shop')" title="Search"><svg width="20" height="20"><use href="#ico-search"/></svg></button>
-      <button class="nav-icon-btn" aria-label="Open Account Hub" id="accountNavBtn" onclick="handleAccountNavClick()" title="Account" style="position:relative"><svg width="20" height="20"><use href="#ico-user"/></svg></button>
+      <button class="nav-icon-btn" aria-label="My account" id="accountNavBtn" onclick="handleAccountNavClick()" title="Account" style="position:relative"><svg width="20" height="20"><use href="#ico-user"/></svg></button>
       <button class="nav-icon-btn" onclick="openNotificationCenter()" title="Notification center" aria-label="Open notification center" style="position:relative">🔔<span class="notification-center-badge" id="desktopNotificationBadge">0</span></button>
       <button class="nav-icon-btn" onclick="showPage('wishlist')" title="Wishlist" style="position:relative">
         ♡ <span class="wish-badge" id="wishBadge" style="display:none">0</span>
@@ -2870,7 +2870,7 @@
 
 
 
-<script defer src="/scripts/store-core-20261007-hub.min.js?v=20261007-active1"></script>
+<script defer src="/scripts/store-core-20261007-hub.min.js?v=20261007-refine1"></script>
 <script defer src="/scripts/img-hydrator.js?v=20261006-images1"></script>
 <script defer src="/scripts/product-images.js?v=20261001-3"></script>
 
@@ -3029,7 +3029,6 @@
           <button class="account-nav-item" type="button" onclick="switchAccountPanel('vita')"><span class="nav-ico" aria-hidden="true">💎</span><span class="account-nav-copy"><strong>VitaPoints</strong><small>Rewards balance</small></span><span class="account-nav-count account-nav-count-gold" id="accVitaCount">0</span></button>
           <button class="account-nav-item" type="button" onclick="switchAccountPanel('returns')"><span class="nav-ico" aria-hidden="true">↩️</span><span class="account-nav-copy"><strong>Returns &amp; Refunds</strong><small>Manage requests</small></span><span class="account-nav-arrow" aria-hidden="true">›</span></button>
           <button class="account-nav-item" type="button" onclick="switchAccountPanel('profile')"><span class="nav-ico" aria-hidden="true">✏️</span><span class="account-nav-copy"><strong>Profile &amp; Address</strong><small>Keep details current</small></span><span class="account-nav-arrow" aria-hidden="true">›</span></button>
-          <button class="account-nav-item" type="button" onclick="switchAccountPanel('preferences')"><span class="nav-ico" aria-hidden="true">◈</span><span class="account-nav-copy"><strong>Appearance</strong><small>Make it yours</small></span></button>
           <button class="account-nav-item account-nav-signout" type="button" onclick="doLogout()"><span class="nav-ico" aria-hidden="true">↪</span><span class="account-nav-copy"><strong>Sign out</strong><small>End this session</small></span></button>
         </nav>
       </aside>
@@ -3059,8 +3058,6 @@
             </button>
           </div>
         </section>
-        <div class="hub-quick-links" aria-label="Account shortcuts"><button type="button" onclick="switchAccountPanel('tracking')">Track an order</button><button type="button" onclick="switchAccountPanel('profile')">Edit delivery details</button><button type="button" onclick="showPage('shop')">Continue shopping →</button></div>
-        <section class="account-panel" id="panel-preferences"><h2 class="account-panel-title">Account appearance</h2><p>Personalize your hub on this device. Preferences are saved separately for your account.</p><div class="hub-preferences"><label for="hub-accent">Color palette<select id="hub-accent"><option value="rose">Ozylix Rose</option><option value="forest">Forest</option></select></label><label for="hub-density">Layout spacing<select id="hub-density"><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></label><button class="btn-primary" type="button" onclick="saveHubPreferences()">Save appearance</button></div></section>
         <div class="account-panel active" id="panel-orders">
           <div class="account-panel-title">📦 My Orders</div>
           <div id="ordersList"></div>
@@ -3213,7 +3210,7 @@
   </div>
 </footer>
 
-<script defer src="/scripts/auth-core.min.js?v=20261007-hub1"></script>
+<script defer src="/scripts/auth-core.min.js?v=20261007-refine1"></script>
 
 <div id="stickyCart" style="position:fixed;bottom:0;left:0;right:0;z-index:920;display:none;align-items:center;gap:12px;padding:10px 14px;transform:translateY(100%);background:var(--paper);box-shadow:0 -1px 0 var(--edge),0 -10px 30px rgba(72,62,70,.10)">
   <div style="flex:1;min-width:0">
@@ -3661,7 +3658,7 @@ img.az-fade.az-in{opacity:1}
 
 <script defer src="/scripts/cart-footer.js?v=20261001-3"></script>
 
-<script defer src="/scripts/account-welcome.js?v=20261007-hub1?v=20261001-3"></script>
+<script defer src="/scripts/account-welcome.js?v=20261001-3"></script>
 
 
 <script defer src="/scripts/platform-copy.js?v=20261001-3"></script>
@@ -3763,8 +3760,7 @@ img.az-fade.az-in{opacity:1}
 <script defer src="/scripts/themes.js?v=20261003-origin-refresh-1"></script>
 
 <!-- ═════════ OZYLIX v10 STORE LOADER — style presets, combos & content edits ═════════ -->
-<link rel="stylesheet" href="/styles/account-hub.css?v=20261007-hub1">
-<script defer src="/scripts/account-hub.js?v=20261007-hub1"></script>
+<link rel="stylesheet" href="/styles/account-refinements.css?v=20261007-refine1">
 </body>
 </html>
 

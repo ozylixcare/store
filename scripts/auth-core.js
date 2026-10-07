@@ -5957,19 +5957,29 @@ function updateAccountNavBtn() {
   if (user && typeof google !== 'undefined' && google.accounts?.id) {
     try { google.accounts.id.disableAutoSelect(); } catch(e) {}
   }
-  if (user) { try { vitaRefreshFromServer(); } catch(e) {} }
-  const btn  = document.getElementById('accountNavBtn');
-  if (!btn) return;
   if (user) {
-    btn.textContent = 'My Account';
-    btn.title = 'Open your Account Hub';
-    btn.setAttribute('aria-label', 'Open your Account Hub');
-    btn.style.cssText = '';
+    const initial=(user.name || 'U')[0].toUpperCase();
+    btn.textContent=initial;
+    if (user.picture) {
+      try {
+        const url=new URL(user.picture);
+        if(url.protocol === 'https:') {
+          const img=document.createElement('img');
+          img.src=url.href;img.alt='Your account photo';
+          img.style.cssText='width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid white';
+          img.onerror=function(){btn.textContent=initial;};
+          btn.replaceChildren(img);
+        }
+      } catch (_) {}
+    }
+    btn.title=user.name || 'My Account';
+    btn.setAttribute('aria-label','Open my account');
+    btn.style.cssText='background:var(--green);color:white;border-radius:50%;width:36px;height:36px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0;overflow:hidden';
   } else {
-    btn.textContent = 'Sign in';
-    btn.setAttribute('aria-label', 'Sign in to your Account Hub');
-    btn.title = 'Account';
-    btn.style.cssText = '';
+    btn.innerHTML='<svg width="20" height="20" aria-hidden="true"><use href="#ico-user"/></svg>';
+    btn.title='Account';
+    btn.setAttribute('aria-label','Sign in to my account');
+    btn.style.cssText='';
   }
 }
 
@@ -6361,7 +6371,7 @@ function switchAccountPanel(panel) {
   const el = document.getElementById('panel-' + panel);
   if (el) el.classList.add('active');
   const navItems = document.querySelectorAll('.account-nav-item');
-  const labels = ['orders','tracking','invoices','vita','returns','profile','preferences'];
+  const labels = ['orders','tracking','invoices','vita','returns','profile'];
   if (panel === 'returns') { try { renderReturnsPanel(); } catch(e) { console.error('[renderReturnsPanel]', e); } }
   if (panel === 'vita') { try { renderVitaPanel(); } catch(e) { console.error('[renderVitaPanel]', e); } }
   if (panel === 'orders') { try { refreshAccountWelcome(); } catch(e) { console.error('[refreshAccountWelcome]', e); } }
@@ -8440,7 +8450,7 @@ function resetAccountSession() {
   clearInterval(window._ordersRefreshTimer);
   window.__INVOICE_ORDERS = null;
   window.__appBackendOrderCount = 0;
-  ['ordersList','invoicesList','returnsPanelBody','vitaPanelBody','trackingResult'].forEach(id => { const el=document.getElementById(id); if(el) el.replaceChildren(); });
+  ['ordersList','invoicesList','returnsPanelBody','vitaPanelBody','trackResult'].forEach(id => { const el=document.getElementById(id); if(el) el.replaceChildren(); });
   document.querySelectorAll('#page-account input, #page-checkout input').forEach(el => { if(!['checkbox','radio','hidden'].includes(el.type)) el.value=''; });
   ['accName','accEmail','awName','awEmail'].forEach(id => {const el=document.getElementById(id);if(el)el.textContent='';});
   ['awOrders','awPoints','awSaved','accOrdersCount','accVitaCount'].forEach(id => {const el=document.getElementById(id);if(el)el.textContent='—';});
