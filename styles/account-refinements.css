@@ -15,3 +15,39 @@
   #page-account .auth-input{font-size:16px}
 }
 @media(prefers-reduced-motion:reduce){#page-account .aw-stat{transition:none;transform:none}}
+
+.mobile-rail-icon{display:none}
+/* Mobile icon rail; the existing desktop account layout stays intact. */
+@media (max-width:760px) {
+  #page-account > .container{padding-left:12px;padding-right:12px}
+  #page-account .account-layout{display:grid;grid-template-columns:64px minmax(0,1fr)!important;gap:16px 12px;align-items:start}
+  #page-account .account-content{display:contents}
+  #page-account .account-welcome{grid-column:1 / -1;grid-row:1;order:initial;width:100%;min-width:0}
+  #page-account .account-sidebar{grid-column:1;grid-row:2;order:initial;position:sticky;top:114px;width:64px;padding:6px;border:1px solid var(--edge);border-radius:20px;background:var(--paper);box-shadow:var(--neo-1)}
+  #page-account .account-profile-top,#page-account .account-nav-heading{display:none}
+  #page-account .account-nav{display:flex;flex-direction:column;gap:6px}
+  #page-account .account-nav-item{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;min-height:58px;padding:7px 2px;border:1px solid transparent;border-radius:13px;background:transparent;box-shadow:none;text-align:center;color:var(--t-mid);transform:none}
+  #page-account .account-nav-item .nav-ico{display:grid;place-items:center;flex:0 0 26px;width:26px;height:26px;border-radius:9px;font-size:1rem;background:transparent}
+  #page-account .nav-ico .desktop-account-icon{display:none}
+  #page-account .nav-ico .mobile-rail-icon{display:block;width:20px;height:20px}
+  #page-account .account-nav-item::after{content:attr(data-mobile-label);font-size:10px;font-weight:700;line-height:1.25}
+  #page-account .account-nav-copy{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  #page-account .account-nav-arrow,#page-account .account-nav-count{display:none}
+  #page-account .account-nav-item.active{color:var(--indigo-lo);background:var(--green-hi);border-color:var(--edge-hi);box-shadow:inset 3px 0 0 var(--indigo)}
+  #page-account .account-nav-item.active .nav-ico{background:var(--paper-hi)}
+  #page-account .account-nav-signout{margin-top:8px;border-top:1px solid var(--edge);border-radius:13px;min-height:58px;padding:7px 2px;color:var(--red)}
+  #page-account .account-panel{grid-column:2;grid-row:2;min-width:0;width:100%}
+  #page-account .account-panel-title{font-size:1rem;line-height:1.35;overflow-wrap:anywhere}
+  #page-account .profile-form{padding:16px;min-width:0}
+  #page-account .profile-row{grid-template-columns:1fr;gap:0}
+  #page-account #panel-tracking>div:not(.account-panel-title){padding:16px!important}
+  #page-account .promo-row{flex-wrap:wrap}
+  #page-account .promo-input{min-width:0;width:100%}
+  #page-account .order-header,#page-account .order-item{flex-wrap:wrap;gap:8px}
+  #page-account .order-footer{align-items:flex-start}
+}
+@media (max-width:360px){
+  #page-account > .container{padding-left:8px;padding-right:8px}
+  #page-account .account-layout{grid-template-columns:58px minmax(0,1fr)!important;column-gap:8px}
+  #page-account .account-sidebar{width:58px;padding:4px}
+}
