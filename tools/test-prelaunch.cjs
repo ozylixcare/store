@@ -7,6 +7,7 @@ let onIntersection, onMutation;
 const observed = new Set();
 class Image {
   constructor(url) { this.dataset = {src:url}; this.src = ''; }
+  addEventListener() {}
   matches() { return !!this.dataset.src; }
   removeAttribute() { delete this.dataset.src; }
   querySelectorAll() { return []; }

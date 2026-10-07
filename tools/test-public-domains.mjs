@@ -35,7 +35,7 @@ for (const path of ['/', '/download', '/download/', '/shop/', '/account', '/prod
   assert.deepEqual(assets, ['/']);
   assert.match(await response.text(), /current storefront shell/);
   assert.equal(response.headers.get('Content-Security-Policy'), PUBLIC_CSP);
-  assert.equal(response.headers.get('Cache-Control'), 'no-cache');
+  assert.equal(response.headers.get('Cache-Control'), path === '/account' ? 'private, no-store' : 'no-cache');
   assert.equal(rewrittenPolicy, PUBLIC_CSP.replace(/frame-ancestors[^;]*;?/, '').trim());
 }
 for (const path of ['/admin', '/admin.html', '/ops-console-8f3d2c.html', '/worker/index.js', '/functions/_middleware.js', '/tools/test-public-domains.mjs', '/unknown-page']) {
