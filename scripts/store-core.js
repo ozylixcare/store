@@ -174,6 +174,11 @@ function fetchWithTimeout(url, options, ms) {
 const API_BASE = 'https://backend-s7ih.onrender.com';
 loadStoreWhatsApp();
 
+// One visibility rule for the shop, bundles and recommendations.
+function isStoreProductActive(p) {
+  return !!p && !p._hidden && p.active !== false && !p.deleted_at;
+}
+
 // Merge backend product data over static product array — ALL fields synced
 function mergeBackendProducts(backendProducts, options = {}) {
   if (!Array.isArray(backendProducts)) return false;
@@ -790,7 +795,7 @@ async function syncProductsFromBackend() {
         // sync returns, so its thumbnails were still the category fallback
         // while the same products showed their real photos in every grid
         // that IS re-rendered here. It keeps any current selection.
-        try { renderBundleBuilder(); } catch(e){}
+        try { refreshProductSelections(); } catch(e){}
         // Update prices, images, offers on all visible product cards
         try { updateAllProductCards(); } catch(e){}
         // The replacement above destroys the previously-observed images —
@@ -860,13 +865,13 @@ async function syncProductsFromBackend() {
 
 // ✅ FIX 2 & 5: Standalone render functions used after backend sync
 function renderFeatured() {
-  const visible = PRODUCTS.filter(p => !p._hidden && p.active !== false);
+  const visible = PRODUCTS.filter(isStoreProductActive);
   const feat = visible.filter(p => p.tags.includes('featured')).sort(byPosition).slice(0,8);
   const fg = document.getElementById('featuredGrid');
   if (fg) fg.innerHTML = feat.map(p => renderProductCard(p, { homepage: true })).join('');
 }
 function renderNewArrivals() {
-  const visible = PRODUCTS.filter(p => !p._hidden && p.active !== false);
+  const visible = PRODUCTS.filter(isStoreProductActive);
   const newP = visible.filter(p => p.tags.includes('new')).sort(byPosition).slice(0,4);
   const nag = document.getElementById('newArrivalsGrid');
   if (nag) nag.innerHTML = newP.map(p => renderProductCard(p, { homepage: true })).join('');
@@ -881,7 +886,7 @@ function renderShopGrid() { applyFilters(); }
 function hydrateCategoryCounts() {
   const nodes = document.querySelectorAll('[data-cat-count]');
   if (!nodes.length || typeof PRODUCTS === 'undefined') return;
-  const visible = PRODUCTS.filter(p => !p._hidden && p.active !== false);
+  const visible = PRODUCTS.filter(isStoreProductActive);
   nodes.forEach((el) => {
     const cat = el.getAttribute('data-cat-count');
     const n = visible.filter(p => p.category === cat).length;
@@ -1297,7 +1302,7 @@ const STORE = {
   cart:[], wishlist:[],
   init(){try{this.cart=JSON.parse(localStorage.getItem('asc_cart')||'[]');}catch(e){this.cart=[];}try{this.wishlist=JSON.parse(localStorage.getItem('asc_wish')||'[]');}catch(e){this.wishlist=[];}this.normalizeCartTiers();this.updateCartUI();},
   save(){try{localStorage.setItem('asc_cart',JSON.stringify(this.cart));localStorage.setItem('asc_wish',JSON.stringify(this.wishlist));}catch(e){}this.updateCartUI();},
-  addToCart(id,qty=1){const p=PRODUCTS.find(p=>p.id===id);if(!p)return;const ex=this.cart.find(i=>i.id===id&&i.tierIdx===undefined);if(ex)ex.qty+=qty;else this.cart.push({id,qty});this.save();window._trackAddToCart&&window._trackAddToCart(p,qty);const _dispPrice=p.salePrice||p.price;showToast(`${p.name} added to cart! 🌿`);},
+  addToCart(id,qty=1){const p=PRODUCTS.find(p=>p.id===id);if(!isStoreProductActive(p)){showToast('This product is currently unavailable','error');return;}const ex=this.cart.find(i=>i.id===id&&i.tierIdx===undefined);if(ex)ex.qty+=qty;else this.cart.push({id,qty});this.save();window._trackAddToCart&&window._trackAddToCart(p,qty);const _dispPrice=p.salePrice||p.price;showToast(`${p.name} added to cart! 🌿`);},
   removeFromCart(id){this.cart=this.cart.filter(i=>i.id!==id);this.save();},
   // FIX (order-flow audit): cart entries baked a tier rate at add time and
   // could go stale (wrong product's rate, or a rate from before a price
@@ -1672,5 +1677,6 @@ function renderProductCard(p, options = {}){
   const buyNowOnclick = `event.stopPropagation();openProduct(${p.id})`;
   return `<div class="product-card" data-product-id="${p.id}" data-image-state="${mediaState}" style="--card-flavour:${cardFlavour}" onclick="openProduct(${p.id})"><div class="p-img-wrap">${cardMedia}${safeBadge}${mediaBadge} ${maxDisc>0?`<span class="p-disc-badge">${tiers?'Up to ':'-'}${maxDisc}%</span>`:''}<div class="p-actions"><button class="btn-wishlist" onclick="event.stopPropagation();STORE.toggleWishlist(${p.id})" title="Wishlist">♡</button><button class="btn-qadd" onclick="${qAddOnclick}">${qAddLabel}</button></div><div class="p-buyrow"><button class="btn-buynow" onclick="${buyNowOnclick}">⚡ Buy Now</button></div></div><div class="p-info"><div class="p-brand">${safeKicker}</div><div class="p-name">${safeName}</div><div class="p-rating">${ratingDisplay}</div><div class="p-price"><span class="sale-price">${priceDisplay}</span>${(baseMRP&&baseMRP!==baseRate)?`<span class="orig-price">₹${baseMRP.toLocaleString('en-IN')}</span>`:''}</div>${tiers?`<div class="tier-offer-tag">⚡ Up to ${maxDisc.toFixed(maxDisc%1?1:0)}% OFF on larger packs${tiers[0]?.offerType==='buy_get' ? ` · ${esc(tiers[0].label || `Buy ${tiers[0].buyQuantity||1} Get ${tiers[0].freeQuantity||0}`)}` : ''}</div>`:safeOffer}<div class="p-enter" aria-hidden="true">Shop now<svg viewBox="0 0 15 8" fill="none"><path d="M0 4h13M9.5 1L13 4l-3.5 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div></div>`;
 }
+
 
 
