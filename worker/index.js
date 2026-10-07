@@ -137,7 +137,7 @@ const SITE_MEDIA_CACHE_KEY = new Request('https://ozylix-cdn/edge/site-media-bac
 
 // Response-level protections for Worker-generated public pages and JSON. The
 // matching _headers file covers static assets that bypass this Worker.
-const PUBLIC_CSP = "default-src 'none'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://accounts.google.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://connect.facebook.net https://sdk.cashfree.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://syayxfxyqnnvmvrjoxyw.supabase.co https://frwsjgrrtzhjfflcdjjs.supabase.co https://wyvpuafzirwlwweifzao.supabase.co https://i.ibb.co https://ozylix.imgbb.com https://images.unsplash.com; connect-src 'self' https://www.googletagmanager.com https://www.facebook.com https://connect.facebook.net https://syayxfxyqnnvmvrjoxyw.supabase.co https://frwsjgrrtzhjfflcdjjs.supabase.co https://backend-s7ih.onrender.com https://marketing-automation-rmcb.onrender.com https://*.gokwik.co https://gkx.gokwik.co https://www.google-analytics.com https://region1.google-analytics.com https://www.googleapis.com https://oauth2.googleapis.com https://openidconnect.googleapis.com https://accounts.google.com https://api.cashfree.com https://sandbox.cashfree.com; frame-src 'self' https://www.googletagmanager.com https://accounts.google.com https://content.googleapis.com https://oauth2.googleapis.com https://*.gokwik.co https://sdk.cashfree.com https://api.cashfree.com https://sandbox.cashfree.com https://payments.cashfree.com https://payments-test.cashfree.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';";
+const PUBLIC_CSP = "default-src 'none'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://accounts.google.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://connect.facebook.net https://sdk.cashfree.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://www.ozylix.com https://ozylix.com https://back.ozylix.com https://www.facebook.com https://syayxfxyqnnvmvrjoxyw.supabase.co https://frwsjgrrtzhjfflcdjjs.supabase.co https://wyvpuafzirwlwweifzao.supabase.co https://i.ibb.co https://ozylix.imgbb.com https://images.unsplash.com; manifest-src 'self'; worker-src 'self'; media-src 'self' blob: https://www.ozylix.com https://ozylix.com https://back.ozylix.com https://syayxfxyqnnvmvrjoxyw.supabase.co https://frwsjgrrtzhjfflcdjjs.supabase.co https://wyvpuafzirwlwweifzao.supabase.co; connect-src 'self' https://static.cloudflareinsights.com https://cloudflareinsights.com https://sdk.cashfree.com https://www.googletagmanager.com https://www.facebook.com https://connect.facebook.net https://syayxfxyqnnvmvrjoxyw.supabase.co https://frwsjgrrtzhjfflcdjjs.supabase.co https://backend-s7ih.onrender.com https://marketing-automation-rmcb.onrender.com https://*.gokwik.co https://gkx.gokwik.co https://www.google-analytics.com https://region1.google-analytics.com https://www.googleapis.com https://oauth2.googleapis.com https://openidconnect.googleapis.com https://accounts.google.com https://api.cashfree.com https://sandbox.cashfree.com; frame-src 'self' https://www.googletagmanager.com https://accounts.google.com https://content.googleapis.com https://oauth2.googleapis.com https://*.gokwik.co https://sdk.cashfree.com https://api.cashfree.com https://sandbox.cashfree.com https://payments.cashfree.com https://payments-test.cashfree.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';";
 
 // Cloudflare can otherwise replace the repository file with its managed
 // Content-Signals policy. Keep one authoritative crawler policy at the Worker.
@@ -297,8 +297,8 @@ export default {
       // Serve the app shell while keeping the visitor's URL and a 200, so the
       // page is indexable. index.html reads location.pathname on boot and opens
       // the matching page or product.
-      const shell = await env.ASSETS.fetch(new URL('/index.html', url));
-      return publicHeaders(new Response(shell.body, { status: 200, headers: shell.headers }));
+      const shell = await env.ASSETS.fetch(new URL('/', url));
+      return publicHeaders(new Response(shell.body, { status: shell.status, headers: shell.headers }));
     }
 
     // Real asset, or nothing — in which case not_found_handling serves 404.html
@@ -308,6 +308,6 @@ export default {
 };
 
 // Exported for the local routing test; ignored by the Workers runtime.
-export { isSpaPath, ADMIN_HOST, ADMIN_ENTRY, handleSiteMedia };
+export { isSpaPath, ADMIN_HOST, ADMIN_ENTRY, handleSiteMedia, PUBLIC_CSP };
 
 
