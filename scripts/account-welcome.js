@@ -219,15 +219,7 @@ async function refreshAccountWelcome() {
       }
     } catch(e) { console.warn('[Welcome] orders fetch failed:', e.message); }
   }
-  // Local history (orders placed before accounts existed)
-  try {
-    const local = JSON.parse(localStorage.getItem('asc_orders') || '[]')
-      .filter(function(o){ return (o.userEmail || o.email || '').toLowerCase().trim() === user.email.toLowerCase().trim(); })
-      .filter(function(o){ return !orders.some(function(b){ return b.id === o.orderId || b.id === o.id; }); })
-      .map(function(o){ return Object.assign({}, o, { id: o.orderId }); });
-    orders = orders.concat(local);
-  } catch(e) {}
-
+  if (!accountSessionMatches(jwt)) return;
   if (ordersEl) ordersEl.textContent = orders.length;
   window.__appBackendOrderCount = orders.length;
   const accOrders = document.getElementById('accOrdersCount');
