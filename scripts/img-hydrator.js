@@ -5,6 +5,8 @@
   var selector = 'div.product-card img[data-src]';
   function hydrate(img) {
     if (!img || !img.dataset.src) return;
+    img.decoding = 'async';
+    if (!img.hasAttribute('loading')) img.loading = 'lazy';
     img.src = img.dataset.src;
     img.removeAttribute('data-src');
   }
@@ -17,6 +19,8 @@
   }, { rootMargin: '300px 0px' }) : null;
   function watch(img) {
     if (!img.matches(selector)) return;
+    if (!img.hasAttribute('loading')) img.loading = 'lazy';
+    img.decoding = 'async';
     if (io) io.observe(img);
     else hydrate(img);
   }
