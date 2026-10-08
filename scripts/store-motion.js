@@ -9,6 +9,8 @@
   function decorate(root){
     const nodes=root.matches?.(controls)?[root,...root.querySelectorAll(controls)]:[...root.querySelectorAll(controls)];
     nodes.forEach(button=>{
+      // Pack selectors are comparison cards; keep their readable selection surface.
+      if(button.getAttribute('role')==='radio') {button.classList.remove('oz-liquid');return;}
       if(button.classList.contains('oz-liquid'))return;
       button.classList.add('oz-liquid');
       if(/danger|delete|remove|cancel|logout/.test(button.className))button.dataset.liquidTone='rose';

@@ -21,6 +21,13 @@ const root=path.resolve(__dirname,'..'),base='http://127.0.0.1:8775';
    console.log('Storefront',width,'stable targets, colorful button surfaces, glass only on controls; baseline script errors:',errors.slice(0,5));
    await context.close();
   }
+  const fixtureContext=await browser.newContext();const fixture=await fixtureContext.newPage();
+  await fixture.setContent('<style>.qty-tier{background:white;color:black}.app-menu-item-label{color:black}</style><button role="radio" class="qty-tier">90 tablets</button><button class="app-menu-item"><span class="app-menu-item-label">Orders</span></button>');
+  await fixture.addStyleTag({content:fs.readFileSync(path.join(root,'styles/liquid-buttons.css'),'utf8')});
+  await fixture.addScriptTag({content:fs.readFileSync(path.join(root,'scripts/store-motion.js'),'utf8')});
+  assert.equal(await fixture.locator('[role="radio"]').evaluate(b=>b.classList.contains('oz-liquid')),false,'pack comparison cards keep a readable surface');
+  assert.equal(await fixture.locator('.app-menu-item-label').evaluate(b=>getComputedStyle(b).color),'rgb(255, 255, 255)','nested menu labels keep contrast');
+  await fixtureContext.close();
   const context=await browser.newContext({viewport:{width:390,height:850},reducedMotion:'reduce'});await context.route('**/*',r=>new URL(r.request().url()).origin===base?r.continue():r.abort());const page=await context.newPage();await page.goto(base+'/index.html');await page.waitForTimeout(800);assert.equal(await page.locator('.oz-liquid').first().evaluate(b=>getComputedStyle(b).transitionDuration),'0s');await context.close();
  }finally{await browser.close();await new Promise(r=>server.close(r));}
 })().catch(e=>{console.error(e);process.exitCode=1;});

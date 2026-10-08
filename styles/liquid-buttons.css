@@ -26,3 +26,8 @@ html body .oz-liquid :is(svg,.btn-icon,.tb-ico-sm) {color:inherit;}
 html body.admin-motion-reduced .oz-liquid {transition:none !important;}
 
 html body .oz-liquid[data-liquid-tone="violet"] {--liquid-base:#383264;--liquid-a:#574782;--liquid-b:#226e80;}
+
+/* Nested menu labels must follow the contrasting control text color. */
+html body .oz-liquid :not(img):not(picture):not([class*="badge"]) {color:inherit !important;}
+/* Stable targets include comparison-card buttons that retain their own surface. */
+html body button {transform:none !important;translate:none !important;scale:none !important;}
