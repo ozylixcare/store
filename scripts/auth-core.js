@@ -6292,23 +6292,34 @@ async function submitReturn(orderId, btn) {
   }
   if (!reason)       { showToast('Please choose a reason for the return', 'error'); return; }
 
+  const jwt = _retJwt();
+  if (!jwt) { showToast('Your session has expired. Please sign in again.', 'error'); return; }
   const orig = btn.textContent;
   btn.disabled = true; btn.textContent = 'Submitting…';
   try {
-    const resp = await fetch(API_BASE + '/api/returns', {
+    const resp = await fetchWithTimeout(API_BASE + '/api/returns', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _retJwt() },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
       body: JSON.stringify({
         order_id: orderId, reason: reason, comments: note,
         items: boxes.map(function(b){ return { id: b.dataset.id, qty: Number(b.dataset.max) || 1 }; }),
       }),
-    });
-    const d = await resp.json();
-    if (!resp.ok) throw new Error(d.error || 'Could not submit');
+    }, 20000);
+    const d = await resp.json().catch(function(){ return {}; });
+    if (!resp.ok) {
+      const message = d.error || d.message || (resp.status === 401 || resp.status === 403
+        ? 'Your session has expired. Please sign in again.'
+        : 'The returns service could not accept this request (HTTP ' + resp.status + '). Please try again or email support.');
+      throw new Error(message);
+    }
     showToast('↩️ Return request submitted');
     renderReturnsPanel();
   } catch (err) {
-    showToast('❌ ' + err.message, 'error');
+    const message = err && (err.name === 'AbortError' || err.name === 'TimeoutError')
+      ? 'The request timed out. Check your connection and try again.'
+      : (err && err.message ? err.message : 'Could not submit your return request. Please try again.');
+    console.error('[submitReturn] request failed', { orderId: orderId, error: err });
+    showToast('❌ ' + message, 'error');
     btn.disabled = false; btn.textContent = orig;
   }
 }
@@ -6611,20 +6622,24 @@ async function doTrackOrder() {
 
   if (!accountSessionMatches(jwt)) return;
   if (!order) {
-    res.innerHTML = '<div style="background:var(--st-danger-bg);border:1px solid var(--st-danger-bg);border-radius:var(--radius);padding:14px;font-size:0.84rem;color:var(--red)">Order not found in your account. <a href="https://www.shiprocket.in/shipment-tracking/" target="_blank" rel="noopener" style="color:var(--green);font-weight:700">Try Shiprocket directly ↗</a></div>';
+    res.innerHTML = '<div style="background:var(--st-danger-bg);border:1px solid var(--st-danger-bg);border-radius:var(--radius);padding:14px;font-size:0.84rem;color:var(--red)">We could not match that ID to an order on your account. Check the order number or enter the Shiprocket AWB number instead.</div>';
     return;
   }
 
   const foundId = order.id || order.orderId || requested;
   const address = order.address || order.shipping_address || [order.city, order.state, order.pincode || order.postal_code].filter(Boolean).join(', ');
   const status = order.fulfillment || order.status || order.order_status || 'Processing';
+  const awb = String(order.awb_code || order.awb_number || order.awb || order.tracking_number || order.tracking_id || '').trim();
+  const shiprocketUrl = awb ? 'https://shiprocket.co/tracking/' + encodeURIComponent(awb) : '';
   res.innerHTML = `
     <div style="background:var(--green-wash);border-radius:var(--radius);padding:18px">
       <div style="font-weight:700;margin-bottom:8px;color:var(--green)">📦 Order Found: ${esc(foundId)}</div>
       <div style="font-size:0.84rem;color:var(--gray);margin-bottom:12px">${esc(address)}</div>
       <div style="font-size:0.84rem;font-weight:700;color:var(--text)">Status: ${esc(status)}</div>
       <div style="margin-top:14px">
-        <a href="https://www.shiprocket.in/shipment-tracking/" target="_blank" rel="noopener" class="btn-primary" style="font-size:0.82rem;padding:10px 20px">Track on Shiprocket ↗</a>
+        ${shiprocketUrl
+          ? `<a href="${esc(shiprocketUrl)}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:0.82rem;padding:10px 20px">Track shipment ${esc(awb)} on Shiprocket ↗</a>`
+          : '<p style="font-size:0.8rem;color:var(--gray);margin:12px 0 0">Carrier tracking will appear here once your shipment has an AWB number.</p>'}
       </div>
     </div>
   `;
@@ -6675,31 +6690,9 @@ function findInvoiceOrder(orderId) {
 }
 
 function downloadInvoice(orderId) {
-  // All visible customer invoice actions now use the shared upgraded template.
-  // The generated HTML is self-contained, printable, and can be saved as PDF
-  // from its built-in Print / Save as PDF control. The backend PDF route is
-  // retained separately as downloadInvoicePDF() for API/integration callers.
-  try {
-    var o = findInvoiceOrder(orderId);
-    if (!o) { showToast('Invoice not found for ' + orderId, 'error'); return; }
-    var html = buildInvoiceHTML(o);
-    var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'Ozylix-Tax-Invoice-' + orderId + '.html';
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function() {
-      URL.revokeObjectURL(url);
-      if (a.parentNode) a.parentNode.removeChild(a);
-    }, 4000);
-    showToast('🧾 Updated invoice downloaded — open it to print or save as PDF');
-  } catch (e) {
-    console.error('[downloadInvoice]', e);
-    showToast('Could not download the updated invoice: ' + (e.message || 'please try again'), 'error');
-  }
+  // Visible invoice controls download the authenticated PDF endpoint; do not
+  // create an HTML attachment that opens as source in some mobile browsers.
+  return downloadInvoicePDF(orderId);
 }
 
 function downloadInvoicePDF(orderId) {
@@ -8446,4 +8439,3 @@ window.addEventListener('storage', e => {
   }
 });
 syncAccountSession();
-
