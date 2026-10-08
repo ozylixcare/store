@@ -6,7 +6,7 @@
     var panel=document.createElement('aside');
     panel.className='oz-vita-panel';
     panel.setAttribute('aria-label','Welcome to Ozylix');
-    panel.innerHTML='<div class="oz-vita-mark"><img src="/assets/ozylix-logo.png" alt="Ozylix" loading="lazy" decoding="async"></div><div class="oz-vita-orb" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><span class="oz-vita-wave">👋</span></div><div class="oz-vita-hello">Hi! Welcome to Ozylix</div><p class="oz-vita-caption">Your wellness journey starts here.</p><div class="oz-vita-products" aria-label="Ozylix products"></div>';
+    panel.innerHTML='<div class="oz-vita-mark"><img src="/assets/ozylix-logo.png" alt="Ozylix" loading="lazy" decoding="async"></div><div class="oz-vita-character"><img src="/assets/vita-waving.svg" alt="Vita, your Ozylix wellness guide, waving hello" loading="lazy" decoding="async"><span class="oz-vita-speech">Hi 👋</span></div><div class="oz-vita-hello">Hi! Welcome to Ozylix</div><p class="oz-vita-caption">Your wellness journey starts here.</p><div class="oz-vita-products" aria-label="Ozylix products"></div>';
     box.insertBefore(panel,box.firstChild);
     function products(){
       var holder=panel.querySelector('.oz-vita-products');
