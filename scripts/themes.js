@@ -3,7 +3,7 @@
 (function () {
   'use strict';
   var STORE = 'ozylix';
-  var API = 'https://backend-s7ih.onrender.com/api/public/theme';
+  var API = '/api/public/theme';
   var CACHE_MS = 60000;
 
   function buildCss(theme) {

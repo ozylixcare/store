@@ -115,6 +115,8 @@ async function serveAdmin(request, env, url) {
   return noIndex(await env.ASSETS.fetch(request));
 }
 
+import { isApiRequest, handleApiRequest, publicMedia } from './api-proxy.js';
+
 import { isCdnRequest, handleCdnRequest } from './image-cdn.js';
 
 // ── Performance: edge-cached site-media JSON (Aug 2026) ──────────────────────
@@ -137,7 +139,7 @@ const SITE_MEDIA_CACHE_KEY = new Request('https://ozylix-cdn/edge/site-media-bac
 
 // Response-level protections for Worker-generated public pages and JSON. The
 // matching _headers file covers static assets that bypass this Worker.
-const PUBLIC_CSP = "default-src 'none'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://accounts.google.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://connect.facebook.net https://sdk.cashfree.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://www.ozylix.com https://ozylix.com https://back.ozylix.com https://www.facebook.com https://syayxfxyqnnvmvrjoxyw.supabase.co https://frwsjgrrtzhjfflcdjjs.supabase.co https://wyvpuafzirwlwweifzao.supabase.co https://i.ibb.co https://ozylix.imgbb.com https://images.unsplash.com; manifest-src 'self'; worker-src 'self'; media-src 'self' blob: https://www.ozylix.com https://ozylix.com https://back.ozylix.com https://syayxfxyqnnvmvrjoxyw.supabase.co https://frwsjgrrtzhjfflcdjjs.supabase.co https://wyvpuafzirwlwweifzao.supabase.co; connect-src 'self' https://static.cloudflareinsights.com https://cloudflareinsights.com https://sdk.cashfree.com https://www.googletagmanager.com https://www.facebook.com https://connect.facebook.net https://syayxfxyqnnvmvrjoxyw.supabase.co https://frwsjgrrtzhjfflcdjjs.supabase.co https://backend-s7ih.onrender.com https://marketing-automation-rmcb.onrender.com https://*.gokwik.co https://gkx.gokwik.co https://www.google-analytics.com https://region1.google-analytics.com https://www.googleapis.com https://oauth2.googleapis.com https://openidconnect.googleapis.com https://accounts.google.com https://api.cashfree.com https://sandbox.cashfree.com; frame-src 'self' https://www.googletagmanager.com https://accounts.google.com https://content.googleapis.com https://oauth2.googleapis.com https://*.gokwik.co https://sdk.cashfree.com https://api.cashfree.com https://sandbox.cashfree.com https://payments.cashfree.com https://payments-test.cashfree.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';";
+const PUBLIC_CSP = "default-src 'none'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://accounts.google.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://connect.facebook.net https://sdk.cashfree.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://www.ozylix.com https://ozylix.com https://www.facebook.com https://i.ibb.co https://ozylix.imgbb.com https://images.unsplash.com; manifest-src 'self'; worker-src 'self'; media-src 'self' blob: https://www.ozylix.com https://ozylix.com; connect-src 'self' https://static.cloudflareinsights.com https://cloudflareinsights.com https://sdk.cashfree.com https://www.googletagmanager.com https://www.facebook.com https://connect.facebook.net https://*.gokwik.co https://gkx.gokwik.co https://www.google-analytics.com https://region1.google-analytics.com https://www.googleapis.com https://oauth2.googleapis.com https://openidconnect.googleapis.com https://accounts.google.com https://api.cashfree.com https://sandbox.cashfree.com; frame-src 'self' https://www.googletagmanager.com https://accounts.google.com https://content.googleapis.com https://oauth2.googleapis.com https://*.gokwik.co https://sdk.cashfree.com https://api.cashfree.com https://sandbox.cashfree.com https://payments.cashfree.com https://payments-test.cashfree.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';";
 
 // Cloudflare can otherwise replace the repository file with its managed
 // Content-Signals policy. Keep one authoritative crawler policy at the Worker.
@@ -194,8 +196,8 @@ async function handleSiteMedia() {
     if (!r.ok) throw new Error('backend ' + r.status);
     const body = await r.text();
     // Validate it's actually JSON before caching.
-    JSON.parse(body);
-    smInMem.body = body;
+    const sanitizedBody = JSON.stringify(publicMedia(JSON.parse(body)));
+    smInMem.body = sanitizedBody;
     smInMem.headers = {
       'Content-Type': 'application/json',
       'Cache-Control': `public, max-age=${SITE_MEDIA_EDGE_TTL}, stale-while-revalidate=${SITE_MEDIA_STALE_TTL}`,
@@ -203,7 +205,7 @@ async function handleSiteMedia() {
     };
     smInMem.storedAt = now;
     smInMem.expiry = now + SITE_MEDIA_EDGE_TTL * 1000;
-    return publicHeaders(new Response(body, { status: 200, headers: smInMem.headers }));
+    return publicHeaders(new Response(sanitizedBody, { status: 200, headers: smInMem.headers }));
   } catch (e) {
     // Render is down or slow — fail loudly so the storefront keeps its
     // hard-coded defaults instead of painting broken banner URLs.
@@ -291,6 +293,11 @@ export default {
         return noIndex(Response.redirect(target.toString(), 302));
       }
       return serveAdmin(request, env, url);
+    }
+
+    if (url.pathname.endsWith('/index.html') && isSpaPath(url.pathname.slice(0,-11))) {
+      url.pathname = url.pathname.slice(0,-11) || '/';
+      return publicHeaders(Response.redirect(url.toString(),301));
     }
 
     if (isSpaPath(url.pathname)) {

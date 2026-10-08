@@ -25,7 +25,7 @@
   }
 
   function scan() {
-    document.querySelectorAll('.product-card').forEach(function(el){ attachTilt(el, 5); });
+
     document.querySelectorAll('.slide-visual').forEach(function(el){ attachTilt(el, 4); });
   }
 

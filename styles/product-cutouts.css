@@ -1,0 +1,27 @@
+/* Physical depth comes from the product silhouette and inset panel, not motion. */
+.product-card,.product-card:hover,.cat-card,.cat-card:hover,.cat-card-sm,.cat-card-sm:hover,.promo-card,.promo-card:hover{transform:none!important;animation:none!important;opacity:1!important;visibility:visible!important;transition:box-shadow .2s,border-color .2s!important}
+.product-card.has-cutout{overflow:hidden;border:1px solid var(--edge-hi,rgba(50,70,60,.12));background:var(--paper-hi,#faf9f5);box-shadow:0 4px 12px rgba(36,52,42,.07)!important}
+.product-card.has-cutout .p-img-wrap{position:relative;isolation:isolate;background:transparent!important;aspect-ratio:1/1.07;overflow:hidden!important;padding:12px 12px 58px!important}
+.product-card.has-cutout .p-img-wrap:before{content:"";position:absolute;z-index:-1;top:24%;right:10px;bottom:8px;left:10px;border-radius:18px;background:color-mix(in srgb,var(--card-flavour,#c1d2c8) 24%,var(--paper-hi,#fff));box-shadow:inset 0 1px 0 rgba(255,255,255,.75)}
+.product-card.has-cutout .p-img-wrap>img{object-fit:contain!important;width:100%!important;height:100%!important;background:transparent!important;padding:0!important;transform:none!important;animation:none!important;filter:drop-shadow(3px 7px 3px rgba(37,49,41,.14))}
+.product-card.has-cutout .p-actions{bottom:10px!important;opacity:1!important;transform:none!important;visibility:visible!important;z-index:4}
+.product-card.has-cutout .p-buyrow{position:static!important;padding:0 10px 10px;opacity:1!important;transform:none!important;visibility:visible!important;z-index:4}
+.product-card.has-cutout .p-info{padding-top:10px}
+.product-card.has-cutout:hover{border-color:var(--card-flavour,#839889)}
+.gallery-main:has(.product-cutout){background:transparent!important;position:relative;isolation:isolate;overflow:hidden}
+.gallery-main:has(.product-cutout):before{content:"";position:absolute;z-index:-1;inset:24% 5% 3%;border-radius:24px;background:var(--sage-wash,#e6eadc);box-shadow:inset 0 1px 0 #fff}
+.gallery-main .product-cutout{object-fit:contain!important;width:100%!important;height:100%!important;padding:3% 9% 6%!important;transform:none!important;animation:none!important;filter:drop-shadow(4px 9px 4px rgba(37,49,41,.15))}
+.promo-card.has-cutout .promo-card-media{background:transparent!important;position:relative;isolation:isolate;overflow:hidden}
+.promo-card.has-cutout .promo-card-media:before{content:"";position:absolute;z-index:-1;inset:23% 6% 4%;border-radius:18px;background:var(--sage-wash,#e6eadc)}
+.promo-card.has-cutout .promo-card-media>img{object-fit:contain!important;background:transparent!important;padding:8px 12px!important;transform:none!important;animation:none!important;filter:drop-shadow(3px 7px 3px rgba(37,49,41,.14))}
+img[src^="/assets/products/cutouts/"]{object-fit:contain!important}
+.reviews-status{width:100%;padding:24px;text-align:center;color:var(--t-mid,#526258);grid-column:1/-1}
+.reviews-status button{margin-top:12px;min-height:44px}
+@media(max-width:600px){.product-card.has-cutout .p-img-wrap{padding:5px 6px 58px!important;aspect-ratio:1/1.25}.product-card.has-cutout .p-img-wrap:before{left:5px;right:5px;border-radius:14px}.product-card.has-cutout .p-actions{gap:4px}.product-card.has-cutout .btn-qadd{font-size:.65rem;padding:5px 8px}.product-card.has-cutout .p-info{padding:10px}.product-card.has-cutout .p-name{font-size:.84rem;line-height:1.35}}
+
+.cat-card.has-cutout{position:relative;isolation:isolate;background:transparent!important;padding-top:12px!important}
+.cat-card.has-cutout:before{content:"";position:absolute;inset:65px 0 0;z-index:-1;border-radius:18px;background:var(--sage-wash,#e6eadc)}
+.cat-card.has-cutout .category-cutout{height:140px;width:100%;object-fit:contain;filter:drop-shadow(3px 6px 3px rgba(37,49,41,.14))}
+.cat-card.has-cutout .cat-icon{display:none}
+
+.product-card.has-cutout .btn-qadd,.product-card.has-cutout .btn-wishlist,.product-card.has-cutout .btn-buynow{transform:none!important}

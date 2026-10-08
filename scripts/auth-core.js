@@ -792,7 +792,7 @@ async function initHome() {
   // showed the catalogue's static figures — a product with zero real
   // reviews could flash "4.8 ★ (567)" for up to a second before the
   // honest "No ratings yet" replaced it.
-  try { await loadProductRatings(); } catch (e) { /* cards fall back below */ }
+  loadProductRatings().catch(() => {});
   // ✅ FIX 2: Filter out _hidden (active:false) products from all grids.
   const visibleProducts = PRODUCTS.filter(isStoreProductActive);
   // Do not gate the entire homepage on media availability. The static
@@ -1939,6 +1939,8 @@ function buildMediaGallery(p) {
     var toCdn = function(u) { return (typeof cdnImg === 'function') ? cdnImg(u) : u; };
     return {url: toCdn(rawUrl), type: t, thumb: toCdn(rawThumb)};
   });
+  const cutout = typeof getProductCutout === 'function' ? getProductCutout(p) : '';
+  if (cutout) media.unshift({url:cutout,type:'image',thumb:cutout});
   _galleryMedia = media;
   _galleryIdx = 0;
 
@@ -1978,7 +1980,7 @@ function renderGalleryMain(m, idx, total) {
     return '<video src="' + m.url + '" muted loop playsinline preload="metadata" autoplay style="width:100%;height:100%;object-fit:contain;border-radius:var(--radius)"></video>'
       + '<span class="vid-badge">▶ Video</span>' + counter;
   }
-  return '<img src="' + (m.url||PRODUCT_FALLBACKS.default) + '" id="mainImg" alt="Product" onclick="openLightbox(_galleryIdx)" onerror="this.src=PRODUCT_FALLBACKS.default" loading="eager" fetchpriority="high" decoding="async">' + counter;
+  return '<img class="' + (String(m.url).startsWith('/assets/products/cutouts/') ? 'product-cutout' : '') + '" src="' + (m.url||PRODUCT_FALLBACKS.default) + '" id="mainImg" alt="Product" onclick="openLightbox(_galleryIdx)" onerror="this.src=PRODUCT_FALLBACKS.default" loading="eager" fetchpriority="high" decoding="async">' + counter;
 }
 
 function galleryGoto(i) {
@@ -2101,6 +2103,7 @@ async function submitReview() {
     _reviewsBatchDone = null;
     _loadProductRatingsDone = null;
     FEATURED_REVIEWS_CACHE = null;
+    LIVE_RATING_CACHE = null;
     if (currentProduct?.id === product.id) {
       if (document.getElementById('rvText') === input) { input.value = ''; setRating(0); }
       // An edit keeps the review count unchanged. Show the saved review
@@ -2635,35 +2638,50 @@ let REVIEWS_BATCH_AVG     = null; // true average across the WHOLE table
 // cards, the reviews wall and the live rating, so nobody waits on more
 // than a single Supabase call.
 let _reviewsBatchDone = null;
+let REVIEWS_BATCH_ERROR = false;
+let REVIEW_PRODUCT_TOTALS = [];
 async function loadReviewsBatch() {
   if (_reviewsBatchDone) return _reviewsBatchDone;
-  _reviewsBatchDone = (async () => {
-    const response = await fetch(API_BASE + '/api/public-reviews', {
-      headers: { Accept: 'application/json' },
-      credentials: 'omit', cache: 'no-store',
+  REVIEWS_BATCH_ERROR = false;
+  const task = (async () => {
+    const response = await fetch(API_BASE + '/api/public-reviews?limit=100', {
+      headers: { Accept: 'application/json' }, credentials: 'omit', cache: 'no-store',
+      signal: AbortSignal.timeout(15000),
     });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(payload.error || `Review request failed (${response.status})`);
-    const rows = Array.isArray(payload.reviews) ? payload.reviews : [];
-    const count = rows.length;
-    // TRUE site-wide totals. REVIEW volume is far below the 1000-row cap,
-    // so the returned rows cover the whole table and the average below
-    // IS the real site average. If review volume ever exceeded the cap,
-    // FEATURED_REVIEWS_AVG would simply stay null (the site shows
-    // "Awaiting reviews") rather than a fabricated figure.
-    const ratings = rows.map(r => Number(r.rating)).filter(n => Number.isFinite(n) && n > 0);
-    if (typeof count === 'number') REVIEWS_BATCH_TOTAL = count;
-    if (count === rows.length && ratings.length) {
-      const avg = ratings.reduce((s, n) => s + n, 0) / ratings.length;
-      REVIEWS_BATCH_AVG = avg;
-      FEATURED_REVIEWS_AVG = avg;
+    const payload = await response.json();
+    if (!response.ok || !Array.isArray(payload.reviews)) throw new Error('Reviews unavailable');
+    const rows = payload.reviews;
+    const ratings = rows.map(r => Number(r.rating)).filter(n => Number.isInteger(n) && n >= 1 && n <= 5);
+    REVIEWS_BATCH_TOTAL = Number.isInteger(payload.total) ? payload.total : rows.length;
+    REVIEWS_BATCH_AVG = payload.average == null ? null : Number(payload.average);
+    if (REVIEWS_BATCH_AVG == null && REVIEWS_BATCH_TOTAL === ratings.length && ratings.length) {
+      REVIEWS_BATCH_AVG = ratings.reduce((sum,n)=>sum+n,0)/ratings.length;
     }
-    return rows.map(r => ({
-      id: r.id, productId: r.product_id, productName: r.product_name,
-      user: r.user_name, rating: r.rating, text: r.review_text, date: r.created_at
-    }));
-  })().catch(() => { _reviewsBatchDone = null; return []; });
-  return _reviewsBatchDone;
+    FEATURED_REVIEWS_AVG = REVIEWS_BATCH_AVG;
+    REVIEW_PRODUCT_TOTALS = Array.isArray(payload.product_totals) ? payload.product_totals : [];
+    return rows.map(r => ({id:r.id,productId:r.product_id,productName:r.product_name,
+      user:r.user_name,rating:Number(r.rating),text:r.review_text,date:r.created_at,
+      updatedAt:r.updated_at,verified:r.verified === true}));
+  })();
+  _reviewsBatchDone = task;
+  try { return await task; } catch (error) {
+    REVIEWS_BATCH_ERROR = true;
+    if (_reviewsBatchDone === task) _reviewsBatchDone = null;
+    throw error;
+  }
+}
+function reviewErrorHTML() {
+  return '<div class="reviews-status" role="status"><p>Reviews are temporarily unavailable.</p><button type="button" class="btn-outline" onclick="retryReviews()">Retry reviews</button></div>';
+}
+async function retryReviews() {
+  if (window._reviewRetryPending) return;
+  window._reviewRetryPending = true;
+  _reviewsBatchDone = null; _loadProductRatingsDone = null;
+  FEATURED_REVIEWS_CACHE = null; LIVE_RATING_CACHE = null;
+  const wall = document.getElementById('reviewsWallGrid');
+  if (wall) wall.innerHTML = '<p class="reviews-status" role="status">Loading reviews…</p>';
+  try { await Promise.all([loadProductRatings(),renderReviewsWall(),renderTestimonials(),renderLiveRatingStat(),currentProduct ? loadProductReviews(currentProduct.id,{force:true}).catch(()=>{}) : Promise.resolve()]); }
+  finally { window._reviewRetryPending = false; }
 }
 
 async function loadReviewStats() {
@@ -2684,7 +2702,7 @@ async function getFeaturedReviews() {
     FEATURED_REVIEWS_CACHE = (await loadReviewsBatch()).slice(0, 9);
   } catch (e) {
     console.error('[getFeaturedReviews] Supabase error:', JSON.stringify(e, Object.getOwnPropertyNames(e||{})), e);
-    FEATURED_REVIEWS_CACHE = []; // honest empty state — no fake filler
+    return []; // A failed request must remain retryable.
   }
   return FEATURED_REVIEWS_CACHE;
 }
@@ -2713,9 +2731,9 @@ async function getLiveRating() {
       LIVE_RATING_CACHE = { avg: null, count: REVIEWS_BATCH_TOTAL || 0 };
     }
   } catch (e) {
-    console.error('[getLiveRating] Supabase error:',
+    console.error('[getLiveRating] Review request failed:',
       JSON.stringify(e, Object.getOwnPropertyNames(e || {})), e);
-    LIVE_RATING_CACHE = { avg: null, count: 0 }; // honest empty state
+    return { avg: null, count: 0, unavailable: true }; // Never turn a failure into a cached zero.
   }
   return LIVE_RATING_CACHE;
 }
@@ -2727,7 +2745,7 @@ async function getLiveRating() {
 async function renderLiveRatingStat() {
   const els = document.querySelectorAll('[data-live-rating]');
   if (!els.length) return;
-  const { avg, count } = await getLiveRating();
+  const { avg, count, unavailable } = await getLiveRating();
 
   els.forEach((el) => {
     const label = el.dataset.ratingLabel
@@ -2737,8 +2755,8 @@ async function renderLiveRatingStat() {
     if (avg === null) {
       // No reviews yet — say so rather than showing a fabricated score.
       el.dataset.ready = '1';
-      el.textContent = 'New';
-      if (label) label.textContent = 'Awaiting reviews';
+      el.textContent = unavailable ? '—' : 'New';
+      if (label) label.textContent = unavailable ? 'Reviews unavailable' : 'Awaiting reviews';
     } else {
       el.dataset.count = avg.toFixed(1);
       el.dataset.ready = '1';
@@ -2774,7 +2792,7 @@ async function renderTestimonials() {
   const reviews = await getFeaturedReviews();
   tg.innerHTML = reviews.length
     ? reviews.slice(0,6).map(testiCardHtml).join('')
-    : `<p style="grid-column:1/-1;text-align:center;color:var(--gray);font-size:.9rem">Customer reviews are on their way — check back soon! 🌿</p>`;
+    : REVIEWS_BATCH_ERROR ? reviewErrorHTML() : `<p class="reviews-status">No reviews yet. Share your experience after your purchase.</p>`;
 }
 
 async function renderReviewsWall() {
@@ -2783,6 +2801,12 @@ async function renderReviewsWall() {
   const avgEl = document.getElementById('reviewsWallAvg');
   if (!wall) return;
   const reviews = await getFeaturedReviews();
+  if (REVIEWS_BATCH_ERROR) {
+    wall.innerHTML = reviewErrorHTML();
+    if (statEl) statEl.textContent = 'Reviews unavailable';
+    if (avgEl) avgEl.textContent = '—';
+    return;
+  }
   if (!reviews.length) {
     wall.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:var(--gray);font-size:.9rem">No reviews yet — be the first to share your Ozylix experience! 🌿</p>`;
     if (statEl) statEl.textContent = '0 reviews';
@@ -2801,13 +2825,13 @@ async function renderReviewsWall() {
     return `<div class="inf-card" style="background:var(--sub-1);border-radius:16px;padding:24px;box-shadow:0 2px 12px rgba(23,224,192,0.07);border:1px solid rgba(23,224,192,0.06)">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
         <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--f-mineral-d),var(--f-mineral));display:flex;align-items:center;justify-content:center;color:var(--t-hi);font-weight:700;font-size:1.1rem;flex-shrink:0">${esc(initial)}</div>
-        <div><div style="font-weight:700;font-size:0.9rem;color:var(--dark)">${esc(r.user)}</div><div style="font-size:0.75rem;color:var(--gray)">${esc(r.location||'Verified Buyer')}</div></div>
+        <div><div style="font-weight:700;font-size:0.9rem;color:var(--dark)">${esc(r.user)}</div><div style="font-size:0.75rem;color:var(--gray)">${r.verified ? '✓ Verified purchase' : 'Customer review'}</div></div>
         <div style="margin-left:auto;color:var(--seal);font-size:0.95rem">${'★'.repeat(starCount(r.rating||5))}</div>
       </div>
       <div style="font-size:0.88rem;color:var(--text);line-height:1.65;margin-bottom:12px">"${esc(r.text)}"</div>
       <div style="display:flex;align-items:center;justify-content:space-between">
         <span style="font-size:0.72rem;background:var(--green-pale);color:var(--green);padding:3px 10px;border-radius:20px;font-weight:600">${esc(r.productName||'')}</span>
-        <span style="font-size:0.72rem;color:var(--gray)">${esc(r.date||'')}</span>
+        <span style="font-size:0.72rem;color:var(--gray)">${esc(new Date(r.updatedAt || r.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}))}</span>
       </div>
     </div>`;
   }).join('');
@@ -7376,7 +7400,7 @@ function renderPromoCarousel() {
       (vita > 0 ? '<span class="promo-perk promo-perk-vita">Earn up to ' +
                   vita.toLocaleString('en-IN') + ' VitaPoints</span>' : '');
 
-    return '<div class="promo-card">' +
+    return '<div class="promo-card' + (String(img).startsWith('/assets/products/cutouts/') ? ' has-cutout' : '') + '">' +
       '<div class="promo-card-text">' +
         '<p class="promo-card-eyebrow">' + (PROMO_BENEFIT[p.id] || 'One tablet. Drop, fizz, done.') + '</p>' +
         '<span class="promo-card-tag">' + promoOfferLine(p) + '</span>' +
