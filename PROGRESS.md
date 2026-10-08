@@ -45,3 +45,10 @@ Next: verify the applied database schema and actual COD order acceptance, then r
 Supabase installation is confirmed, but database operations are not exposed in the current running tool session. Refresh the tool session before continuing; do not ask the owner to reinstall it. Render access remains unconfirmed. Backend health and public configuration returned HTTP 200. A direct storefront request returned HTTP 403, so deployed page behavior was not verified. No live orders, database mutations, real payments or test emails were sent.
 
 Only the two code fixes above are merged. Remaining issues are still open.
+
+
+## Dual Google Analytics tags — 2026-10-08
+
+Kept G-1SPY139WS1 and added G-VC8L1WF561 at the owner's request. The homepage and all 36 static storefront route copies use one Google tag loader. scripts/tracking.js configures each measurement ID once, and the existing ecommerce helpers send events through their shared dataLayer to both GA4 destinations. Updated the tracking script asset version on every storefront page.
+
+Validation: JavaScript syntax, one loader on each storefront page, both measurement IDs configured once, and simulated ecommerce event delivery to the dataLayer checked before publishing. Production propagation and GA4 receipt require separate live verification.

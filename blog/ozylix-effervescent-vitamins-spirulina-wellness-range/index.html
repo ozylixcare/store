@@ -38,7 +38,7 @@
        This is a client-side backstop. The real fix is Settings → Pages →
        Enforce HTTPS, which redirects before a byte of this file is sent. -->
     <script src="/scripts/security.js?v=20260930-2"></script>
-  <script defer src="/scripts/tracking.js?v=20260930-2"></script>
+  <script defer src="/scripts/tracking.js?v=20261008-ga4-dual-1"></script>
   <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1031030359902418&amp;ev=PageView&amp;noscript=1" alt=""></noscript>
   <script defer src="/scripts/seo-core.min.js?v=20260930-2"></script>
 
@@ -69,26 +69,10 @@
        A script guard is defeatable by a sandboxed iframe; a header is not. -->
   
 
-  <!-- Google Tag Manager (GTM-MQPL5QGP) removed at the owner's request:
-       G-1SPY139WS1 is the only property wanted, and it is loaded directly
-       below. Running both was the live double-count risk — a GA4
-       configuration tag for this same measurement ID inside the container
-       would have counted every pageview and every purchase twice, and
-       nothing in this file could have detected that.
-
-       Nothing else depended on the container. The event layer pushes
-       through gtag(), which is dataLayer.push(arguments), and the gtag.js
-       loaded below reads that same dataLayer — so _trackPage,
-       _trackViewItem, _trackAddToCart and _trackPurchase all keep working
-       exactly as they did, now with one consumer instead of two. -->
-
-<!-- Google tag (gtag.js) — GA4 property G-1SPY139WS1 -->
-<!-- The only analytics loader on this site. If a tag manager is ever
-     reintroduced, do NOT also configure G-1SPY139WS1 inside it: two
-     consumers of the same measurement ID double every pageview and every
-     purchase, and the reports give no sign that it is happening. -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-1SPY139WS1" fetchpriority="low"></script>
-
+  <!-- Google Analytics: one gtag.js loader, two GA4 destinations.
+       scripts/tracking.js configures G-1SPY139WS1 and G-VC8L1WF561.
+       Shared ecommerce events are sent to both properties. -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-VC8L1WF561" fetchpriority="low"></script>
 <!-- End Google Analytics -->
 
 <!-- Meta Pixel — "Ozylix Pixel", ad account 1404487341165010.

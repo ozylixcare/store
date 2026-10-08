@@ -2,7 +2,7 @@
  * TRACKING.js — Ozylix
  * ─────────────────────────────────────────────────────────────────
  * Extracted from index.html inline scripts (19 Aug 2026, Manus SEO pass).
- * GA4 (G-1SPY139WS1) + Meta Pixel (1031030359902418) + Google Identity
+ * GA4 (G-1SPY139WS1 + G-VC8L1WF561) + Meta Pixel (1031030359902418) + Google Identity
  * Services (bot-gated). The heavy fbevents.js bundle still loads after the
  * LCP window so it never fights banner/product images on first paint.
  */
@@ -12,6 +12,7 @@
   function gtag() { dataLayer.push(arguments); }
   gtag('js', new Date());
   gtag('config', 'G-1SPY139WS1');
+  gtag('config', 'G-VC8L1WF561');
   var _gtag = function () {
     var args = Array.prototype.slice.call(arguments);
     if (typeof gtag === 'function') gtag.apply(null, args);
