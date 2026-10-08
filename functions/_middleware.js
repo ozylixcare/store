@@ -18,7 +18,15 @@ export async function onRequest(context) {
   // is authoritative; mirror it in every document so policies never conflict.
   const headers = new Headers(response.headers);
   headers.set('Content-Security-Policy', PUBLIC_CSP);
-  headers.set('Cache-Control', 'no-cache');
+  // Personal workflow routes must not be indexed or reused by shared caches.
+  const privatePage = /^\/(?:account|wishlist|cart|checkout|notifications|thankyou|paymentfailed)(?:\/|$)/.test(path);
+  headers.set('Cache-Control', privatePage ? 'private, no-store' : 'no-cache');
+  if (privatePage) {
+    headers.set('X-Robots-Tag', 'noindex, nofollow');
+    const vary = new Set((headers.get('Vary') || '').split(',').map(value => value.trim()).filter(Boolean));
+    vary.add('Cookie'); vary.add('Authorization');
+    headers.set('Vary', [...vary].join(', '));
+  }
   const html = new Response(response.body, { status: response.status, headers });
   if (context.request.method === 'HEAD') return html;
   return new HTMLRewriter().on('meta[http-equiv="Content-Security-Policy"]', {
