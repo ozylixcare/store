@@ -2628,9 +2628,12 @@ function _lvStreamAdd(msg) {
   ).join('');
 }
 
+let liveVisitorsTimer = null;
 function startLiveVisitors() {
   updateLiveVisitors();
-  setInterval(updateLiveVisitors, 15000);
+  if (!liveVisitorsTimer) liveVisitorsTimer = setInterval(() => {
+    if (!document.hidden && document.querySelector('#page-livevisitors.active')) updateLiveVisitors();
+  }, 15000);
 }
 
 // ═══════════════════════════════════════════════
@@ -8097,6 +8100,7 @@ updateLiveVisitors = async function () {
     });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
+    if (d.error || !Array.isArray(d.sessions)) throw new Error(d.error || 'Incomplete live response');
     sessions   = Array.isArray(d.sessions) ? d.sessions : [];
     cnt        = d.active_count || sessions.length || 0;
     views      = d.page_views_today || 0;
@@ -8118,7 +8122,7 @@ updateLiveVisitors = async function () {
     if (n) {
       n.style.display = 'block';
       n.innerHTML = `<div style="padding:16px;font-size:0.82rem;color:var(--text2);line-height:1.9;">
-        <strong style="color:var(--red);">Live visitor feed unavailable</strong> — ${e.message}<br>
+        <strong style="color:var(--red);">Live visitor feed unavailable</strong> — ${_vaEsc(e.message)}<br>
         <span style="font-size:0.75rem;color:var(--text3);">
           Check that the backend is awake and that <code>analytics-routes.js</code> is deployed
           and <code>analytics-schema.sql</code> has been run in Supabase.
@@ -8141,7 +8145,7 @@ updateLiveVisitors = async function () {
   se('lvRefreshTime', (live ? 'Live · ' : 'Offline · ') +
     new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
 
-  _lvTraff.push(cnt); if (_lvTraff.length > 60) _lvTraff.shift();
+  if (live) _lvTraff.push(cnt); if (_lvTraff.length > 60) _lvTraff.shift();
   _drawLvTraffic();
 
   const tb = document.getElementById('liveSessionsTbody');
@@ -8186,7 +8190,7 @@ updateLiveVisitors = async function () {
    ═══════════════════════════════════════════════════════════════════ */
 let _vaRange = 'today';
 let _vaTrendChart = null, _vaDeviceChart = null, _vaOsChart = null;
-let _vaLoading = false;
+let _vaLoading = false, _vaRequest = 0, _vaController = null;
 
 const _VA_COLORS = ['#547177', '#A97A1E', '#3B7EA6', '#B65B1E', '#C2434F', '#7C8B62', '#8B6BA8', '#4F7A6A'];
 
@@ -8203,6 +8207,7 @@ function _vaDur(sec) {
 }
 function _vaDelta(el, pct) {
   const e = document.getElementById(el); if (!e) return;
+  if (pct === null || pct === undefined) { e.textContent = 'No earlier data'; e.style.color = 'var(--text3)'; return; }
   const n = Number(pct);
   if (!isFinite(n) || n === 0) { e.textContent = 'no change'; e.style.color = 'var(--text3)'; return; }
   e.textContent = (n > 0 ? '▲ ' : '▼ ') + Math.abs(n) + '% vs previous';
@@ -8282,7 +8287,10 @@ function _vaBucketFmt(iso, bucket) {
 
 async function loadVisitorAnalytics(range) {
   if (range) _vaRange = range;
-  if (_vaLoading) return;
+  const request = ++_vaRequest, requestedRange = _vaRange;
+  _vaController?.abort();
+  _vaController = new AbortController();
+  const controller = _vaController;
   _vaLoading = true;
 
   document.querySelectorAll('.va-range').forEach(b => {
@@ -8300,24 +8308,30 @@ async function loadVisitorAnalytics(range) {
     // round trip usually takes well under a second. Give slow cold starts
     // and traffic spikes up to 60s, and retry once before giving up.
     async function vaTry(timeoutMs) {
-      const r = await fetch(`${API}/api/analytics/dashboard?range=${encodeURIComponent(_vaRange)}`, {
+      const r = await fetch(`${API}/api/analytics/dashboard?range=${encodeURIComponent(requestedRange)}`, {
         headers: { 'Authorization': `Bearer ${authToken}` },
-        signal: AbortSignal.timeout(timeoutMs)
+        signal: AbortSignal.any([controller.signal, AbortSignal.timeout(timeoutMs)])
       });
       if (!r.ok) throw new Error('HTTP ' + r.status, { cause: { status: r.status } });
-      return await r.json();
+      const body = await r.json();
+      if (body.error || !body.overview || typeof body.overview.sessions !== 'number' || typeof body.overview.pageviews !== 'number' || !Array.isArray(body.series)) throw new Error(body.error || 'Incomplete analytics response');
+      return body;
     }
     let d = null;
     try { d = await vaTry(45000); } catch (e1) {
+      if (request !== _vaRequest || e1.cause?.status === 401 || e1.cause?.status === 403) throw e1;
       await new Promise(r => setTimeout(r, 3000));
       try { d = await vaTry(45000); } catch (e2) { throw e2; }
     }
+    if (request !== _vaRequest) return;
     const o = d.overview || {};
+    renderVisitorBehavior(d.behavior, d.collection_note);
 
     document.getElementById('vaSessions').textContent    = _vaNum(o.sessions);
     document.getElementById('vaPageviews').textContent   = _vaNum(o.pageviews);
     document.getElementById('vaDuration').textContent    = _vaDur(o.avg_duration);
     document.getElementById('vaBounce').textContent      = (Number(o.bounce_rate) || 0) + '%';
+    document.getElementById('lvBounce').textContent = (Number(o.bounce_rate) || 0) + '%';
     document.getElementById('vaConversions').textContent = _vaNum(o.conversions);
     document.getElementById('vaConvRate').textContent    = (Number(o.conversion_rate) || 0) + '%';
     document.getElementById('vaRevenue').textContent     = '₹' + _vaNum(Math.round(Number(o.revenue) || 0));
@@ -8342,7 +8356,7 @@ async function loadVisitorAnalytics(range) {
         data: {
           labels: pts.map(p => _vaBucketFmt(p.bucket, d.bucket)),
           datasets: [
-            { label: 'Visitors',  data: pts.map(p => p.visitors),  borderColor: '#547177', backgroundColor: 'rgba(84,113,119,0.14)', fill: true, tension: 0.35, borderWidth: 2, pointRadius: 0, pointHoverRadius: 4 },
+            { label: 'Sessions',  data: pts.map(p => p.visitors),  borderColor: '#547177', backgroundColor: 'rgba(84,113,119,0.14)', fill: true, tension: 0.35, borderWidth: 2, pointRadius: 0, pointHoverRadius: 4 },
             { label: 'Page views', data: pts.map(p => p.pageviews), borderColor: '#A97A1E', backgroundColor: 'transparent', fill: false, tension: 0.35, borderWidth: 2, borderDash: [5, 4], pointRadius: 0, pointHoverRadius: 4 },
             { label: 'Orders',    data: pts.map(p => p.conversions), borderColor: '#C2434F', backgroundColor: 'transparent', fill: false, tension: 0.35, borderWidth: 2, pointRadius: 0, pointHoverRadius: 4, yAxisID: 'y1' }
           ]
@@ -8382,6 +8396,7 @@ async function loadVisitorAnalytics(range) {
         · updated ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`;
     }
   } catch (e) {
+    if (request !== _vaRequest) return;
     if (state) {
       state.style.color = 'var(--red)';
       const aborted = /abort/i.test(String(e.message)) || (e.name === 'AbortError');
@@ -8394,7 +8409,7 @@ async function loadVisitorAnalytics(range) {
            <code>analytics-schema.sql</code>, then refresh. No sample data is shown.</span>`;
     }
   } finally {
-    _vaLoading = false;
+    if (request === _vaRequest) _vaLoading = false;
   }
 }
 
@@ -8412,7 +8427,8 @@ document.addEventListener('click', function (e) {
   window.showPage = function (name) {
     const r = _origSP ? _origSP.apply(this, arguments) : undefined;
     if (name === 'livevisitors') {
-      if (!loadedOnce) { loadedOnce = true; setTimeout(() => loadVisitorAnalytics(_vaRange), 120); }
+      loadedOnce = true; setTimeout(() => loadVisitorAnalytics(_vaRange), 120);
+      startGlobeAnimation();
     }
     return r;
   };
@@ -8438,7 +8454,7 @@ function _lvPageDist(sessions){
   const entries=Object.entries(map).sort((a,b)=>b[1]-a[1]);
   if(!entries.length){el.innerHTML='<span style="color:var(--text3);font-size:0.8rem;">No data yet</span>';return;}
   el.innerHTML=entries.map(([pg,n])=>`<div style="background:var(--surface2);border-radius:8px;padding:5px 10px;display:flex;align-items:center;gap:8px;">
-    <span style="font-family:var(--mono);font-size:0.72rem;color:var(--green-text);">${pg}</span>
+    <span style="font-family:var(--mono);font-size:0.72rem;color:var(--green-text);">${_vaEsc(pg)}</span>
     <span class="badge badge-gray">${n}</span>
     <div style="background:var(--border);border-radius:2px;height:3px;width:50px;"><div style="background:var(--green);width:${(n/total*100).toFixed(0)}%;height:100%;border-radius:2px;"></div></div>
   </div>`).join('');
@@ -8486,25 +8502,21 @@ function _drawGlobe(){
     const a=(lon*Math.PI/180)+ang;
     ctx.beginPath();ctx.ellipse(cx,cy,r*Math.abs(Math.cos(a)),r,a,0,Math.PI*2);ctx.stroke();
   }
-  for(let i=0;i<4;i++){
-    const lat2=(Math.random()*110-55)*Math.PI/180;
-    const lon2=Math.random()*Math.PI*2+ang;
-    if(Math.cos(lat2)*Math.cos(lon2-ang)<=0) continue;
-    const dx=cx+r*Math.cos(lat2)*Math.sin(lon2), dy=cy-r*Math.sin(lat2);
-    const pulse=((Date.now()/800+i)%2);
-    ctx.beginPath();ctx.arc(dx,dy,3+pulse*5,0,Math.PI*2);
-    ctx.strokeStyle=`rgba(94,171,48,${(0.5-pulse*0.25).toFixed(2)})`;ctx.lineWidth=1.5;ctx.stroke();
-    ctx.beginPath();ctx.arc(dx,dy,3,0,Math.PI*2);
-    ctx.fillStyle='#7EC850';ctx.shadowColor='#7EC850';ctx.shadowBlur=8;ctx.fill();ctx.shadowBlur=0;
-  }
   _lvGlobAng=(_lvGlobAng+0.4)%360;
 }
 
 function startGlobeAnimation(){
   if(_lvGlobRAF) cancelAnimationFrame(_lvGlobRAF);
-  const loop=()=>{_drawGlobe();_lvGlobRAF=requestAnimationFrame(loop);};
+  _lvGlobRAF=null;
+  const loop=()=>{
+    const canvas=document.getElementById('visitorGlobeCanvas');
+    if(document.hidden || !canvas?.closest('.page.active') || !canvas.getClientRects().length) return;
+    _drawGlobe();
+    if(!matchMedia('(prefers-reduced-motion:reduce)').matches && !document.body.classList.contains('admin-motion-reduced')) _lvGlobRAF=requestAnimationFrame(loop);
+  };
   loop();
 }
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)startGlobeAnimation();});
 
 const _v26_slvOrig = startLiveVisitors;
 startLiveVisitors = function(){
@@ -8815,3 +8827,17 @@ async function geminiSend() {
 }
 
 
+
+
+function renderVisitorBehavior(behavior, note) {
+  const host=document.getElementById('vaBehavior');if(!host)return;
+  const labels={product_view:'Product discovery',cart_add:'Added to cart',checkout_start:'Started checkout',search:'Store searches'};
+  if(!behavior || !behavior.available) {
+    host.innerHTML='<p class="behavior-unavailable">Behavior collection unavailable. The analytics database migration must be applied before new events can be saved. Traffic history above uses existing records.</p>';
+  } else {
+    host.innerHTML='<div class="behavior-steps">'+(behavior.funnel||[]).map(step=>'<div class="behavior-step"><span>'+_vaEsc(labels[step.label]||step.label)+'</span><strong>'+_vaNum(step.count)+'</strong><small>distinct sessions</small></div>').join('')+'</div>';
+    const bars=document.createElement('div');bars.id='vaEventBars';host.appendChild(bars);
+    _vaBars('vaEventBars',(behavior.events||[]).map(e=>({...e,label:labels[e.label]||e.label})));
+  }
+  const n=document.getElementById('vaCollectionNote');if(n)n.textContent=note||'';
+}
