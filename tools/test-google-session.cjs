@@ -17,6 +17,8 @@ function harness(reply) {
     document: { getElementById: () => null },
     localStorage: { getItem: k => values.get(k), setItem: (k, v) => values.set(k, v) },
     API_BASE: 'https://api.example.test',
+    _googleCodeBody:r=>({code:r.code,redirect_uri:'https://www.ozylix.com',auth_state:'state',verifier:'a'.repeat(64),flow:'popup'}),
+    _prepareGoogleFlow:async()=>{},
     fetchWithTimeout: async (url, options) => { requests.push({ url, body: JSON.parse(options.body) }); return reply(); },
     _showAuthFeedback: (kind, message) => events.push({ kind, message }),
     closeAuth: () => events.push('close'), updateAccountNavBtn: () => events.push('account'),
@@ -66,6 +68,10 @@ async function main() {
   const popup = {};
   const h = harness(() => ({ ok: true, json: async () => ({ token: jwt, user }) }));
   h.context.GOOGLE_CLIENT_ID = 'client';
+  h.context._googleFlow={client_id:'client',redirect_uri:'https://www.ozylix.com',state:'state',verifier:'a'.repeat(64),at:Date.now()};
+  h.context._googleCodePending=false;
+  h.context._consumeGoogleFlow=()=>h.context._googleFlow;
+  h.context._clearGoogleFlow=()=>{};
   h.context._isMobileBrowser = () => false;
   h.context._isSafariBrowser = () => false;
   h.context.google = { accounts: { oauth2: { initCodeClient(options) {

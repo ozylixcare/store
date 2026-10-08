@@ -135,8 +135,20 @@ function applyDeliveryPolicy(policy) {
   SHIP_THRESHOLD = Math.max(0, Number(DELIVERY_POLICY.free_shipping_threshold) || 0);
   SHIP_FEE = DELIVERY_POLICY.shipping_mode === 'free' ? 0 : Math.max(0, Number(DELIVERY_POLICY.shipping_fee) || 0);
   COD_SHIP_FEE = Math.max(0, Number(DELIVERY_POLICY.cod_shipping_fee) || 0);
+  refreshDeliveryMessages();
   document.dispatchEvent(new CustomEvent('ozylix:delivery-policy-updated'));
   try { updateCodBtnNote(); } catch (_) {}
+}
+function deliveryMessage() {
+  return shippingIsAlwaysFree() ? 'Free prepaid delivery' : 'Prepaid delivery free from ₹' + SHIP_THRESHOLD.toLocaleString('en-IN');
+}
+function refreshDeliveryMessages() {
+  var message=deliveryMessage();
+  document.querySelectorAll('[data-delivery-message]').forEach(function(el){el.textContent=message;});
+  document.querySelectorAll('[data-delivery-policy]').forEach(function(el){el.textContent=(shippingIsAlwaysFree() ? 'Prepaid delivery is free.' : 'Prepaid delivery is ₹'+SHIP_FEE+' below a paid subtotal of ₹'+SHIP_THRESHOLD+' and free at or above that amount.')+' COD delivery is '+(COD_SHIP_FEE ? '₹'+COD_SHIP_FEE+' per order.' : 'free.')+' The final charge is shown before confirmation.';});
+  document.querySelectorAll('[data-cod-message]').forEach(function(el){el.textContent=COD_SHIP_FEE ? 'Cash on Delivery · ₹'+COD_SHIP_FEE+' delivery charge' : 'Cash on Delivery · free delivery';});
+  var badge=document.querySelector('[data-checkout-delivery]');
+  if(badge) { try { const net=getOrderTotal().paidSubtotal; const fee=calcShipping(net,getSelectedGateway()); badge.textContent=fee ? 'Delivery ₹'+fee : 'Free delivery'; }catch(_){badge.textContent=message;} }
 }
 function loadDeliveryPolicy(options) {
   options = options || {};
@@ -160,9 +172,10 @@ function loadDeliveryPolicy(options) {
       if (force) applyDeliveryPolicy({ cod_enabled: false });
     });
 }
+refreshDeliveryMessages();
 loadDeliveryPolicy();
 // Admin policy changes should reach already-open mobile checkout sessions.
-window.setInterval(function(){ loadDeliveryPolicy({ force: true }); }, 30000);
+window.setInterval(function(){ if (!document.hidden) loadDeliveryPolicy({ force: true }); }, 120000);
 document.addEventListener('visibilitychange', function(){
   if (!document.hidden) loadDeliveryPolicy({ force: true });
 });

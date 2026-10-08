@@ -1159,6 +1159,7 @@ function byPosition(a, b) {
 // they persist across reloads and index.html redeploys.
 // ═══════════════════════════════════════════════════════════════
 const REVIEWS = {};          // productId -> array of real reviews fetched from SQL
+var PRODUCT_REVIEW_META = {};
 const REVIEWS_LOADED = {};   // productId -> true once a fetch has completed (success or fail)
 
 // ── PER-PRODUCT RATING AGGREGATES ─────────────────────────────
@@ -1231,8 +1232,11 @@ async function loadProductRatings() {
         });
       }
     });
+    if (typeof REVIEW_PRODUCT_TOTALS !== 'undefined') REVIEW_PRODUCT_TOTALS.forEach(r=>{ PRODUCT_RATINGS[r.product_id]={avg:r.average,count:r.total}; });
     Object.keys(totals).forEach((id) => {
-      PRODUCT_RATINGS[id] = { avg: totals[id].sum / totals[id].count, count: totals[id].count };
+      const stats = typeof REVIEW_PRODUCT_TOTALS !== 'undefined' && REVIEW_PRODUCT_TOTALS.find(r=>String(r.product_id)===String(id));
+      if (stats) PRODUCT_RATINGS[id] = {avg:stats.average,count:stats.total};
+      else if (typeof REVIEWS_BATCH_TOTAL === 'undefined' || REVIEWS_BATCH_TOTAL === rows.length) PRODUCT_RATINGS[id] = { avg: totals[id].sum / totals[id].count, count: totals[id].count };
     });
   } catch (e) {
     // Honest empty state, same as everywhere else that reads reviews: the
@@ -1279,12 +1283,13 @@ if (document.readyState === 'loading') {
 const REVIEW_REQUEST_VERSION = {};
 const REVIEW_REQUEST_PENDING = {};
 async function loadProductReviews(productId, options = {}) {
-  if (!options.force && REVIEW_REQUEST_PENDING[productId]) return REVIEW_REQUEST_PENDING[productId];
+  const page = Math.max(0, Number(options.page) || 0);
+  if (!options.force && options.page == null && REVIEW_REQUEST_PENDING[productId]) return REVIEW_REQUEST_PENDING[productId];
   const version = (REVIEW_REQUEST_VERSION[productId] || 0) + 1;
   REVIEW_REQUEST_VERSION[productId] = version;
   const task = (async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/public-reviews?product_id=${encodeURIComponent(productId)}`, {
+      const response = await fetch(`${API_BASE}/api/public-reviews?product_id=${encodeURIComponent(productId)}&limit=50&offset=${page*50}`, {
         headers: { Accept: 'application/json' }, credentials: 'omit', cache: 'no-store',
         signal: AbortSignal.timeout(20000),
       });
@@ -1296,14 +1301,15 @@ async function loadProductReviews(productId, options = {}) {
         id: r.id, user: r.user_name, rating: Number(r.rating), text: r.review_text,
         date: r.created_at, updatedAt: r.updated_at, verified: r.verified
       }));
+      if (typeof PRODUCT_REVIEW_META !== 'undefined') PRODUCT_REVIEW_META[productId] = {total:Number(payload.total ?? REVIEWS[productId].length),avg:payload.average == null ? null : Number(payload.average),histogram:payload.histogram || {},page};
       REVIEWS_LOADED[productId] = true;
       if (typeof refreshProductReviewUI === 'function') refreshProductReviewUI(productId);
       return REVIEWS[productId];
     } catch (e) {
       if (REVIEW_REQUEST_VERSION[productId] !== version) return;
-      if (currentProduct?.id === productId && !REVIEWS_LOADED[productId]) {
+      if (currentProduct?.id === productId) {
         const wrap = document.getElementById('rvListWrap');
-        if (wrap) wrap.innerHTML = '<p>Reviews could not load. <button type="button" onclick="loadProductReviews(' + Number(productId) + ')">Retry</button></p>';
+        if (wrap) wrap.innerHTML = '<p>Reviews could not load. <button type="button" onclick="loadProductReviews(' + Number(productId) + ', {page:' + page + ', force:true}).catch(function(){})">Retry</button></p>';
       }
       if (options.force) throw e;
     } finally {
