@@ -141,7 +141,7 @@ const PUBLIC_CSP = "default-src 'none'; script-src 'self' 'unsafe-inline' https:
 
 // Cloudflare can otherwise replace the repository file with its managed
 // Content-Signals policy. Keep one authoritative crawler policy at the Worker.
-const ROBOTS_TXT = `User-agent: *\nDisallow: /admin\nDisallow: /admin.html\nDisallow: /ops-console-8f3d2c.html\nDisallow: /api/\nDisallow: /_page_\nDisallow: /tools/\nDisallow: /scripts/\nDisallow: /platform_review_report.md\nSitemap: https://www.ozylix.com/sitemap.xml\n`;
+const ROBOTS_TXT = `User-agent: *\nDisallow: /admin\nDisallow: /admin.html\nDisallow: /ops-console-8f3d2c.html\nDisallow: /api/\nDisallow: /_page_\nDisallow: /tools/\nDisallow: /platform_review_report.md\nSitemap: https://www.ozylix.com/sitemap.xml\n`;
 
 function publicHeaders(res) {
   const headers = new Headers(res.headers);

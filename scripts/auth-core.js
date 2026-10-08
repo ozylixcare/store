@@ -493,7 +493,7 @@ function showPage(pg) {
   const PAGE_SEO = {
     home:          [
       'Glutathione Effervescent Tablets | Ozylix India',
-      'FSSAI approved effervescent vitamins from Anand, Gujarat. Glutathione, Spirulina, Moringa, ACV & Multivitamins. FSSAI Approved. Free delivery, no minimum.'
+      'FSSAI approved effervescent vitamins from Anand, Gujarat. Glutathione, Spirulina, Moringa, ACV & Multivitamins. FSSAI Approved. Delivery charges shown at checkout'
     ],
     shop:          [
       'Shop Effervescent Vitamins & Supplements | Ozylix India',
@@ -517,7 +517,7 @@ function showPage(pg) {
     ],
     cart:          [
       'Your Cart | Ozylix – Effervescent Vitamins India',
-      'Review your Ozylix supplement order. Free delivery, no minimum. Secure UPI, card and EMI checkout. FSSAI approved, made in Anand Gujarat.'
+      'Review your Ozylix supplement order. Delivery charges shown at checkout Secure UPI, card and EMI checkout. FSSAI approved, made in Anand Gujarat.'
     ],
     checkout:      [
       'Secure Checkout | Ozylix – Made in Gujarat India',
@@ -751,7 +751,7 @@ function openProduct(id, routeOptions) {
   if (_ogUrl) _ogUrl.setAttribute('content', 'https://www.ozylix.com' + window.location.pathname);
   const metaDesc = document.querySelector('meta[name="description"]');
   if (metaDesc) metaDesc.setAttribute('content',
-    'Buy ' + currentProduct.name + ' at ₹' + (currentProduct.salePrice||currentProduct.price) + discText + '. ' + (currentProduct.description||'').slice(0,120) + ' Free delivery on every order.'
+    'Buy ' + currentProduct.name + ' at ₹' + (currentProduct.salePrice||currentProduct.price) + discText + '. ' + (currentProduct.description||'').slice(0,120) + ' Delivery charges shown at checkout'
   );
   // Show the page
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1435,13 +1435,15 @@ function rvScrollToList() {
   if (w && w.scrollIntoView) { try { w.scrollIntoView({ block: 'start' }); } catch (e) { w.scrollIntoView(); } }
 }
 
-function rvExpand(pid)   { const v = rvViewState(pid); v.expanded = true;  v.page = 0; renderProductReviewList(pid); }
-function rvCollapse(pid) { const v = rvViewState(pid); v.expanded = false; v.page = 0; renderProductReviewList(pid); rvScrollToList(); }
+function rvExpand(pid)   { const v = rvViewState(pid); v.expanded = true; v.page = 0; loadProductReviews(pid,{page:0}); renderProductReviewList(pid); }
+function rvCollapse(pid) { const v = rvViewState(pid); v.expanded = false; v.page = 0; loadProductReviews(pid,{page:0}); renderProductReviewList(pid); rvScrollToList(); }
 function rvGoPage(pid, delta) {
   const v = rvViewState(pid);
-  const total = (REVIEWS[pid] || []).length;
+  const meta = typeof PRODUCT_REVIEW_META !== 'undefined' && PRODUCT_REVIEW_META[pid];
+  const total = meta ? meta.total : (REVIEWS[pid] || []).length;
   const last  = Math.max(0, Math.ceil(total / RV_PAGE_SIZE) - 1);
   v.page = Math.min(last, Math.max(0, v.page + delta));
+  loadProductReviews(pid,{page:v.page});
   renderProductReviewList(pid);
   rvScrollToList();
 }
@@ -1458,7 +1460,8 @@ function renderProductReviewList(pid) {
     return;
   }
 
-  const v = rvViewState(pid), total = rvs.length;
+  const v = rvViewState(pid), meta = typeof PRODUCT_REVIEW_META !== 'undefined' && PRODUCT_REVIEW_META[pid], total = meta ? meta.total : rvs.length;
+  if (meta && meta.page !== v.page) { wrap.innerHTML = `<div style="${pad}">Loading review page…</div>`; return; }
   const btn = 'display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 20px;' +
               'border-radius:var(--r-pill);font-weight:700;font-size:.82rem;background:var(--paper);' +
               'box-shadow:var(--neo-1);color:var(--indigo);touch-action:manipulation;min-height:44px';
@@ -1479,7 +1482,7 @@ function renderProductReviewList(pid) {
   const end   = Math.min(start + RV_PAGE_SIZE, total);
   const dim   = 'opacity:.4;pointer-events:none';
 
-  let html = rvs.slice(start, end).map(rvCardHTML).join('');
+  let html = (meta ? rvs : rvs.slice(start, end)).map(rvCardHTML).join('');
   html += `<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin-top:16px">
       <div style="width:100%;text-align:center;font-size:.78rem;color:var(--t-low);margin-bottom:2px">
         Showing ${start + 1}–${end} of ${total} reviews${pages > 1 ? ` &middot; page ${page + 1} of ${pages}` : ''}
@@ -1493,8 +1496,10 @@ function renderProductReviewList(pid) {
 
 function refreshProductReviewUI(pid) {
   const rows = REVIEWS[pid] || [];
-  const avg = rows.length ? rows.reduce((sum, r) => sum + Number(r.rating), 0) / rows.length : null;
-  PRODUCT_RATINGS[pid] = { avg, count: rows.length };
+  const meta = typeof PRODUCT_REVIEW_META !== 'undefined' && PRODUCT_REVIEW_META[pid];
+  const count = meta ? meta.total : rows.length;
+  const avg = meta ? meta.avg : (rows.length ? rows.reduce((sum, r) => sum + Number(r.rating), 0) / rows.length : null);
+  PRODUCT_RATINGS[pid] = { avg, count };
   if (!currentProduct || currentProduct.id !== pid) return;
   renderProductReviewList(pid);
   const root = document.getElementById('productDetail');
@@ -1505,12 +1510,12 @@ function refreshProductReviewUI(pid) {
   if (row) row.innerHTML = (avg === null ? '<span>No ratings yet</span>' : stars(avg)) +
     ' <span class="review-ct">(' + rows.length + ' reviews)</span> <span class="write-rv" onclick="document.getElementById(\'rvFormWrap\').scrollIntoView({behavior:\'smooth\'})">Write a Review</span>';
   const tab = root.querySelector('[onclick*="rvs"]');
-  if (tab) tab.textContent = 'Reviews (' + rows.length + ')';
+  if (tab) tab.textContent = 'Reviews (' + count + ')';
   const summary = root.querySelector('.rv-summary');
   if (summary) {
     summary.querySelector('.rv-big-num').textContent = avg === null ? '—' : avg.toFixed(1);
     const count = summary.querySelector('.rating-big > div:last-child');
-    if (count) count.textContent = rows.length + ' reviews';
+    if (count) count.textContent = count + ' reviews';
     summary.querySelectorAll('.rv-bar-row').forEach((bar, index) => {
       const pct = rows.length ? rows.filter(r => Math.round(r.rating) === 5 - index).length / rows.length * 100 : 0;
       bar.querySelector('.rv-bar-fill').style.width = pct + '%';
@@ -1567,7 +1572,7 @@ function refreshProductReviewUI(pid) {
       { h: 'FSSAI approved', p: 'Every Ozylix product carries FSSAI approval — check the licence on-pack.' },
       { h: 'Made in Anand', p: 'Manufactured at our own facility in Anand, Gujarat — no third-party white-labelling.' },
       { h: 'Real ingredients', p: 'What is on the label is what is in the tablet: disclosed ingredients, disclosed doses.' },
-      { h: 'Free delivery', p: 'Delivered across India with no minimum order — the whole range, not just overpriced packs.' }
+      { h: 'Delivery across India', p: 'Shipping and COD charges follow the current delivery policy and are shown at checkout.' }
     ]
   };
   function escHtml(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
@@ -1643,13 +1648,15 @@ function refreshProductReviewUI(pid) {
 })();
 function buildProductPage(p) {
   const rvs = REVIEWS[p.id] || [];
+  const reviewMeta = typeof PRODUCT_REVIEW_META !== 'undefined' && PRODUCT_REVIEW_META[p.id];
+  const reviewCount = reviewMeta ? reviewMeta.total : rvs.length;
   if (!REVIEWS_LOADED[p.id]) loadProductReviews(p.id); // fires once; re-renders this tab when the real data arrives
   // FIX (audit item P1-15): once reviews have actually loaded and there are
   // none, avg must NOT silently fall back to the hardcoded p.rating — that's
   // exactly how "4.8★ (567 reviews)" type mismatches happened elsewhere.
   // Only show a computed average when real reviews exist.
   const hasRealReviews = REVIEWS_LOADED[p.id] && rvs.length > 0;
-  const avg = hasRealReviews ? rvs.reduce((s,r)=>s+r.rating,0)/rvs.length : null;
+  const avg = reviewMeta ? reviewMeta.avg : (hasRealReviews ? rvs.reduce((s,r)=>s+r.rating,0)/rvs.length : null);
   const related = PRODUCTS.filter(r=>isStoreProductActive(r)&&r.category===p.category&&r.id!==p.id).slice(0,4);
   const rg=document.getElementById('relatedGrid'); if(rg) rg.innerHTML = related.map(r=>renderProductCard(r)).join('');
 
@@ -1672,7 +1679,7 @@ function buildProductPage(p) {
     <div>
       <div class="prod-brand">${p.brand}</div>
       <h1 class="prod-title">${p.name}</h1>
-      <div class="prod-rating-row">${avg !== null ? stars(avg) : '<span class="review-ct" style="color:var(--gray)">No ratings yet</span>'} <span class="review-ct">(${REVIEWS_LOADED[p.id] ? rvs.length + ' reviews' : 'loading reviews…'})</span> <span class="write-rv" onclick="document.getElementById('rvFormWrap').scrollIntoView({behavior:'smooth'})">Write a Review</span></div>
+      <div class="prod-rating-row">${avg !== null ? stars(avg) : '<span class="review-ct" style="color:var(--gray)">No ratings yet</span>'} <span class="review-ct">(${REVIEWS_LOADED[p.id] ? reviewCount + ' reviews' : 'loading reviews…'})</span> <span class="write-rv" onclick="document.getElementById('rvFormWrap').scrollIntoView({behavior:'smooth'})">Write a Review</span></div>
       <div class="prod-price-block">
         <span class="prod-sale" id="dynSalePrice">&#x20B9;${displayRate.toLocaleString('en-IN')}</span>
         <span class="prod-orig" id="dynOrigPrice">&#x20B9;${displayMRP.toLocaleString('en-IN')}</span>
@@ -1699,7 +1706,7 @@ function buildProductPage(p) {
       <div class="tabs">
         <button class="tab active" onclick="switchTab(this,'desc')">Description</button>
         <button class="tab" onclick="switchTab(this,'ingr')">Ingredients</button>
-        <button class="tab" onclick="switchTab(this,'rvs')">Reviews (${rvs.length})</button>
+        <button class="tab" onclick="switchTab(this,'rvs')">Reviews (${reviewCount})</button>
         ${tiers ? `<button class="tab" onclick="switchTab(this,'pricing')">&#x1F4CB; Pricing</button>` : ''}
       </div>
       <div class="tab-content active" id="tab-desc">
@@ -1715,8 +1722,8 @@ function buildProductPage(p) {
       </div>
       <div class="tab-content" id="tab-rvs">
         <div class="rv-summary">
-          <div class="rating-big"><div class="rv-big-num">${avg !== null ? avg.toFixed(1) : '—'}</div><div class="rv-big-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</div><div style="font-size:.72rem;color:var(--gray)">${rvs.length} reviews</div></div>
-          <div style="flex:1">${[5,4,3,2,1].map(s=>{const c=rvs.filter(r=>Math.round(r.rating)===s).length;const pct=rvs.length?(c/rvs.length)*100:0;return`<div class="rv-bar-row"><span style="width:14px">${s}&#x2605;</span><div class="rv-bar-track"><div class="rv-bar-fill" style="width:${pct}%"></div></div><span>${Math.round(pct)}%</span></div>`;}).join('')}</div>
+          <div class="rating-big"><div class="rv-big-num">${avg !== null ? avg.toFixed(1) : '—'}</div><div class="rv-big-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</div><div style="font-size:.72rem;color:var(--gray)">${reviewCount} reviews</div></div>
+          <div style="flex:1">${[5,4,3,2,1].map(s=>{const c=reviewMeta ? Number(reviewMeta.histogram[s] || 0) : rvs.filter(r=>Math.round(r.rating)===s).length;const pct=reviewCount?(c/reviewCount)*100:0;return`<div class="rv-bar-row"><span style="width:14px">${s}&#x2605;</span><div class="rv-bar-track"><div class="rv-bar-fill" style="width:${pct}%"></div></div><span>${Math.round(pct)}%</span></div>`;}).join('')}</div>
         </div>
         <!-- Filled by renderProductReviewList() once this HTML is in the
              DOM: three reviews, then fifty a page on request. Loading and
@@ -2382,6 +2389,7 @@ function updateCodBtnNote() {
     el.toggleAttribute('aria-hidden', !visible);
     if (!visible) el.classList.remove('selected');
   });
+  if (typeof refreshDeliveryMessages === 'function') refreshDeliveryMessages();
   if (!visible && selectedGateway === 'cod') {
     const online = document.querySelector('#page-checkout .pay-method-compact[data-gateway="cashfree"]') || document.querySelector('#page-checkout .pay-method-compact[data-gateway="gokwik"]');
     if (online) selPayGateway(online);
@@ -2390,7 +2398,7 @@ function updateCodBtnNote() {
   if (!codAllowed) note.textContent = 'COD is currently unavailable';
   else if (!within && min > 0 && net < min) note.textContent = 'COD available above ₹' + min.toLocaleString('en-IN');
   else if (!within && max > 0) note.textContent = 'COD available up to ₹' + max.toLocaleString('en-IN');
-  else note.textContent = calcShipping(net, 'cod') === 0 ? '✅ Free COD on your order!' : '+₹' + calcShipping(net, 'cod') + ' COD charge · Free if order ≥ ₹' + SHIP_THRESHOLD;
+  else note.textContent = calcShipping(net, 'cod') === 0 ? '✅ Free COD on your order!' : '+₹' + calcShipping(net, 'cod') + ' COD delivery charge';
   note.style.color = calcShipping(net, 'cod') === 0 ? 'var(--st-ok-bg)' : 'rgba(255,255,255,0.85)';
 }
 
@@ -2635,6 +2643,7 @@ let REVIEWS_BATCH_AVG     = null; // true average across the WHOLE table
 // cards, the reviews wall and the live rating, so nobody waits on more
 // than a single Supabase call.
 let _reviewsBatchDone = null;
+var REVIEW_PRODUCT_TOTALS = [];
 async function loadReviewsBatch() {
   if (_reviewsBatchDone) return _reviewsBatchDone;
   _reviewsBatchDone = (async () => {
@@ -2645,22 +2654,15 @@ async function loadReviewsBatch() {
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(payload.error || `Review request failed (${response.status})`);
     const rows = Array.isArray(payload.reviews) ? payload.reviews : [];
-    const count = rows.length;
-    // TRUE site-wide totals. REVIEW volume is far below the 1000-row cap,
-    // so the returned rows cover the whole table and the average below
-    // IS the real site average. If review volume ever exceeded the cap,
-    // FEATURED_REVIEWS_AVG would simply stay null (the site shows
-    // "Awaiting reviews") rather than a fabricated figure.
-    const ratings = rows.map(r => Number(r.rating)).filter(n => Number.isFinite(n) && n > 0);
-    if (typeof count === 'number') REVIEWS_BATCH_TOTAL = count;
-    if (count === rows.length && ratings.length) {
-      const avg = ratings.reduce((s, n) => s + n, 0) / ratings.length;
-      REVIEWS_BATCH_AVG = avg;
-      FEATURED_REVIEWS_AVG = avg;
-    }
+    REVIEWS_BATCH_TOTAL = Number.isFinite(Number(payload.total)) ? Number(payload.total) : rows.length;
+    const ratings = rows.map(r=>Number(r.rating)).filter(n=>Number.isFinite(n) && n>=1 && n<=5);
+    const complete = REVIEWS_BATCH_TOTAL === rows.length;
+    const average = payload.average == null ? (complete && ratings.length ? ratings.reduce((s,n)=>s+n,0)/ratings.length : null) : Number(payload.average);
+    REVIEWS_BATCH_AVG = FEATURED_REVIEWS_AVG = Number.isFinite(average) ? average : null;
+    REVIEW_PRODUCT_TOTALS = Array.isArray(payload.product_totals) ? payload.product_totals : [];
     return rows.map(r => ({
       id: r.id, productId: r.product_id, productName: r.product_name,
-      user: r.user_name, rating: r.rating, text: r.review_text, date: r.created_at
+      user: r.user_name, rating: r.rating, text: r.review_text, date: r.created_at, verified: r.verified === true
     }));
   })().catch(() => { _reviewsBatchDone = null; return []; });
   return _reviewsBatchDone;
@@ -2670,7 +2672,7 @@ async function loadReviewStats() {
   try {
     const rows = await loadReviewsBatch();
     FEATURED_REVIEWS_TOTAL = REVIEWS_BATCH_TOTAL || rows.length;
-    if (FEATURED_REVIEWS_AVG == null && rows.length) {
+    if (FEATURED_REVIEWS_AVG == null && rows.length && REVIEWS_BATCH_TOTAL === rows.length) {
       FEATURED_REVIEWS_AVG = rows.reduce((t, r) => t + (Number(r.rating) || 0), 0) / rows.length;
     }
   } catch (e) { /* stats are cosmetic — never block the reviews render */ }
@@ -2706,7 +2708,7 @@ async function getLiveRating() {
     const ratings = rows.map(r => Number(r.rating)).filter(n => Number.isFinite(n) && n > 0);
     if (REVIEWS_BATCH_AVG != null) {
       LIVE_RATING_CACHE = { avg: REVIEWS_BATCH_AVG, count: REVIEWS_BATCH_TOTAL || ratings.length };
-    } else if (ratings.length) {
+    } else if (ratings.length && REVIEWS_BATCH_TOTAL === rows.length) {
       LIVE_RATING_CACHE = { avg: ratings.reduce((s, n) => s + n, 0) / ratings.length,
                             count: REVIEWS_BATCH_TOTAL || ratings.length };
     } else {
@@ -2765,7 +2767,7 @@ function hydrateAboutStats() {
 
 function testiCardHtml(t) {
   const initial = (t.user || t.name || '?').trim().charAt(0).toUpperCase();
-  return `<div class="testi-card"><div class="testi-stars">${'★'.repeat(starCount(t.rating || t.stars || 5))}</div><p class="testi-text">"${esc(t.text)}"</p><div class="testi-user"><div class="testi-avatar">${esc(initial)}</div><div><div class="testi-name">${esc(t.user || t.name)}</div><div class="testi-loc">${esc(t.location || t.loc || '')}</div></div></div></div>`;
+  return `<div class="testi-card"><div class="testi-stars">${'★'.repeat(starCount(t.rating || t.stars || 5))}</div><p class="testi-text">"${esc(t.text)}"</p><div class="testi-user"><div class="testi-avatar">${esc(initial)}</div><div><div class="testi-name">${esc(t.user || t.name)}</div><div class="testi-loc">${esc(t.verified ? 'Verified Buyer' : 'Customer review')}</div></div></div></div>`;
 }
 
 async function renderTestimonials() {
@@ -2801,7 +2803,7 @@ async function renderReviewsWall() {
     return `<div class="inf-card" style="background:var(--sub-1);border-radius:16px;padding:24px;box-shadow:0 2px 12px rgba(23,224,192,0.07);border:1px solid rgba(23,224,192,0.06)">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
         <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--f-mineral-d),var(--f-mineral));display:flex;align-items:center;justify-content:center;color:var(--t-hi);font-weight:700;font-size:1.1rem;flex-shrink:0">${esc(initial)}</div>
-        <div><div style="font-weight:700;font-size:0.9rem;color:var(--dark)">${esc(r.user)}</div><div style="font-size:0.75rem;color:var(--gray)">${esc(r.location||'Verified Buyer')}</div></div>
+        <div><div style="font-weight:700;font-size:0.9rem;color:var(--dark)">${esc(r.user)}</div><div style="font-size:0.75rem;color:var(--gray)">${esc(r.verified ? 'Verified Buyer' : 'Customer review')}</div></div>
         <div style="margin-left:auto;color:var(--seal);font-size:0.95rem">${'★'.repeat(starCount(r.rating||5))}</div>
       </div>
       <div style="font-size:0.88rem;color:var(--text);line-height:1.65;margin-bottom:12px">"${esc(r.text)}"</div>
@@ -2824,11 +2826,20 @@ function goSlide(i) {
 document.addEventListener('DOMContentLoaded', function(){ setInterval(function(){ moveCarousel(1); }, 5500); });
 
 // ── UTILS ──
-function subscribeNL() {
-  const e=document.getElementById('nlEmail')?.value;
-  if(!e||!e.includes('@')){showToast('Please enter a valid email','error');return;}
-  showToast('Subscribed! Welcome to the Ozylix family 🌿');
-  if(document.getElementById('nlEmail')) document.getElementById('nlEmail').value='';
+async function subscribeNL() {
+  const input=document.getElementById('nlEmail'),button=document.getElementById('nlSubscribeBtn');
+  const email=String(input?.value || '').trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !document.getElementById('nlConsent')?.checked) { showToast('Enter a valid email and agree to receive updates.','error'); return; }
+  if(button?.disabled) return;
+  if(button) { button.disabled=true; button.textContent='Saving…'; }
+  try {
+    const r=await fetchWithTimeout(API_BASE+'/api/newsletter/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,consent:true})},15000);
+    const body=await r.json();
+    if(!r.ok || !body.ok) throw new Error(body.error || 'Your subscription could not be saved.');
+    showToast('Your subscription request has been recorded.'); if(input) input.value='';
+    document.getElementById('nlConsent').checked=false;
+  } catch(error) { showToast(error.message || 'Could not save. Please try again.','error'); }
+  finally { if(button) { button.disabled=false; button.textContent='Subscribe'; } }
 }
 
 // ── INIT ──
@@ -3822,27 +3833,10 @@ async function evaluateTyReviewNudge() {
       eligible.delete(0);
     }
     if (!eligible.size) return;
-    // Load what this customer has already reviewed. The storefront's
-    // Supabase client is public-anon and the reviews table is readable, so
-    // fetch all approved reviews once and filter by the logged-in email —
-    // same pattern loadProductRatings() uses for ratings.
-    const sb = await sbClientWhenReady(6000);
-    const reviewed = new Set();
-    if (sb) {
-      try {
-        const user = getCurrentUser();
-        const email = (user && user.email || '').toLowerCase().trim();
-        if (email) {
-          // PERF (Aug 2026): reuse the single shared reviews batch instead
-          // of firing yet another Supabase call. The batch was already
-          // fetched for the homepage, so this costs nothing extra.
-          const rows = await loadReviewsBatch();
-          for (const rv of (rows || [])) {
-            if ((rv.user || '').toLowerCase().trim() === email) reviewed.add(Number(rv.productId));
-          }
-        }
-      } catch(e) {}
-    }
+    // Ownership comes from the private API, never public display names.
+    const rr=await fetchWithTimeout(API_BASE+'/api/reviews/my',{headers:{Authorization:'Bearer '+(localStorage.getItem('asc_jwt') || '')},cache:'no-store'},8000);
+    if(!rr.ok) return;
+    const own=await rr.json(),reviewed=new Set((own.reviews || []).map(r=>Number(r.product_id)));
     const missing = [...eligible].filter(p => !reviewed.has(p));
     if (!missing.length) return;
     // Remember the product the customer is missing a review for.
@@ -4568,6 +4562,7 @@ function generateInvoice({ orderId, formData, srItems, sub, disc, promoDisc, shi
 // ═══════════════════════════════════════════════════════
 
 function openAuth(tab = 'login') {
+  if (typeof _prepareGoogleFlow === 'function') _prepareGoogleFlow().catch(function(){});
   switchAuthTab(tab);
   document.getElementById('authOverlay')?.classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -5430,7 +5425,7 @@ async function doRegister() {
 // Client ID: 984843590893-opkqurrknj9l8spuov4afudr1lcnv82c.apps.googleusercontent.com
 // ══════════════════════════════════════════════════════════════════════════
 
-const GOOGLE_CLIENT_ID = '984843590893-opkqurrknj9l8spuov4afudr1lcnv82c.apps.googleusercontent.com';
+let GOOGLE_CLIENT_ID = null; // authoritative client id comes from the backend
 
 // Where Google sends mobile users back after they approve sign-in. Pinned to
 // the bare origin (no trailing slash, no path) so it byte-for-byte matches
@@ -5458,10 +5453,17 @@ const _GOOGLE_MAX_RETRIES = 8;
 (function() {
   var params = new URLSearchParams(window.location.search);
   var code   = params.get('code');
-  if (!code) return; // not a redirect return — do nothing
+  if (!code) { _prepareGoogleFlow().catch(function(){}); return; } // not a redirect return — do nothing
 
   // Clean URL so refresh doesn't retrigger
   history.replaceState({}, '', window.location.pathname);
+
+  var authFlow;
+  try { authFlow = _consumeGoogleFlow(params.get('state')); } catch (error) {
+    var fail = function(){ openAuth('login'); showAuthError('Google sign-in has expired or did not start in this tab. Please try again. Your cart is safe.'); _prepareGoogleFlow().catch(function(){}); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fail, { once: true }); else fail();
+    return;
+  }
 
   // Show spinner
   var spinner = document.createElement('div');
@@ -5484,10 +5486,10 @@ const _GOOGLE_MAX_RETRIES = 8;
   // origin instead of the hardcoded non-resolving ozylix.com.
   fetchWithTimeout(API_BASE + '/api/auth/google-code', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
     body: JSON.stringify({
-      code: code,
-      redirect_uri: window.location.origin
+      code: code, redirect_uri: authFlow.redirect_uri,
+      auth_state: authFlow.state, verifier: authFlow.verifier, flow: 'redirect'
     })
   }, 60000)
   .then(function(r){
@@ -5526,6 +5528,7 @@ const _GOOGLE_MAX_RETRIES = 8;
   })
   .catch(function(e) {
     console.error('[Auth] redirect exchange failed:', e.message);
+    _prepareGoogleFlow().catch(function(){});
     var el = document.getElementById('g-spinner');
     if (el) el.remove();
     function showRedirectFailure() {
@@ -5598,7 +5601,7 @@ async function handleGoogleCredential(response) {
     const isCode = Boolean(response.code);
     const endpoint = isCode ? '/api/auth/google-code' : '/api/auth/google';
     const body = isCode
-      ? { code: response.code, redirect_uri: window.location.origin }
+      ? _googleCodeBody(response)
       : { credential: response.credential };
     // Authorization codes are single use: never replay after an ambiguous timeout.
     // One Tap token verification may cold-start the backend and Google can
@@ -5611,7 +5614,7 @@ async function handleGoogleCredential(response) {
       let res;
       try {
         res = await fetchWithTimeout(API_BASE + endpoint, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json', ...(isCode ? { 'X-Requested-With': 'XMLHttpRequest' } : {}) },
           body: JSON.stringify(body),
         }, timeouts[attempt]);
       } catch (err) {
@@ -5641,6 +5644,7 @@ async function handleGoogleCredential(response) {
   } catch(err) {
     console.error('[Ozylix Auth] handleGoogleCredential error:', err);
     restoreGoogleBtn();
+    _prepareGoogleFlow().catch(function(){});
     _showAuthFeedback('error', 'Google sign-in failed. Please try again or use email.');
   }
 }
@@ -5667,22 +5671,8 @@ function autofillCheckoutFromGoogle(user) {
 
 // ── Strategy 1: Google One Tap prompt ──
 function _tryOneTap() {
-  if (typeof google === 'undefined' || !google.accounts?.id) return false;
-  try {
-    google.accounts.id.prompt(notification => {
-      // isSkippedMoment()/isDismissedMoment() are deprecated ahead of Google's
-      // mandatory FedCM migration and log console warnings. isNotDisplayed()
-      // alone still covers "One Tap didn't show" going forward.
-      if (notification.isNotDisplayed()) {
-        // One Tap suppressed — try OAuth2 popup as fallback
-        _tryOAuth2Popup();
-      }
-    });
-    return true;
-  } catch(e) {
-    console.warn('[Ozylix Auth] One Tap prompt error:', e);
-    return false;
-  }
+  if (typeof google === 'undefined' || !google.accounts?.id || !_googleInitialized) return false;
+  try { google.accounts.id.prompt(); return true; } catch (_) { return false; }
 }
 
 // ── Strategy 2: authorization code popup (desktop) or redirect (mobile/Safari) ──
@@ -5697,86 +5687,40 @@ function _isSafariBrowser() {
 }
 
 function _tryOAuth2Popup() {
-  if (typeof google === 'undefined' || !google.accounts?.oauth2) {
-    _showAuthFeedback('error', 'Google sign-in is unavailable. Please use email login.');
+  if (_googleCodePending) return;
+  const flow = _googleFlow;
+  if (!flow || Date.now() - flow.at >= 8 * 60 * 1000 || typeof google === 'undefined' || !google.accounts?.oauth2) {
+    _prepareGoogleFlow().catch(function(){});
+    _showAuthFeedback('error', 'Google sign-in is loading. Please tap Continue with Google again in a moment, or use email.');
     return;
   }
-
-  // Redirect only for actual mobile devices — desktop always uses popup
-  if (_isMobileBrowser() || _isSafariBrowser()) {
-    try {
-      const client = google.accounts.oauth2.initCodeClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: 'openid profile email',
-        ux_mode: 'redirect',
-        // FIX (mobile login broken): this was hardcoded to
-        // 'https://www.ozylix.com' — a domain that does not currently
-        // resolve — so every mobile Google sign-in bounced the customer to a
-        // dead page and the session was never created. Now derived from
-        // wherever the site is actually being served, so it works on the
-        // GitHub Pages URL, the custom domain, and local testing alike.
-        // NOTE: this exact origin must also be listed under
-        // "Authorised redirect URIs" in the Google Cloud console for the
-        // OAuth client, or Google returns redirect_uri_mismatch.
-        redirect_uri: GOOGLE_REDIRECT_URI,
-      });
-      client.requestCode();
-    } catch(e) {
-      console.error('[Ozylix Auth] OAuth2 redirect error:', e);
-      _showAuthFeedback('error', 'Google sign-in failed. Please use email login.');
-    }
-    return;
-  }
-
-  // Google issues a real authorization code; the backend exchanges and verifies it.
   try {
+    const redirect = _isMobileBrowser() || _isSafariBrowser();
     const client = google.accounts.oauth2.initCodeClient({
-      client_id: GOOGLE_CLIENT_ID,
-      scope: 'openid profile email',
-      ux_mode: 'popup',
-      select_account: true,
-      callback: async (codeResponse) => {
-        if (codeResponse.error || !codeResponse.code) {
-          _showAuthFeedback('error', 'Google sign-in was cancelled or could not be completed.');
-          return;
-        }
-        await handleGoogleCredential({ code: codeResponse.code });
+      client_id: flow.client_id, scope: 'openid profile email',
+      ux_mode: redirect ? 'redirect' : 'popup',
+      ...(redirect ? { redirect_uri: flow.redirect_uri } : { select_account: true }),
+      state: flow.state,
+      callback: async function(response) {
+        if (response.error || !response.code) { _clearGoogleFlow(); _prepareGoogleFlow().catch(function(){}); _showAuthFeedback('error', 'Google sign-in was cancelled. Please try again.'); return; }
+        try {
+          if (response.state && response.state !== flow.state) throw new Error('Sign-in state mismatch');
+          const context = _consumeGoogleFlow(flow.state);
+          await handleGoogleCredential({ code: response.code, authFlow: context, flow: 'popup' });
+        } catch (_) { _clearGoogleFlow(); _prepareGoogleFlow().catch(function(){}); _showAuthFeedback('error', 'Google sign-in could not be verified. Please try again.'); }
       },
-      error_callback: () => {
-        _showAuthFeedback('error', 'Google sign-in could not open or was closed. Please try again.');
-      },
+      error_callback: function() { _clearGoogleFlow(); _prepareGoogleFlow().catch(function(){}); _showAuthFeedback('error', 'The Google window was closed or blocked. Please tap the button again.'); },
     });
-    client.requestCode();
-  } catch(e) {
-    console.error('[Ozylix Auth] OAuth2 popup error:', e);
-    _showAuthFeedback('error', 'Google sign-in failed. Please use email login.');
-  }
+    _googleCodePending = true;
+    client.requestCode(); // synchronous in the click handler: retain popup activation
+  } catch (_) { _clearGoogleFlow(); _prepareGoogleFlow().catch(function(){}); _showAuthFeedback('error', 'Google sign-in is unavailable. Please use email or retry.'); }
 }
 
 // ── Public: triggered by "Continue with Google" button ──
 function socialLogin(provider) {
-  if (provider !== 'google') {
-    showToast('📱 Phone OTP login coming soon!');
-    return;
-  }
+  if (provider !== 'google') { showToast('Phone OTP login coming soon!'); return; }
   clearAuthMessages();
-
-  // Desktop flow
-  if (typeof google === 'undefined' || !google.accounts) {
-    if (_googleInitRetries < 3) {
-      _googleInitRetries++;
-      showToast('⏳ Connecting to Google…');
-      setTimeout(() => socialLogin('google'), 1000 * _googleInitRetries);
-    } else {
-      _showAuthFeedback('error', 'Google sign-in unavailable. Please use email login or refresh the page.');
-    }
-    return;
-  }
-
-  _googleInitRetries = 0;
-  if (!_tryOneTap()) {
-    _tryOAuth2Popup();
-  }
+  _tryOAuth2Popup();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -5865,7 +5809,7 @@ function resumeCheckoutIfWaiting() {
 
 // ── Init One Tap (called on SDK load) ──
 function _initGoogleOneTap() {
-  if (_googleInitialized) return;
+  if (_googleInitialized || !GOOGLE_CLIENT_ID) return;
   if (typeof google === 'undefined' || !google.accounts?.id) return;
 
   // If user already logged in via our JWT — init SDK but suppress ALL prompts
@@ -5908,6 +5852,7 @@ function _initGoogleOneTap() {
 
 // ── Sign out ──
 function doLogout() {
+  _clearGoogleFlow(); _prepareGoogleFlow().catch(function(){});
   resetAccountSession();
   // Disable Google auto-select so it doesn't auto-sign in again
   if (typeof google !== 'undefined' && google.accounts?.id) {
@@ -7058,7 +7003,7 @@ function renderSideCart() {
     ${vitaStripHTML()}
     <button class="sc-checkout-btn" onclick="closeSideCart();showPage('checkout')">🔒 Proceed to Checkout</button>
     <button class="sc-view-btn" onclick="closeSideCart();showPage('cart')">View Full Cart</button>
-    <div style="text-align:center;font-size:0.7rem;color:var(--gray);margin-top:10px">🔒 Secured by GoKwik · Free delivery on every order</div>
+    <div style="text-align:center;font-size:0.7rem;color:var(--gray);margin-top:10px">🔒 Secured by GoKwik · Delivery charges shown at checkout</div>
   `;
   vp3dScan(foot);
 }

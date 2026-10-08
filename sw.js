@@ -5,7 +5,7 @@
 
 // Release v40 removes cached application shells and code from older installs.
 // Keep only offline UI and media in Cache Storage.
-const CACHE_NAME = 'ozylix-pwa-v40';
+const CACHE_NAME = 'ozylix-pwa-v41';
 const OFFLINE_URL = '/offline.html';
 
 // Only cache a self-contained offline screen and icons. Cached application
