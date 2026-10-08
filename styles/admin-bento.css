@@ -53,6 +53,17 @@ body.admin-motion-ready #app :is(.card,.kpi,.oz-section-card,.oz-advanced-surfac
   body.admin-motion-ready #app .nav-item:hover .nav-ico { transform: translateX(2px); }
 }
 body.admin-motion-ready #app .nav-ico { transition: transform 180ms ease; }
+/* One moving selection surface; labels and click targets never move with it. */
+#app .admin-nav-glider { position: absolute; z-index: 0; pointer-events: none; border-radius: 13px; background: var(--os-yellow); box-shadow: 0 3px 9px #806b2114; transform-origin: top left; }
+#app .admin-nav-glider[hidden] { display: none; }
+body.admin-bento #app .sidebar .nav-item, body.admin-bento #app .admin-bnav .abn-btn { position: relative; z-index: 1; }
+body.admin-bento #app .sidebar:has(.admin-nav-glider:not([hidden])) .nav-item.active,
+body.admin-bento #app .admin-bnav:has(.admin-nav-glider:not([hidden])) .abn-btn.active { background: transparent !important; box-shadow: none !important; }
+@media (hover:hover) and (pointer:fine) {
+  body.admin-motion-ready:not(.admin-motion-reduced) #app .kpi { transition: translate 230ms cubic-bezier(.22,1,.36,1),box-shadow 230ms ease,border-color 180ms ease !important; }
+  body.admin-motion-ready:not(.admin-motion-reduced) #app .kpi:hover { translate: 0 -4px; }
+  body.admin-motion-ready:not(.admin-motion-reduced) #app .btn:hover .tb-ico-sm { rotate: -8deg; }
+}
 body.admin-motion-ready #app :is(button,.nav-item,.abn-btn):focus-visible {
   outline: 2px solid var(--os-green) !important; outline-offset: 3px;
 }
@@ -67,10 +78,10 @@ body.admin-motion-ready #app :is(button,.nav-item,.abn-btn):focus-visible {
 .bento-choice button[aria-pressed="true"] { background: var(--os-ink); color: var(--os-surface); box-shadow: 0 2px 5px #00000012; }
 .bento-choice button:focus-visible { outline: 2px solid var(--os-green); outline-offset: 2px; }
 body.admin-motion-ready .modal-overlay.open > .modal {
-  animation: admin-bento-dialog 260ms cubic-bezier(.22,1,.36,1) both;
+  animation: admin-bento-dialog 420ms cubic-bezier(.22,1,.36,1) both;
 }
 @keyframes admin-bento-dialog {
-  from { opacity: .3; transform: translateY(14px) scale(.985); }
+  from { opacity: .15; transform: translateY(28px) scale(.965); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 @media (max-width: 900px) {
@@ -95,6 +106,7 @@ body.admin-motion-ready.admin-motion-reduced #app *, body.admin-motion-ready.adm
 }
 body.admin-motion-reduced { scroll-behavior: auto !important; }
 body.admin-motion-reduced .modal-overlay.open > .modal { animation: none !important; }
+body.admin-motion-reduced #app .kpi { translate: none !important; }
 @media (prefers-reduced-motion: reduce) {
   html, body, #app * { scroll-behavior: auto !important; }
   body.admin-motion-ready .modal-overlay.open > .modal { animation: none !important; }

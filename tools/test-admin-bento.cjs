@@ -46,6 +46,17 @@ const root = path.resolve(__dirname, '..');
     await page.locator('#app').waitFor({state:'visible'});
     await page.locator('body.admin-bento.admin-motion-ready').waitFor();
     await page.waitForTimeout(650);
+    await page.evaluate(()=>showPage('orders'));
+    await page.waitForTimeout(60);
+    const motion = await page.locator('#app').evaluate(el=>el.getAnimations({subtree:true}).map(a=>({className:a.effect.target.className,frames:a.effect.getKeyframes()})));
+    assert.ok(motion.some(a=>a.className.includes('page') && a.frames.some(f=>f.transform?.includes('translateX'))),'directional page entrance runs');
+    assert.ok(motion.some(a=>a.className.includes('admin-nav-glider')),'navigation selection slides independently');
+    await page.evaluate(()=>{showPage('products');showPage('customers');showPage('dashboard');});
+    await page.waitForTimeout(60);
+    assert.equal(await page.locator('#app').evaluate(el=>el.getAnimations({subtree:true}).filter(a=>a.effect.target.closest('.page:not(.active)')).length),0,'rapid navigation cancels hidden-page effects');
+    await page.waitForTimeout(900);
+    // Observe writes while idle to catch accidental observer/animation loops.
+    assert.equal(await page.evaluate(()=>new Promise(resolve=>{let count=0;const observer=new MutationObserver(records=>count+=records.length);observer.observe(document.querySelector('#sidebar .admin-nav-glider'),{attributes:true});setTimeout(()=>{observer.disconnect();resolve(count);},180);})),0,'selection geometry does not rewrite itself while idle');
     // Baseline has existing range/chart widgets. Exercise real navigation for
     // every page without changing permissions or executing an admin action.
     const pages = await page.locator('#app .page[id]').evaluateAll(nodes=>nodes.map(n=>n.id.slice(5)));
@@ -92,6 +103,8 @@ const root = path.resolve(__dirname, '..');
       await page.locator('#adminMoreMenu.open').waitFor({state:'visible'});
       await page.evaluate(()=>showPage('dashboard'));
       assert.equal(await page.locator('#adminMoreMenu.open').count(),0,'mobile route closes the menu');
+      await page.waitForTimeout(700);
+      assert.equal(await page.evaluate(()=>new Promise(resolve=>{let count=0;const observer=new MutationObserver(records=>count+=records.length);document.querySelectorAll('.admin-nav-glider').forEach(el=>observer.observe(el,{attributes:true}));setTimeout(()=>{observer.disconnect();resolve(count);},180);})),0,'mobile selection remains idle');
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth+1),'no overflow at '+width);
       await page.evaluate(()=>showPage('settings'));
       await page.getByRole('button',{name:'Reduced',exact:true}).click();
@@ -103,7 +116,7 @@ const root = path.resolve(__dirname, '..');
     await page.screenshot({path:path.join(root,'docs/admin-bento/mobile.png')});
     assert.deepEqual(newErrors,[]);
     assert.equal(mutations,0,'appearance controls make no backend writes');
-    console.log(`PASS: ${pages.length} admin pages, 1440/768/390px, saved preferences, OS reduced motion, no backend writes`);
+    console.log(`PASS: ${pages.length} admin pages, directional motion, sliding navigation, rapid-switch cancellation, idle stability, 1440/768/390px, preferences, reduced motion, no backend writes`);
     await context.close();
   } finally { await browser.close(); if(server) await new Promise(resolve=>server.close(resolve)); }
 })().catch(error=>{console.error(error);process.exitCode=1;});

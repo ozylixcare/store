@@ -16,7 +16,7 @@ priority. Preferences are stored locally, never sent to a backend endpoint.
 
 `scripts/admin-bento.js` observes existing page changes, including mobile and
 keyboard navigation. At most 24 visible card entries start in one frame, with
-stagger capped at 175ms. Page changes cancel the previous page's animations.
+stagger capped at 275ms. Page changes cancel the previous page's animations.
 Numbers retain the data module's final values and formatters. Reducing motion
 finishes any active number animation immediately.
 
@@ -41,3 +41,10 @@ viewports; mobile menu opening and closing; keyboard navigation; saved style
 and motion preferences; OS reduced motion; counter final values; closed drawer
 visibility; and no backend writes. Existing session, media and upload checks
 also passed.
+
+The enhanced motion pass adds directional page entrances, softer heading
+reveals, spring-like card settling, chart wipes, moving navigation selection
+surfaces, icon pops, button press feedback and gentle desktop KPI hover lifts.
+Selection backgrounds animate independently of navigation labels and click
+targets. No old-page DOM snapshots or copies of customer data are created.
+Rapid navigation cancels prior effects; reduced motion skips all new effects.
