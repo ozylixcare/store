@@ -348,7 +348,7 @@
 
 <!-- TOPBAR -->
 <header class="topbar">
-  <button class="hamburger-btn" onclick="toggleSidebar()">☰</button>
+  <button class="hamburger-btn" aria-label="Navigation menu" aria-controls="adminMoreMenu" aria-expanded="false" onclick="if(window.matchMedia('(max-width: 900px)').matches){openAdminMoreMenu()}else{toggleSidebar()}">☰</button>
   <a href="#" class="topbar-logo">
     <div class="logo-icon"><img src="assets/ozylix-logo.png" alt="Ozylix" onerror="this.style.display='none';this.parentNode.textContent='🌿'"></div>
     <span class="logo-name">Ozylix <span class="logo-badge">ADMIN</span></span>

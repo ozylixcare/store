@@ -24,6 +24,9 @@ body.admin-bento #app .nav-item.active {
   box-shadow: 0 3px 8px #806b2114 !important;
 }
 body.admin-bento #app .nav-item { border-radius: 13px !important; }
+body.admin-bento #app .nav-ico svg { width: 18px; height: 18px; display: block; }
+body.admin-bento #app .abn-btn > span:first-child svg { width: 21px; height: 21px; display: block; }
+body.admin-motion-ready .prod-drawer:not(.open) { visibility: hidden; box-shadow: none !important; }
 body.admin-bento #app .kpi::after { display: none !important; }
 body.admin-bento #app #kpiCards .kpi:nth-child(1) { background: var(--os-yellow-soft) !important; }
 body.admin-bento #app #kpiCards .kpi:nth-child(2) { background: var(--os-green-soft) !important; }
@@ -70,10 +73,16 @@ body.admin-motion-ready .modal-overlay.open > .modal {
   from { opacity: .3; transform: translateY(14px) scale(.985); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
+@media (max-width: 900px) {
+  body.admin-motion-ready #app .hamburger-btn { display: inline-flex !important; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; background: transparent; color: var(--os-ink); border: 0; }
+}
 @media (max-width: 600px) {
   body.admin-bento { --os-radius: 17px; }
   body.admin-bento #app .page-hdr { align-items: flex-start !important; }
-  body.admin-bento #app .page-actions { flex-wrap: wrap; }
+  body.admin-bento #app .page-actions { display: flex !important; flex-direction: row !important; flex-wrap: wrap; gap: 6px !important; }
+  body.admin-bento #app .page-actions > button { flex: 1 1 auto !important; width: auto !important; min-width: 0 !important; padding: 9px 10px !important; }
+  body.admin-bento #app #kpiCards { display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)) !important; gap: 10px !important; }
+  body.admin-bento #app #kpiCards .kpi { padding: 14px !important; min-height: 132px !important; }
   .bento-preferences { padding: 12px; }
   .bento-preference-row { align-items: flex-start; }
   .bento-choice { max-width: 100%; }
@@ -85,7 +94,9 @@ body.admin-motion-ready.admin-motion-reduced #app *, body.admin-motion-ready.adm
   transition-duration: .001ms !important; scroll-behavior: auto !important;
 }
 body.admin-motion-reduced { scroll-behavior: auto !important; }
+body.admin-motion-reduced .modal-overlay.open > .modal { animation: none !important; }
 @media (prefers-reduced-motion: reduce) {
   html, body, #app * { scroll-behavior: auto !important; }
+  body.admin-motion-ready .modal-overlay.open > .modal { animation: none !important; }
   html body.admin-motion-ready #app *, html body.admin-motion-ready #app *::before, html body.admin-motion-ready #app *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }

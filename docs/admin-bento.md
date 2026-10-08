@@ -4,6 +4,9 @@ Reference: Code & Chill's bento dashboard reel, https://www.instagram.com/reel/D
 The shared admin layer adds warm neutral surfaces, yellow active navigation,
 rounded cards, staggered page entry and modal transitions. Existing page IDs,
 data loaders, role checks, forms and actions remain in their original modules.
+Navigation uses consistent inline vector icons and supports Enter/Space.
+Closed drawers no longer cast a dark shadow over the screen. Page changes start
+at the destination heading rather than retaining the previous page's scroll.
 The public storefront is outside this change.
 
 Settings → Interface Settings → Workspace appearance lets each browser choose
@@ -21,8 +24,9 @@ finishes any active number animation immediately.
 
 Run existing session, media and upload checks with Node. For the browser test,
 install Playwright in a temporary QA environment, install its Chromium browser,
-serve the repository root on http://127.0.0.1:8765 and run
-`node tools/test-admin-bento.cjs`. `ADMIN_PREVIEW_URL` may override the origin;
+and run
+`node tools/test-admin-bento.cjs`. The test serves the repository automatically.
+`ADMIN_PREVIEW_URL` may point to an existing local preview instead;
 `CHROMIUM_EXECUTABLE` may select an installed Chromium executable.
 
 The test intercepts all backend reads with synthetic, empty fixtures and blocks
@@ -31,3 +35,9 @@ real orders, payments, messages or shipments. It checks every admin page,
 desktop and mobile widths, persisted preferences, reduced motion, and the
 absence of backend writes from appearance controls. Generated screenshots are
 local QA outputs under `docs/admin-bento/`, not evidence of live business data.
+
+Validated on 8 October 2026: all 29 page destinations; 1440px, 768px and 390px
+viewports; mobile menu opening and closing; keyboard navigation; saved style
+and motion preferences; OS reduced motion; counter final values; closed drawer
+visibility; and no backend writes. Existing session, media and upload checks
+also passed.
