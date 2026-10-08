@@ -273,6 +273,10 @@ export default {
       }));
     }
 
+    if (isApiRequest(url.pathname) && url.pathname !== '/api/site-media') {
+      return handleApiRequest(request);
+    }
+
     // Public, edge-cached site-media map (see handleSiteMedia doc block).
     if (url.pathname === '/api/site-media') {
       return handleSiteMedia();
