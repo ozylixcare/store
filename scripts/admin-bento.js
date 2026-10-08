@@ -19,6 +19,51 @@
   let seen = new WeakSet();
   const surfaces = '.card,.kpi,.oz-section-card,.oz-advanced-surface,.table-wrap';
   const reduced = () => systemMotion.matches || preferences.motion === 'reduced';
+  const pageOrder = Array.from(root.querySelectorAll('.page'));
+  const gliders = ['sidebar','adminBnav'].map(id => {
+    const container = document.getElementById(id);
+    if (!container) return null;
+    if (getComputedStyle(container).position === 'static') container.style.position = 'relative';
+    const element = document.createElement('div');
+    element.className = 'admin-nav-glider'; element.setAttribute('aria-hidden','true');
+    element.hidden = true; container.appendChild(element);
+    return {container, element, active:null, rect:null};
+  }).filter(Boolean);
+  function play(element, keyframes, options) {
+    if (reduced() || document.hidden || typeof element.animate !== 'function') return;
+    const animation = element.animate(keyframes, options);
+    animations.add(animation);
+    animation.onfinish = animation.oncancel = () => animations.delete(animation);
+    return animation;
+  }
+  function syncGliders() {
+    gliders.forEach(glider => {
+      const selected = glider.container.querySelector('.nav-item.active,.abn-btn.active');
+      const outer = glider.container.getBoundingClientRect();
+      const rect = selected?.getBoundingClientRect();
+      if (preferences.look !== 'bento' || !rect?.width || !outer.width) {
+        if (!glider.element.hidden) glider.element.hidden = true;
+        glider.rect = null;
+        return;
+      }
+      const next = {x:rect.left-outer.left+glider.container.scrollLeft, y:rect.top-outer.top+glider.container.scrollTop, width:rect.width, height:rect.height};
+      if (!glider.rect || Object.keys(next).some(key => next[key] !== glider.rect[key])) {
+        Object.assign(glider.element.style, {left:next.x+'px',top:next.y+'px',width:next.width+'px',height:next.height+'px'});
+      }
+      if (glider.element.hidden) glider.element.hidden = false;
+      if (glider.active !== selected && glider.rect) {
+        play(glider.element, [
+          {transform:`translate(${glider.rect.x-next.x}px,${glider.rect.y-next.y}px) scale(${glider.rect.width/next.width},${glider.rect.height/next.height})`},
+          {transform:'translate(0,0) scale(1,1)'}
+        ], {duration:460,easing:'cubic-bezier(.22,1,.36,1)'});
+      }
+      if (glider.active !== selected) {
+        const icon = selected.querySelector('.nav-ico svg,span svg');
+        if (icon) play(icon,[{transform:'scale(.72) rotate(-12deg)'},{transform:'scale(1.12) rotate(3deg)',offset:.65},{transform:'scale(1) rotate(0)'}],{duration:430,easing:'cubic-bezier(.22,1,.36,1)'});
+      }
+      glider.active = selected; glider.rect = next;
+    });
+  }
   const paths = {
     dashboard:'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',
     analytics:'M4 3v18h17 M8 16v-5 M13 16V7 M18 16V4',
@@ -78,17 +123,16 @@
       if (root.getAnimations) root.getAnimations({subtree:true}).forEach(animation => animation.cancel());
     }
   }
-  function animate(element, delay) {
-    if (reduced() || typeof element.animate !== 'function') return;
+  function animate(element, delay, heading = false) {
     // Entry motion never changes card content or replaces a DOM node.
-    const animation = element.animate([
-      { opacity: .35, transform: 'translateY(10px) scale(.992)' },
+    play(element, heading ? [
+      {opacity:.2,transform:'translateY(16px)',filter:'blur(3px)'},
+      {opacity:1,transform:'translateY(0)',filter:'blur(0)'}
+    ] : [
+      { opacity: .15, transform: 'translateY(26px) scale(.96)' },
+      { opacity: 1, transform: 'translateY(-2px) scale(1.005)',offset:.72 },
       { opacity: 1, transform: 'translateY(0) scale(1)' }
-    ], { duration: 380, delay, easing: 'cubic-bezier(.22,1,.36,1)' });
-    animations.add(animation);
-    const remove = () => animations.delete(animation);
-    animation.onfinish = remove;
-    animation.oncancel = remove;
+    ], { duration: heading ? 420 : 570, delay, easing: 'cubic-bezier(.22,1,.36,1)' });
   }
   function sync() {
     frame = 0;
@@ -98,6 +142,7 @@
     if (!page || root.getClientRects().length === 0) return;
     if (page !== activePage) {
       stop();
+      const direction = !activePage || pageOrder.indexOf(page) >= pageOrder.indexOf(activePage) ? 1 : -1;
       activePage = page;
       seen = new WeakSet();
       // A different destination should start at its heading, even when the
@@ -110,8 +155,17 @@
         else item.removeAttribute('aria-current');
       });
       const heading = page.querySelector('.page-hdr');
-      if (heading) animate(heading, 0);
+      play(page,[{opacity:.45,transform:`translateX(${direction*18}px)`},{opacity:1,transform:'translateX(0)'}],{duration:330,easing:'cubic-bezier(.22,1,.36,1)'});
+      if (heading) animate(heading, 35, true);
+      // Reveal chart surfaces without changing their pixels, data, or scale.
+      page.querySelectorAll('canvas').forEach((canvas,index) => {
+        const rect = canvas.getBoundingClientRect();
+        if (index < 8 && rect.width && rect.top < window.innerHeight && rect.bottom > 0) {
+          play(canvas,[{clipPath:'inset(0 100% 0 0)',opacity:.45},{clipPath:'inset(0 0% 0 0)',opacity:1}],{duration:650,delay:120+index*35,easing:'cubic-bezier(.22,1,.36,1)'});
+        }
+      });
     }
+    syncGliders();
     // Bounded entry animation only for visible cards. Hidden pages and large
     // table row replacements do not start hundreds of animations.
     let count = 0;
@@ -121,7 +175,7 @@
       if (!rect.width || !rect.height || rect.top >= window.innerHeight || rect.bottom <= 0) continue;
       if (element.parentElement.closest(surfaces)) continue;
       seen.add(element);
-      animate(element, Math.min(count * 35, 175));
+      animate(element, Math.min(count * 55, 275));
       if (++count >= 24) break;
     }
   }
@@ -130,6 +184,10 @@
   }
   root.addEventListener('click', event => {
     schedule();
+    const pressed = event.target.closest('.btn,.btn-export,.ep-chip,.filter-chip');
+    if (pressed && !pressed.disabled && pressed.getAttribute('aria-disabled') !== 'true') {
+      play(pressed,[{scale:'1'},{scale:'.955',offset:.35},{scale:'1'}],{duration:240,easing:'cubic-bezier(.22,1,.36,1)'});
+    }
     // The existing palette picker remains useful: choosing a palette returns
     // to that theme instead of silently overriding it with the bento colours.
     if (event.target.closest('.palette-opt,.layout-theme-opt')) {
@@ -159,6 +217,7 @@
   const moreMenu = document.getElementById('adminMoreMenu');
   if (moreMenu && !root.contains(moreMenu)) observer.observe(moreMenu, {attributes:true, attributeFilter:['class','style']});
   window.addEventListener('scroll', schedule, { passive: true });
+  root.addEventListener('scroll', schedule, {capture:true,passive:true});
   window.addEventListener('resize', schedule, { passive: true });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) stop(); else schedule();
