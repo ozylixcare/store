@@ -1,0 +1,124 @@
+{
+  "data": [
+    {
+      "id": 38,
+      "name": "Glutathione Effervescent Tablet",
+      "brand": "Ozylix",
+      "category": "effervescent",
+      "price": 699,
+      "sale_price": null,
+      "mrp": 699,
+      "stock": 999,
+      "image": "/cdn-storage/ozylix%20store/1786544708346-2n4nad.webp",
+      "active": true
+    },
+    {
+      "id": 34,
+      "name": "Apple Cider Vinegar Effervescent Tablet",
+      "brand": "Ozylix",
+      "category": "effervescent",
+      "price": 499,
+      "sale_price": null,
+      "mrp": 499,
+      "stock": 999,
+      "image": "/cdn-storage/ozylix%20store/1786544405506-8l0alq.webp",
+      "active": true
+    },
+    {
+      "id": 31,
+      "name": "Ashwagandha Effervescent Tablet",
+      "brand": "Ozylix",
+      "category": "effervescent",
+      "price": 399,
+      "sale_price": null,
+      "mrp": 399,
+      "stock": 999,
+      "image": "/cdn-storage/ozylix%20store/1786544754750-xd8h9n.webp",
+      "active": true
+    },
+    {
+      "id": 30,
+      "name": "Green Tea Effervescent Tablet",
+      "brand": "Ozylix",
+      "category": "effervescent",
+      "price": 269,
+      "sale_price": null,
+      "mrp": 269,
+      "stock": 999,
+      "image": "/cdn-storage/ozylix%20store/1786544808269-q1ro7o.webp",
+      "active": true
+    },
+    {
+      "id": 32,
+      "name": "Men's Multivitamin Effervescent Tablet",
+      "brand": "Ozylix",
+      "category": "effervescent",
+      "price": 249,
+      "sale_price": null,
+      "mrp": 249,
+      "stock": 999,
+      "image": "/cdn-storage/ozylix%20store/1786529108294-o35fhe.webp",
+      "active": true
+    },
+    {
+      "id": 33,
+      "name": "Women's Multivitamin Effervescent Tablet",
+      "brand": "Ozylix",
+      "category": "effervescent",
+      "price": 249,
+      "sale_price": null,
+      "mrp": 249,
+      "stock": 999,
+      "image": "/cdn-storage/ozylix%20store/1786544958455-wlcavv.webp",
+      "active": true
+    },
+    {
+      "id": 35,
+      "name": "Complete Bone Health Effervescent Tablet",
+      "brand": "Ozylix",
+      "category": "effervescent",
+      "price": 349,
+      "sale_price": null,
+      "mrp": 349,
+      "stock": 999,
+      "image": "/cdn-storage/ozylix%20store/1786545030513-0a7fmf.webp",
+      "active": true
+    },
+    {
+      "id": 36,
+      "name": "Rehydration Effervescent Tablet",
+      "brand": "Ozylix",
+      "category": "effervescent",
+      "price": 349,
+      "sale_price": null,
+      "mrp": 349,
+      "stock": 999,
+      "image": "/cdn-storage/ozylix%20store/1786545163371-nk5c7i.webp",
+      "active": true
+    },
+    {
+      "id": 37,
+      "name": "Natural Vitamin C + Amla Effervescent Tablet",
+      "brand": "Ozylix",
+      "category": "effervescent",
+      "price": 349,
+      "sale_price": null,
+      "mrp": 349,
+      "stock": 999,
+      "image": "/cdn-storage/ozylix%20store/1786545213192-cozg5a.webp",
+      "active": true
+    },
+    {
+      "id": 39,
+      "name": "L-Carnitine L-Tartrate Effervescent Tablet",
+      "brand": "Ozylix",
+      "category": "effervescent",
+      "price": 499,
+      "sale_price": null,
+      "mrp": 499,
+      "stock": 999,
+      "image": "/cdn-storage/ozylix%20store/1786529254427-awoc66.webp",
+      "active": true
+    }
+  ]
+}

@@ -6,7 +6,7 @@ export async function onRequest(context) {
   const url = new URL(context.request.url);
   // Do not expose deployment sources or the admin document through Pages.
   const path = url.pathname.replace(/\/+$/, '') || '/';
-  if (path === '/ops-console-8f3d2c.html' || /^\/(?:worker|functions|tools)(?:\/|$)/.test(path)) {
+  if (path === '/ops-console-8f3d2c.html' || /^\/(?:worker|functions|tools|docs)(?:\/|$)/.test(path) || /^\/scripts\/admin/.test(path) || /^\/scripts\/(?:store-core|auth-core|banners|ozy-track|theme-builder)\.js$/.test(path) || /^\/scripts\/store-core-\d/.test(path) || /(?:^|\/)(?:wrangler\.jsonc|assets\.manifest\.json|PROGRESS\.md|SECURITY\.md|[^/]+\.map)$/.test(path)) {
     return new Response('Not found', { status: 404, headers: { 'Cache-Control': 'no-store' } });
   }
   const response = await storefront.fetch(context.request, context.env, {

@@ -141,7 +141,7 @@ function applyDeliveryPolicy(policy) {
 function loadDeliveryPolicy(options) {
   options = options || {};
   var force = options.force === true;
-  var base = (typeof API_BASE !== 'undefined') ? API_BASE : 'https://backend-s7ih.onrender.com';
+  var base = (typeof API_BASE !== 'undefined') ? API_BASE : '';
   fetch(base + '/api/public/delivery-policy', {
     cache: 'no-store',
     headers: { 'Accept': 'application/json' },
