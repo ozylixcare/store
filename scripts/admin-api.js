@@ -1786,8 +1786,8 @@ if (typeof _mktOrigShowPage === 'function') {
         return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
       });
   }
-  function money(n) { return '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
-  function num(n)   { return Number(n || 0).toLocaleString('en-IN'); }
+  function money(n) { if (n === null || n === undefined) return '—'; return '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+  function num(n)   { if (n === null || n === undefined) return '—'; return Number(n || 0).toLocaleString('en-IN'); }
   function ago(t) {
     if (!t) return 'never';
     var s = Math.round((Date.now() - new Date(t)) / 1000);
@@ -1799,7 +1799,10 @@ if (typeof _mktOrigShowPage === 'function') {
 
   function mktApi(path, opts) {
     return fetch(window.MARKETING_BACKEND_URL + '/api/dash' + path, opts)
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (body) {
+        if (!r.ok) throw new Error(body.error || ('HTTP ' + r.status));
+        return body;
+      }); });
   }
 
   /* Store reads via the panel's own authed helper. Returns null rather than
@@ -1824,7 +1827,8 @@ if (typeof _mktOrigShowPage === 'function') {
 
   window.mktLoadReality = function () {
     mktApi('/reconciliation?days=30').then(function (d) {
-      var t = d.totals;
+      var ready = d.data_status ? d.data_status.ready : !!(d.sync.last_successful_sync && (d.series || []).some(function (row) { return row.store_reachable === true; }));
+      var t = ready ? d.totals : {store_orders:null,store_revenue:null,beacon_orders:null,beacon_revenue:null,matched_orders:null,store_only_orders:null,beacon_only_orders:null,revenue_delta:null,beacon_coverage_pct:null};
 
       /* Status strip — the connection state and whether sending is paused.
          "Sending paused" is surfaced loudly because otherwise it looks like
@@ -1834,56 +1838,65 @@ if (typeof _mktOrigShowPage === 'function') {
         statusEl.className = 'mkt-hint warn';
         statusEl.innerHTML =
           '<strong>Store database not connected.</strong> ' +
-          'The engine is running on browser-beacon data alone, so orders it did not see ' +
-          '(tab closed, COD confirmed later) will not stop cart reminders, and consent changes ' +
-          'made in the Customers page will not reach it.<br>' +
+          'Store orders and customer consent cannot be synchronized until this connection is configured.<br>' +
           '<span class="mkt-sub">Fix: run <code>supabase/003_store_readonly_role.sql</code> in the store ' +
           'Supabase project and set <code>STORE_DB_URL</code> on the marketing service.</span>';
       } else {
         var paused = d.sync.sending_paused;
-        statusEl.className = 'mkt-hint ' + (paused ? 'warn' : 'ok');
+        var check = d.store_check || {};
+        var freshness = d.sync.consent_staleness || {};
+        var verified = check.checked === true;
+        statusEl.className = 'mkt-hint ' + (paused || !verified || check.readonly !== true ? 'warn' : 'ok');
+        var pauseReason = freshness.reason === 'sync_never_completed' || !d.sync.last_successful_sync
+          ? 'Orders and customer consent have not both synced successfully. Click Sync store now and review the stream errors below.'
+          : freshness.minutes !== null && freshness.minutes !== undefined
+            ? 'Consent data is ' + esc(freshness.minutes) + ' min old; the limit is ' + esc(freshness.limit) + ' min. Run the store sync and check its errors.'
+            : 'Consent freshness could not be verified. Check the database and sync errors below.';
         statusEl.innerHTML =
-          '<strong>Store connected</strong> — ' + esc(d.store.mode) +
-          ' · write protection: ' + esc(d.store.readonly_enforced_by || 'unknown') +
+          '<strong>' + (verified ? 'Store connection verified' : 'Store database configured — connection not verified') + '</strong> — ' + esc(d.store.mode) +
+          ' · write protection: ' + (check.readonly === true ? 'verified database role' : 'not verified') +
           '<br>Last successful sync: <strong>' + ago(d.sync.last_successful_sync) + '</strong>' +
-          (d.sync.minutes_since_sync !== null ? ' (' + d.sync.minutes_since_sync + ' min)' : '') +
+          (d.sync.minutes_since_sync !== null ? ' (' + esc(d.sync.minutes_since_sync) + ' min)' : '') +
+          (check.setup_hint ? '<br><strong>Setup:</strong> ' + esc(check.setup_hint) + (check.error_code ? ' (' + esc(check.error_code) + ')' : '') : '') +
+          (check.checked && check.readonly !== true ? '<br><strong>Check store role:</strong> ' + esc(check.detail) : '') +
+          (d.runtime && d.runtime.scheduler_enabled === false ? '<br><strong>Scheduled sync is disabled.</strong> Set SCHEDULER_ENABLED=true on the marketing Render service and redeploy.' : '') +
+          (d.runtime && d.runtime.marketing_project_ref && d.runtime.marketing_project_ref !== 'cmgmcnjevxhwmofbajvi'
+            ? '<br><strong>Wrong marketing database:</strong> ' + esc(d.runtime.marketing_project_ref) + '. Check the main backend MARKETING_BACKEND_URL and marketing Supabase settings.' : '') +
           (paused
-            ? '<br><strong style="color:#963848">⏸ Automated sending is PAUSED</strong> — consent data is ' +
-              esc(d.sync.consent_staleness.minutes) + ' min old, past the ' +
-              esc(d.sync.consent_staleness.limit) + ' min limit. Messages are held rather than sent on ' +
-              'possibly-withdrawn consent. They resume automatically once the sync recovers.'
-            : '<br><span class="mkt-sub">Consent data is fresh — automations are free to send.</span>');
+            ? '<br><strong style="color:#963848">⏸ Automated sending is PAUSED</strong> — ' + pauseReason
+            : '<br><span class="mkt-sub">Consent freshness check passed. Delivery also depends on workflow and channel settings.</span>');
       }
 
       /* Totals: three sources in one table, each labelled. */
-      var gap = t.store_orders - t.beacon_orders;
+      var gap = ready ? t.store_orders - t.beacon_orders : null;
       document.getElementById('rl-totals').innerHTML =
         '<table class="mkt-table"><thead><tr><th>Source</th><th>Orders</th><th>Revenue</th><th>What it is</th></tr></thead><tbody>' +
         '<tr><td><strong>Store database</strong></td><td class="rl-n">' + num(t.store_orders) + '</td>' +
           '<td class="rl-n"><strong>' + money(t.store_revenue) + '</strong></td>' +
-          '<td class="mkt-sub">Authoritative. Matches your Orders page.</td></tr>' +
+          '<td class="mkt-sub">Paid orders and non-cancelled COD orders on measured days.</td></tr>' +
         '<tr><td><strong>Browser beacon</strong></td><td class="rl-n">' + num(t.beacon_orders) + '</td>' +
           '<td class="rl-n">' + money(t.beacon_revenue) + '</td>' +
           '<td class="mkt-sub">What the tracking script saw. Blockable.</td></tr>' +
         '<tr style="background:rgba(0,0,0,.02)"><td><strong>Gap</strong></td>' +
-          '<td class="rl-n">' + (gap > 0 ? '−' + num(gap) : num(-gap)) + '</td>' +
+          '<td class="rl-n">' + (gap === null ? '—' : gap > 0 ? '−' + num(gap) : num(-gap)) + '</td>' +
           '<td class="rl-n">' + money(t.revenue_delta) + '</td>' +
-          '<td class="mkt-sub">' + (gap > 0
-            ? 'Orders the beacon missed. The store sync recovers these.'
-            : 'No gap — the beacon saw everything.') + '</td></tr>' +
+          '<td class="mkt-sub">' + (!ready ? 'Not measured — waiting for a successful store sync and reconciliation.'
+            : gap > 0 ? 'Store has more orders than the beacon on measured days.'
+            : gap < 0 ? 'Beacon has more orders than the store; review unmatched orders.'
+            : 'Counts match on measured days. Check confirmed orders for matching records.') + '</td></tr>' +
         '</tbody></table>' +
         '<div class="mkt-sub" style="margin-top:8px;">Confirmed by both sources: <strong>' +
           num(t.matched_orders) + '</strong> · recovered by the store sync: <strong>' +
           num(t.store_only_orders) + '</strong>' +
           (t.beacon_only_orders ? ' · beacon-only (no store record): <strong>' + num(t.beacon_only_orders) +
             '</strong> — worth checking, this normally means an order that did not complete' : '') +
-        '</div>';
+        '</div>' + (d.data_status && ready ? '<div class="mkt-sub">Measured days in the selected window: ' + num(d.data_status.measured_days) + '. Totals cover those days only; store history is still visible in Orders.</div>' : '');
 
       /* Coverage — a single meter, because it is one number about one thing. */
       var cov = t.beacon_coverage_pct;
       var covEl = document.getElementById('rl-coverage');
       if (cov === null || cov === undefined) {
-        covEl.innerHTML = '<p class="mkt-empty">No store orders in this window, so there is nothing to measure coverage against.</p>';
+        covEl.innerHTML = '<p class="mkt-empty">' + (ready ? 'No store orders on measured days, so coverage cannot be calculated.' : 'Coverage is unknown until orders and customers sync successfully and reconciliation completes.') + '</p>';
       } else {
         var tone = cov >= 90 ? 'ok' : cov >= 70 ? 'warn' : 'bad';
         covEl.innerHTML =
@@ -1905,9 +1918,7 @@ if (typeof _mktOrigShowPage === 'function') {
             return '<tr><td>' + esc(o.order_id) + '</td><td>' + esc(o.email || '—') + '</td>' +
               '<td class="rl-n">' + money(o.total) + '</td><td>' + ago(o.placed_at) + '</td></tr>';
           }).join('') + '</tbody></table>'
-        : '<p class="mkt-empty">' + (d.store_connected
-            ? 'None — the beacon saw every order in this window.'
-            : 'Connect the store database to find these.') + '</p>';
+        : '<p class="mkt-empty">' + (!ready ? 'Not measured yet. Complete store sync to find orders missed by the beacon.' : 'No store-only orders found in the loaded sample.') + '</p>';
 
       /* Sync + engine health. */
       var states = (d.sync.states || []).map(function (s) {
@@ -1918,7 +1929,7 @@ if (typeof _mktOrigShowPage === 'function') {
           '<td>' + (bad
             ? '<span class="mkt-pill pause">' + s.consecutive_failures + ' failure(s)</span>' +
               (s.last_error ? '<br><span class="mkt-skip">' + esc(s.last_error).slice(0, 90) + '</span>' : '')
-            : '<span class="mkt-pill approved">ok</span>') + '</td></tr>';
+            : s.last_ok_at ? '<span class="mkt-pill approved">ok</span>' : '<span class="mkt-pill pause">Not run yet</span>') + '</td></tr>';
       }).join('');
 
       var engine = (d.engine.recent || []).map(function (r) {
@@ -1936,9 +1947,9 @@ if (typeof _mktOrigShowPage === 'function') {
     })['catch'](function (e) {
       document.getElementById('rl-status').className = 'mkt-hint warn';
       document.getElementById('rl-status').innerHTML =
-        'Could not reach the marketing service: ' + esc(e.message) +
-        '<br><span class="mkt-sub">If this persists, check that <code>supabase/003_store_sync.sql</code> has been run ' +
-        'in the marketing Supabase project.</span>';
+        'Customer behaviour data could not be loaded: ' + esc(e.message) +
+        '<br><span class="mkt-sub">Check MARKETING_BACKEND_URL on the main backend, matching INTERNAL_API_KEY values, and the complete marketing SQL setup in the target project.</span>';
+      ['rl-totals','rl-coverage','rl-missed','rl-sync'].forEach(function (id) { document.getElementById(id).innerHTML = '<p class="mkt-empty">Unavailable — resolve the error above.</p>'; });
     });
 
     mktLoadRealityStore();
@@ -2003,7 +2014,7 @@ if (typeof _mktOrigShowPage === 'function') {
       if (s.skipped) {
         alert('Store sync skipped: the store database is not configured on the marketing service.');
       } else {
-        alert('Store sync complete.\n\n' +
+        alert(((r.ok === false || (r.errors && r.errors.length)) ? 'Store sync has failures. Review each error below.' : 'Store sync complete.') + '\n\n' +
           'Orders pulled: ' + (s.orders_pulled || 0) + '\n' +
           'New from store (beacon missed these): ' + (s.orders_new_from_store || 0) + '\n' +
           'Confirmed against the beacon: ' + (s.orders_confirmed || 0) + '\n' +

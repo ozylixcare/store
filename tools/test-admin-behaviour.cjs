@@ -19,6 +19,9 @@ const root = path.resolve(__dirname, '..');
   try {
     const context = await browser.newContext({viewport:{width:1440,height:1050}});
     let mutations = 0;
+    let realityError = null;
+    // Old-server fixture reproduces the screenshot, including null age.
+    let reality = {store_connected:true,store:{mode:'pg',readonly_enforced_by:'database role'},totals:{store_orders:0,beacon_orders:0,store_revenue:0,beacon_revenue:0,revenue_delta:0,beacon_coverage_pct:null},sync:{states:[],last_successful_sync:null,minutes_since_sync:null,sending_paused:true,consent_staleness:{minutes:null,limit:180}},engine:{recent:[]},series:[],recent_store_only_orders:[]};
     const reads = [];
     await context.route('**/*', route => {
       const request = route.request();
@@ -30,7 +33,11 @@ const root = path.resolve(__dirname, '..');
         if (url.pathname.startsWith('/api/marketing/api/dash')) {
           let data = {};
           const path = url.pathname.replace('/api/marketing/api/dash', '');
-          if (path === '/overview') data = {live:{active_visitors:12,high_intent_visitors:3},traffic:{sessions:100,product_views:60},funnel:{sessions:100,carts_created:20,checkouts_started:10,orders:5,conversion_rate:.05},revenue:{total:2500,recovered:500},recovery:{abandoned_value:1000,recovered_value:500}};
+          if (path === '/reconciliation') {
+            if (realityError) return route.fulfill({status:500,contentType:'application/json',headers:{'access-control-allow-origin':base},body:JSON.stringify({error:realityError})});
+            data = reality;
+          }
+          else if (path === '/overview') data = {live:{active_visitors:12,high_intent_visitors:3},traffic:{sessions:100,product_views:60},funnel:{sessions:100,carts_created:20,checkouts_started:10,orders:5,conversion_rate:.05},revenue:{total:2500,recovered:500},recovery:{abandoned_value:1000,recovered_value:500}};
           else if (path === '/health') data = {status:'healthy'};
           else if (path === '/live') data = {visitors:[]};
           else if (path === '/products') data = {products:[]};
@@ -73,6 +80,22 @@ const root = path.resolve(__dirname, '..');
         assert.equal(await page.locator('#page-'+workspace+' .mkt-active').getAttribute('aria-pressed'),'true');
       }
     }
+    await page.waitForFunction(()=>document.getElementById('rl-status').textContent.includes('not verified'));
+    assert.doesNotMatch(await page.locator('#rl-status').textContent(),/null min/);
+    assert.match(await page.locator('#rl-status').textContent(),/have not both synced successfully/);
+    assert.match(await page.locator('#rl-totals').textContent(),/Not measured/);
+    assert.equal(await page.locator('#rl-totals tbody tr:first-child .rl-n').first().textContent(),'—');
+    assert.doesNotMatch(await page.locator('#rl-missed').textContent(),/saw every order/);
+    reality = {...reality,data_status:{ready:true,measured_days:1,failed_days:0},store_check:{checked:true,readonly:true},totals:{store_orders:5,beacon_orders:3,store_revenue:2500,beacon_revenue:1500,revenue_delta:1000,matched_orders:3,store_only_orders:2,beacon_only_orders:0,beacon_coverage_pct:60},sync:{...reality.sync,last_successful_sync:new Date().toISOString(),minutes_since_sync:0,sending_paused:false},series:[{day:'2026-10-08',store_reachable:true}]};
+    await page.evaluate(()=>mktLoadReality());
+    await page.waitForFunction(()=>document.getElementById('rl-status').textContent.includes('connection verified'));
+    assert.equal(await page.locator('#rl-totals tbody tr:first-child .rl-n').first().textContent(),'5');
+    assert.match(await page.locator('#rl-totals').textContent(),/Measured days.*1/);
+    realityError = 'mkt_sync_state: synthetic permission denied';
+    await page.evaluate(()=>mktLoadReality());
+    await page.waitForFunction(()=>document.getElementById('rl-status').textContent.includes('synthetic permission denied'));
+    assert.match(await page.locator('#rl-totals').textContent(),/Unavailable/);
+    realityError = null;
     await page.evaluate(()=>showPage('customerbehaviour'));
     await page.locator('#page-customerbehaviour [data-tab="behaviour"]').click();
     await page.waitForFunction(()=>document.getElementById('beh-kpi-sessions').textContent==='100');
@@ -113,6 +136,6 @@ const root = path.resolve(__dirname, '..');
     await page.waitForTimeout(200);
     assert.equal(mutations,0,'tab navigation makes no backend writes');
     assert.deepEqual(newErrors,[]);
-    console.log('PASS: separate workspaces, all 14 tabs, behaviour data rendering, cross-page links, independent selections, mobile navigation, permission visibility and no backend writes');
+    console.log('PASS: separate workspaces, all 14 tabs, behaviour data rendering, unknown/verified/failed Reality states, cross-page links, independent selections, mobile navigation, permission visibility and no backend writes');
   } finally { await browser.close(); if(server) await new Promise(resolve=>server.close(resolve)); }
 })().catch(error=>{console.error(error);process.exitCode=1;});
