@@ -91,7 +91,7 @@ const _RATE_LIMITS = {
   '/api/confirm-order':        3,
   '/api/coupons/validate':     5,
   '/api/auth/email-login':     5,
-  '/api/auth/register':        3,
+  '/api/auth/register':        8,
 };
 function fetchWithTimeout(url, options, ms) {
 
