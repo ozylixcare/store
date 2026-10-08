@@ -1,0 +1,91 @@
+/* Shared admin presentation. Data, permissions and navigation stay in their existing modules. */
+body.admin-bento {
+  --os-bg: #f4f1e8; --os-surface: #fffef8; --os-surface-2: #f8f6ee;
+  --os-ink: #252a24; --os-muted: #62685e; --os-subtle: #72776d; --os-line: #e5e4d8;
+  --os-green: #52633c; --os-green-dark: #374726; --os-green-soft: #e9eddd;
+  --os-lime: #e6edb4; --os-yellow: #f7d65d; --os-yellow-soft: #fff1bb;
+  --os-shadow: 0 2px 3px #343d2210, 0 12px 32px #343d2208;
+  --os-radius: 22px;
+}
+body.admin-bento.mode-signal {
+  --os-bg: #181c18; --os-surface: #232923; --os-surface-2: #2b332b;
+  --os-ink: #f3f4e9; --os-muted: #c1c7b6; --os-subtle: #a1ab97; --os-line: #3d4638;
+  --os-green: #c4d393; --os-green-dark: #dae8b5; --os-green-soft: #36432b;
+  --os-yellow: #f7d65d; --os-yellow-soft: #423b22;
+}
+body.admin-bento #app .main {
+  background: radial-gradient(ellipse at 100% 0, color-mix(in srgb, var(--os-yellow) 12%, transparent), transparent 38%), var(--os-bg) !important;
+}
+body.admin-bento #app .page-title { letter-spacing: -.055em !important; }
+body.admin-bento #app .sidebar { background: var(--os-surface-2) !important; }
+body.admin-bento #app .nav-item.active {
+  background: var(--os-yellow) !important; color: #292c21 !important;
+  border-color: transparent !important; border-left-color: #5d6339 !important;
+  box-shadow: 0 3px 8px #806b2114 !important;
+}
+body.admin-bento #app .nav-item { border-radius: 13px !important; }
+body.admin-bento #app .kpi::after { display: none !important; }
+body.admin-bento #app #kpiCards .kpi:nth-child(1) { background: var(--os-yellow-soft) !important; }
+body.admin-bento #app #kpiCards .kpi:nth-child(2) { background: var(--os-green-soft) !important; }
+body.admin-bento #app #kpiCards .kpi:nth-child(3) { background: var(--os-surface-2) !important; }
+body.admin-bento #app .kpi-val { font-variant-numeric: tabular-nums; }
+body.admin-bento #app .card-hdr { border-bottom-style: solid !important; }
+body.admin-bento #app .table-wrap { overflow-x: auto; }
+body.admin-bento #app tbody tr { transition: background-color 150ms ease; }
+body.admin-bento #app tbody tr:hover { background-color: var(--os-yellow-soft) !important; }
+body.admin-bento #app .btn-primary, body.admin-bento #app .btn-gold {
+  background: var(--os-ink) !important; color: var(--os-surface) !important;
+  border-color: var(--os-ink) !important; box-shadow: 0 3px 7px #20291c14 !important;
+}
+/* Each active page owns its transition; motion never hides unloaded content. */
+body.admin-motion-ready #app .page.active { animation: none !important; }
+body.admin-motion-ready #app :is(.card,.kpi,.oz-section-card,.oz-advanced-surface,.table-wrap) {
+  transition: border-color 180ms ease, box-shadow 220ms ease !important;
+}
+@media (hover: hover) and (pointer: fine) {
+  body.admin-motion-ready #app :is(.card,.kpi):hover {
+    border-color: color-mix(in srgb, var(--os-green) 28%, var(--os-line)) !important;
+    box-shadow: 0 5px 8px #2633200a, 0 18px 34px #26332010 !important;
+  }
+  body.admin-motion-ready #app .nav-item:hover .nav-ico { transform: translateX(2px); }
+}
+body.admin-motion-ready #app .nav-ico { transition: transform 180ms ease; }
+body.admin-motion-ready #app :is(button,.nav-item,.abn-btn):focus-visible {
+  outline: 2px solid var(--os-green) !important; outline-offset: 3px;
+}
+.bento-preferences { border: 1px solid var(--os-line); border-radius: 16px; padding: 16px; margin: 0 0 22px; min-width: 0; }
+.bento-preferences legend { font-size: 12px; font-weight: 750; padding: 0 6px; color: var(--os-ink); }
+.bento-preference-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 10px 0; }
+.bento-preference-row + .bento-preference-row { border-top: 1px solid var(--os-line); }
+.bento-preference-row strong { font-size: 12px; color: var(--os-ink); }
+.bento-preference-row p { font-size: 11px; color: var(--os-muted); margin: 5px 0 0; max-width: 420px; line-height: 1.6; }
+.bento-choice { display: inline-flex; padding: 4px; border: 1px solid var(--os-line); border-radius: 12px; background: var(--os-surface-2); gap: 4px; }
+.bento-choice button { cursor: pointer; border: 0; padding: 9px 12px; min-height: 40px; border-radius: 9px; font: 600 11px var(--os-font); background: transparent; color: var(--os-muted); }
+.bento-choice button[aria-pressed="true"] { background: var(--os-ink); color: var(--os-surface); box-shadow: 0 2px 5px #00000012; }
+.bento-choice button:focus-visible { outline: 2px solid var(--os-green); outline-offset: 2px; }
+body.admin-motion-ready .modal-overlay.open > .modal {
+  animation: admin-bento-dialog 260ms cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes admin-bento-dialog {
+  from { opacity: .3; transform: translateY(14px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (max-width: 600px) {
+  body.admin-bento { --os-radius: 17px; }
+  body.admin-bento #app .page-hdr { align-items: flex-start !important; }
+  body.admin-bento #app .page-actions { flex-wrap: wrap; }
+  .bento-preferences { padding: 12px; }
+  .bento-preference-row { align-items: flex-start; }
+  .bento-choice { max-width: 100%; }
+}
+/* Both the explicit preference and OS preference disable legacy motion too. */
+body.admin-motion-reduced *, body.admin-motion-reduced *::before, body.admin-motion-reduced *::after,
+body.admin-motion-ready.admin-motion-reduced #app *, body.admin-motion-ready.admin-motion-reduced #app *::before, body.admin-motion-ready.admin-motion-reduced #app *::after {
+  animation-duration: .001ms !important; animation-iteration-count: 1 !important;
+  transition-duration: .001ms !important; scroll-behavior: auto !important;
+}
+body.admin-motion-reduced { scroll-behavior: auto !important; }
+@media (prefers-reduced-motion: reduce) {
+  html, body, #app * { scroll-behavior: auto !important; }
+  html body.admin-motion-ready #app *, html body.admin-motion-ready #app *::before, html body.admin-motion-ready #app *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}
