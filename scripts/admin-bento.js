@@ -186,8 +186,7 @@
     schedule();
     const pressed = event.target.closest('.btn,.btn-export,.ep-chip,.filter-chip');
     if (pressed && !pressed.disabled && pressed.getAttribute('aria-disabled') !== 'true') {
-      const icon = pressed.querySelector('svg,.tb-ico-sm');
-      if(icon) play(icon,[{rotate:'0deg'},{rotate:'-10deg',offset:.4},{rotate:'0deg'}],{duration:300,easing:'cubic-bezier(.22,1,.36,1)'});
+      play(pressed,[{scale:'1'},{scale:'.955',offset:.35},{scale:'1'}],{duration:240,easing:'cubic-bezier(.22,1,.36,1)'});
     }
     // The existing palette picker remains useful: choosing a palette returns
     // to that theme instead of silently overriding it with the bento colours.

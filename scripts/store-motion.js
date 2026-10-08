@@ -9,27 +9,24 @@
   function decorate(root){
     const nodes=root.matches?.(controls)?[root,...root.querySelectorAll(controls)]:[...root.querySelectorAll(controls)];
     nodes.forEach(button=>{
-      if(button.classList.contains('oz-liquid'))return;
-      button.classList.add('oz-liquid');
-      if(/danger|delete|remove|cancel|logout/.test(button.className))button.dataset.liquidTone='rose';
-      else if(/primary|buy|checkout|pay|gold/.test(button.className))button.dataset.liquidTone='gold';
-      else if(/search|advisor|wishlist/.test(button.className+' '+button.getAttribute('aria-label')))button.dataset.liquidTone='violet';
+      button.classList.remove('oz-liquid');
+      button.removeAttribute('data-liquid-tone');
+      button.removeAttribute('data-liquid-pressed');
+      button.style.removeProperty('--liquid-x');
+      if(button.querySelector(':scope > .oz-button-glass'))return;
+      if(getComputedStyle(button).position==='static')button.style.position='relative';
+      const reflection=document.createElement('span');
+      reflection.className='oz-button-glass';reflection.setAttribute('aria-hidden','true');
+      button.appendChild(reflection);
     });
   }
   decorate(document);
   new MutationObserver(records=>{
-    records.forEach(record=>record.addedNodes.forEach(node=>{if(node.nodeType===1)decorate(node);}));
+    records.forEach(record=>{
+      if(record.target.matches?.(controls))decorate(record.target);
+      record.addedNodes.forEach(node=>{if(node.nodeType===1)decorate(node);});
+    });
   }).observe(document.body,{childList:true,subtree:true});
-  document.addEventListener('pointermove',event=>{
-    if(off() || event.pointerType!=='mouse')return;
-    const b=event.target.closest('.oz-liquid');if(!b)return;
-    const r=b.getBoundingClientRect();b.style.setProperty('--liquid-x',Math.round((event.clientX-r.left)/Math.max(r.width,1)*100)+'%');
-  },{passive:true});
-  document.addEventListener('pointerdown',event=>{
-    const b=event.target.closest('.oz-liquid');if(!b || b.disabled || b.getAttribute('aria-disabled')==='true')return;
-    b.dataset.liquidPressed='';
-  },{passive:true});
-  ['pointerup','pointercancel','blur'].forEach(type=>window.addEventListener(type,()=>document.querySelectorAll('[data-liquid-pressed]').forEach(b=>delete b.dataset.liquidPressed),{passive:true}));
   function stop(){running.forEach(a=>a.cancel());running.clear();}
   function play(el,frames,options){if(off())return;const a=el.animate(frames,options);running.add(a);a.finished.catch(()=>{}).finally(()=>running.delete(a));}
   if(!admin){
