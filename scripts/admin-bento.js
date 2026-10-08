@@ -66,6 +66,7 @@
   }
   const paths = {
     dashboard:'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',
+    customerbehaviour:'M4 19V5 M4 19h16 M7 14l4-5 4 3 5-7 M17 5h3v3',
     analytics:'M4 3v18h17 M8 16v-5 M13 16V7 M18 16V4',
     orders:'M3 7l9-4 9 4v10l-9 4-9-4z M3 7l9 4 9-4 M12 11v10',
     products:'M4 7h16l1 14H3z M8 7V5a4 4 0 0 1 8 0v2',

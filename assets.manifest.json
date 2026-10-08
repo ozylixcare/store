@@ -1,6 +1,6 @@
 {
-  "scripts/admin-api.js": "915449a3dd609824",
-  "scripts/admin-audit.js": "4bb4638d10163c0f",
+  "scripts/admin-api.js": "3f010b7df6773c87",
+  "scripts/admin-audit.js": "e9a2c1da49f37df8",
   "scripts/admin-core.js": "56f52de075e8bf68",
   "scripts/admin-ui.js": "bf0c7e1abb066b61",
   "scripts/auth-core.js": "c5ca89502eab211b",
@@ -11,7 +11,7 @@
   "scripts/theme-builder.js": "b868c245240383c5",
   "styles/admin-main.css": "063bf10f95877ca6",
   "styles/admin-palettes.css": "605130aa31169755",
-  "styles/admin-reference-os.css": "d059003d423e2624",
+  "styles/admin-reference-os.css": "cfdb010ea21c080e",
   "styles/store-account-mobile.css": "d8b84f86ae728604",
   "styles/store-main.css": "e8cb19c8ee46171d"
 }

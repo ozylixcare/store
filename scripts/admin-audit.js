@@ -888,6 +888,9 @@ var AZ_UI_PERMS = [
   ['#navSettings',                    'settings.manage'],
   ['#navAuditLog',                    'audit.view'],
   ['#navMarketing',                   'marketing.manage'],
+  ['#navCustomerBehaviour',           'marketing.manage'],
+  ['#moreMarketing',                  'marketing.manage'],
+  ['#moreCustomerBehaviour',          'marketing.manage'],
   ['#moreCoupons',                    'coupons.manage'],
   ['#moreSettings',                   'settings.manage'],
 ];

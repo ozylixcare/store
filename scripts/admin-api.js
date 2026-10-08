@@ -471,10 +471,33 @@ async function mktGet(path) {
 function mktInit() { /* nothing to build any more */ }
 const mktSupabase = { get configured() { return !!window.MARKETING_BACKEND_URL; } };
 
+// Both workspaces retain their own tab state. Legacy journey links still
+// call mktShowTab(), so route to the panel's owning page before loading data.
+var mktNavigatingTab = false;
+function mktActivateTab(tab) {
+  var panel = document.getElementById('mkt-tab-' + tab);
+  var page = panel && panel.closest('.page');
+  if (!page) return false;
+  if (!page.classList.contains('active')) {
+    mktNavigatingTab = true;
+    try { window.showPage(page.id.replace('page-', '')); }
+    finally { mktNavigatingTab = false; }
+  }
+  page.dataset.mktActiveTab = tab;
+  page.querySelectorAll('.mkt-tab').forEach(function (item) {
+    item.style.display = item === panel ? 'block' : 'none';
+  });
+  page.querySelectorAll('.mkt-navbtn').forEach(function (button) {
+    var selected = button.dataset.tab === tab;
+    button.classList.toggle('mkt-active', selected);
+    button.setAttribute('aria-pressed', String(selected));
+    button.setAttribute('aria-controls', 'mkt-tab-' + button.dataset.tab);
+  });
+  return true;
+}
+
 function mktShowTab(tab) {
-  document.querySelectorAll('.mkt-tab').forEach(t => t.style.display = 'none');
-  document.getElementById('mkt-tab-' + tab).style.display = 'block';
-  document.querySelectorAll('.mkt-navbtn').forEach(b => b.classList.toggle('mkt-active', b.dataset.tab === tab));
+  if (!mktActivateTab(tab)) return;
   if (tab === 'overview') mktLoadOverview();
   if (tab === 'strategy') mktLoadStrategy();
   if (tab === 'liveads') mktLoadAdSets();
@@ -1029,7 +1052,10 @@ const _mktOrigShowPage = window.showPage;
 if (typeof _mktOrigShowPage === 'function') {
   window.showPage = function (name) {
     _mktOrigShowPage(name);
-    if (name === 'marketing') mktShowTab('overview');
+    if (!mktNavigatingTab && (name === 'marketing' || name === 'customerbehaviour')) {
+      var page = document.getElementById('page-' + name);
+      mktShowTab(page.dataset.mktActiveTab || (name === 'marketing' ? 'overview' : 'behaviour'));
+    }
   };
 }
 
@@ -1144,12 +1170,7 @@ if (typeof _mktOrigShowPage === 'function') {
     if (BEH_TABS.indexOf(tab) === -1) {
       return origShowTab.apply(this, arguments);
     }
-    document.querySelectorAll('.mkt-tab').forEach(function (t) { t.style.display = 'none'; });
-    var el = document.getElementById('mkt-tab-' + tab);
-    if (el) el.style.display = 'block';
-    document.querySelectorAll('.mkt-navbtn').forEach(function (b) {
-      b.classList.toggle('mkt-active', b.dataset.tab === tab);
-    });
+    if (!mktActivateTab(tab)) return;
     if (tab === 'behaviour')   mktLoadBehaviour();
     if (tab === 'segments')    mktLoadSegments();
     if (tab === 'journeys')    mktLoadTopIntent();
@@ -1795,12 +1816,7 @@ if (typeof _mktOrigShowPage === 'function') {
   var prevShowTab = window.mktShowTab;
   window.mktShowTab = function (tab) {
     if (tab !== 'reality') return prevShowTab.apply(this, arguments);
-    document.querySelectorAll('.mkt-tab').forEach(function (t) { t.style.display = 'none'; });
-    var el = document.getElementById('mkt-tab-reality');
-    if (el) el.style.display = 'block';
-    document.querySelectorAll('.mkt-navbtn').forEach(function (b) {
-      b.classList.toggle('mkt-active', b.dataset.tab === 'reality');
-    });
+    if (!mktActivateTab(tab)) return;
     mktLoadReality();
   };
 
