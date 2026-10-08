@@ -1,3 +1,92 @@
+/* BEGIN FIRST-PARTY ANALYTICS FACTORY — kept in sync by test-visitor-analytics.cjs */
+/* First-party analytics: page views and heartbeats are distinct; no form values or emails. */
+(function () {
+  'use strict';
+  window.createOzylixAnalytics = function (API) {
+    var sid, lastPage=null, lastActivity=Date.now(), status='starting', pending=Promise.resolve();
+    function disabled() {
+      try { return localStorage.getItem('ozy_optout')==='1' || navigator.doNotTrack==='1' || navigator.doNotTrack==='yes' || window.doNotTrack==='1'; } catch (_) { return navigator.doNotTrack==='1'; }
+    }
+    function uuid() { return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2); }
+    function session(activity) {
+      var now=Date.now(), record;
+      try { record=JSON.parse(sessionStorage.getItem('ozy_analytics_session')||'null'); } catch (_) {}
+      if(!sid) {sid=record && now-record.at<1800000 ? record.id : uuid();lastActivity=record && record.id===sid ? record.at : now;}
+      if(activity) {
+        if(now-lastActivity>=1800000) {sid=uuid();lastPage=null;}
+        lastActivity=now;
+        try {sessionStorage.setItem('ozy_analytics_session',JSON.stringify({id:sid,at:now}));} catch (_) {}
+      }
+      return sid;
+    }
+    function page() {
+      var path=location.pathname.replace(/\/+$/,'')||'/';
+      if(path==='/' && /^#[a-z-]+$/i.test(location.hash)) path='/'+location.hash.slice(1);
+      return path.slice(0,200);
+    }
+    function send(path,body,auth,proof) {
+      if(disabled() || !API) {status='disabled';return Promise.resolve(false);}
+      var headers={'Content-Type':'application/json'};
+      if(auth) headers.Authorization='Bearer '+auth;
+      if(proof) headers['X-Payment-Session']=proof;
+      return fetch(API+path,{method:'POST',headers:headers,body:JSON.stringify(body),keepalive:true,signal:AbortSignal.timeout(10000)})
+        .then(function(r){status=r.ok?'collecting':'unavailable';return r.ok;}).catch(function(){status='unavailable';return false;});
+    }
+    function ping(activity) {
+      if(disabled()) return Promise.resolve(false);
+      session(!!activity);
+      if(!activity && Date.now()-lastActivity>=1800000) return Promise.resolve(false);
+      var current=page();
+      var ua=navigator.userAgent, hint=/iPad/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1)?'tablet':/Mobi|iPhone|Android/i.test(ua)?'mobile':'desktop';
+      var utm={}, params=new URLSearchParams(location.search);
+      ['source','medium','campaign'].forEach(function(k){var v=params.get('utm_'+k);if(v)utm[k]=v.slice(0,120);});
+      var body={session_id:sid,kind:'heartbeat',view_id:null,site:location.hostname,page:current,referrer:document.referrer,device_hint:hint,screen_w:screen.width,screen_h:screen.height,is_pwa:matchMedia('(display-mode: standalone)').matches||!!navigator.standalone,utm:utm};
+      // Serialize sends so a first page establishes the session before subsequent events.
+      pending=pending.catch(function(){}).then(function(){var view=body.session_id!==sid || current!==lastPage;body.kind=view?'pageview':'heartbeat';body.view_id=view?uuid():null;return send('/api/visitors/ping',body).then(function(ok){if(ok && sid===body.session_id)lastPage=current;return ok;});});
+      return pending;
+    }
+    function event(name) {
+      if(disabled()) return;
+      var rotated=session(true);
+      var collected=lastPage===null?ping(true):pending;
+      var body={session_id:rotated,event_id:uuid(),event_name:name,page:page()};
+      collected.then(function(ok){if(ok!==false)return send('/api/visitors/event',body);}).catch(function(){});
+    }
+    function convert(orderId,value,gateway,proof) {
+      var token;try{token=localStorage.getItem('asc_jwt');}catch(_){}
+      if((!token && !proof) || !orderId || disabled()) return;
+      pending.then(function(){return send('/api/visitors/convert',{session_id:session(true),order_id:String(orderId).slice(0,64),gateway:gateway},token,proof);}).catch(function(){});
+    }
+    // Hook store actions directly, independent of the marketing service.
+    [['_trackViewItem','product_view'],['_trackAddToCart','cart_add'],['_trackBeginCheckout','checkout_start'],['_trackSearch','search']].forEach(function(pair){
+      var original=window[pair[0]];
+      if(typeof original!=='function')return;
+      window[pair[0]]=function(){var result=original.apply(this,arguments);event(pair[1]);return result;};
+    });
+    session(true);ping(true);
+    setInterval(function(){if(!document.hidden)ping(false);},45000);
+    if(typeof window.showPage==='function') {
+      var original=window.showPage;
+      window.showPage=function(){var result=original.apply(this,arguments);setTimeout(function(){ping(true);},40);return result;};
+    }
+    window.addEventListener('popstate',function(){setTimeout(function(){ping(true);},40);});
+    window.addEventListener('hashchange',function(){ping(true);});
+    document.addEventListener('visibilitychange',function(){if(!document.hidden)ping(true);});
+    document.addEventListener('pointerdown',function(){session(true);},{passive:true});
+    document.addEventListener('keydown',function(){session(true);},{passive:true});
+    return {ping:ping,event:event,convert:convert,get sessionId(){return sid;},get status(){return disabled()?'disabled':status;}};
+  };
+})();
+/* END FIRST-PARTY ANALYTICS FACTORY */
+// Existing static article shells also load auth-core; upgrade their controls.
+(function(){
+  if(!document.querySelector('link[href*="liquid-buttons.css"]')) {
+    var link=document.createElement('link');link.rel='stylesheet';link.href='/styles/liquid-buttons.css?v=20261008-3';document.head.appendChild(link);
+  }
+  if(!document.querySelector('script[src*="store-motion.js"]')) {
+    var script=document.createElement('script');script.src='/scripts/store-motion.js?v=20261008-3';script.defer=true;document.head.appendChild(script);
+  }
+})();
 // Extracted from index.html (line 13889) by Manus SEO pass — load order preserved
 
 // ═══════════════════════════════════════════════════════
@@ -2811,128 +2900,7 @@ function bootApp() {
   //  • Single-page navigation was invisible: the ping fired once on load,
   //    so a shopper who browsed 8 pages counted as 1 pageview.
   // This sends the full picture and re-pings inside the server's window.
-  window.AZAnalytics = (function () {
-    var API = (typeof API_BASE !== 'undefined') ? API_BASE : '';
-    var sid = (function () {
-      try {
-        var v = sessionStorage.getItem('asc_sid');
-        if (!v) { v = Date.now().toString(36) + Math.random().toString(36).slice(2, 10); sessionStorage.setItem('asc_sid', v); }
-        return v;
-      } catch (e) { return 'anon-' + Math.random().toString(36).slice(2, 10); }
-    })();
-
-    /* iPadOS 13+ reports itself as a Mac in the user-agent string. The
-       browser is the only place that can tell the difference (a Mac has no
-       touch points), so we send a hint the server trusts for that one case. */
-    function deviceHint() {
-      var ua = navigator.userAgent, touch = (navigator.maxTouchPoints || 0) > 1;
-      if (/iPad/.test(ua) || (/Macintosh/.test(ua) && touch)) return 'tablet';
-      if (/Android/.test(ua) && !/Mobile/.test(ua)) return 'tablet';
-      if (/Mobi|iPhone|iPod|Android|Windows Phone/i.test(ua)) return 'mobile';
-      return 'desktop';
-    }
-
-    function utm() {
-      try {
-        var q = new URLSearchParams(location.search), o = {};
-        ['source', 'medium', 'campaign'].forEach(function (k) {
-          var v = q.get('utm_' + k); if (v) o[k] = v.slice(0, 120);
-        });
-        if (!o.source) {
-          var a = (typeof window._getAttribution === 'function') ? window._getAttribution() : null;
-          if (a) { o.source = a.utm_source || a.source; o.medium = a.utm_medium || a.medium; o.campaign = a.utm_campaign || a.campaign; }
-        }
-        return o;
-      } catch (e) { return {}; }
-    }
-
-    /* Captured once: after the first SPA navigation document.referrer still
-       shows the original external referrer, but we want the value as it was
-       on arrival, before any of our own redirects rewrote it. */
-    var firstReferrer = (function () {
-      try {
-        var k = 'asc_first_ref', v = sessionStorage.getItem(k);
-        if (v === null) { v = document.referrer || ''; sessionStorage.setItem(k, v); }
-        return v;
-      } catch (e) { return document.referrer || ''; }
-    })();
-
-    function currentPage() {
-      var p = location.pathname.replace(/\/+$/, '') || '/';
-      var h = (location.hash || '').replace('#', '');
-      if (h && p === '/') p = '/' + h;
-      return p.slice(0, 200);
-    }
-
-    function email() {
-      try {
-        var u = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
-        return (u && u.email) ? u.email : null;
-      } catch (e) { return null; }
-    }
-
-    function send(path, body) {
-      try {
-        if (!API) return;
-        fetch(API + path, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-          keepalive: true
-        }).catch(function () {});   // analytics must never break the store
-      } catch (e) {}
-    }
-
-    var lastPage = null;
-    function ping(force) {
-      var page = currentPage();
-      if (!force && page === lastPage) { /* heartbeat only — still send */ }
-      lastPage = page;
-      send('/api/visitors/ping', {
-        session_id:  sid,
-        site:        location.hostname,
-        page:        page,
-        referrer:    firstReferrer,
-        device_hint: deviceHint(),
-        screen_w:    screen.width,
-        screen_h:    screen.height,
-        is_pwa:      !!(window.matchMedia && matchMedia('(display-mode: standalone)').matches) || !!navigator.standalone,
-        utm:         utm(),
-        email:       email()
-      });
-    }
-
-    /* Marks the session as converted so the admin panel's conversion rate is
-       a real number. The old panel counted `sessions.filter(s => s.status ===
-       'checkout')` against an API that never returned a `status` field, so
-       "Converting" sat at 0 forever. */
-    function convert(orderId, value) {
-      send('/api/visitors/convert', {
-        session_id: sid, order_id: String(orderId || '').slice(0, 64),
-        order_value: Number(value) || null, email: email()
-      });
-    }
-
-    ping(true);
-
-    /* Heartbeat well inside the server's 5-minute live window (was 4 min
-       against a 2-minute window, which is what caused the undercount). */
-    setInterval(function () { if (!document.hidden) ping(false); }, 45 * 1000);
-
-    /* Single-page navigation — count each screen the shopper actually opens. */
-    if (typeof window.showPage === 'function') {
-      var _origShowPage = window.showPage;
-      window.showPage = function (pg) {
-        var r = _origShowPage.apply(this, arguments);
-        setTimeout(function () { ping(true); }, 40);
-        return r;
-      };
-    }
-    window.addEventListener('popstate', function () { setTimeout(function () { ping(true); }, 40); });
-    document.addEventListener('visibilitychange', function () { if (!document.hidden) ping(true); });
-
-    return { ping: ping, convert: convert, sessionId: sid };
-  })();
+  window.AZAnalytics = typeof window.createOzylixAnalytics === 'function' ? window.createOzylixAnalytics(API_BASE) : {ping:function(){},event:function(){},convert:function(){}};
 
   // ── GitHub Pages SPA routing fix ──
   // When 404.html catches /about etc., it redirects to /?p=%2Fabout
@@ -4219,9 +4187,7 @@ async function finalizeOrder(orderId, formData, total, method, codCharge, paymen
      dashboard's conversion rate and revenue-by-source are real. */
   try {
     if (window.AZAnalytics) {
-      var _o = (typeof order !== 'undefined' && order) ? order
-             : (typeof orderData !== 'undefined' ? orderData : null);
-      window.AZAnalytics.convert(_o && (_o.id || _o.order_id), _o && (_o.total || _o.amount));
+      window.AZAnalytics.convert(orderId, total, method, paymentSessionToken);
     }
   } catch (e) {}
   showToast(`✅ Order confirmed! Invoice opened & email sent 🧾`);
@@ -8480,3 +8446,4 @@ window.addEventListener('storage', e => {
   }
 });
 syncAccountSession();
+
