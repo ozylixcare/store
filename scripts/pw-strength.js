@@ -6,7 +6,8 @@ function _togglePw(id, btn) {
   if (!inp) return;
   const isText = inp.type === 'text';
   inp.type = isText ? 'password' : 'text';
-  btn.textContent = isText ? '👁' : '🙈';
+  btn.setAttribute('aria-label', isText ? 'Show password' : 'Hide password');
+  btn.setAttribute('aria-pressed', String(!isText));
 }
 
 // ── Password strength meter ──

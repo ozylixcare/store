@@ -4591,10 +4591,38 @@ function generateInvoice({ orderId, formData, srItems, sub, disc, promoDisc, shi
 // AUTH SYSTEM
 // ═══════════════════════════════════════════════════════
 
+var _authReturnFocus = null;
+var _authInertElements = [];
+
+function _authBackgroundElement(el, overlay) {
+  return el.nodeType === 1 && el !== overlay && !el.inert &&
+    !/^(SCRIPT|STYLE|LINK)$/.test(el.tagName) && !/^(credential_picker|g_id)/.test(el.id) &&
+    !(el.tagName === 'IFRAME' && el.src.startsWith('https://accounts.google.com/'));
+}
+
+function _releaseAuthFocus() {
+  _authInertElements.forEach(el => { el.inert = false; });
+  _authInertElements = [];
+  if (_authReturnFocus?.isConnected && !_authReturnFocus.closest('[inert]')) {
+    _authReturnFocus.focus({ preventScroll: true });
+  }
+  _authReturnFocus = null;
+}
+
 function openAuth(tab = 'login') {
+  const overlay = document.getElementById('authOverlay');
+  if (!overlay) return;
+  if (!overlay.classList.contains('open')) {
+    _authReturnFocus = document.activeElement;
+    // Preserve pre-existing inert states and leave Google's provider UI usable.
+    _authInertElements = Array.from(document.body.children).filter(el => _authBackgroundElement(el, overlay));
+    _authInertElements.forEach(el => { el.inert = true; });
+  }
   switchAuthTab(tab);
-  document.getElementById('authOverlay')?.classList.add('open');
+  overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
+  // Focus the dialog without opening the phone keyboard on arrival.
+  overlay.querySelector('.auth-box')?.focus({ preventScroll: true });
 }
 
 function closeAuth() {
@@ -4602,6 +4630,7 @@ function closeAuth() {
   document.getElementById('authOverlay')?.classList.remove('open');
   unlockBodyScroll();
   clearAuthMessages();
+  _releaseAuthFocus();
   try { localStorage.setItem('asc_login_prompt_dismissed', String(Date.now())); } catch(e) {}
 }
 
@@ -4626,11 +4655,64 @@ function switchAuthTab(tab) {
   emailAuthVersion++;
   resetSignupVerification();
   clearAuthMessages();
-  document.getElementById('loginTab')?.classList.toggle('active', tab === 'login');
-  document.getElementById('registerTab')?.classList.toggle('active', tab === 'register');
-  const lf=document.getElementById('loginForm'); if(lf) lf.style.display = tab === 'login' ? 'block' : 'none';
-  const rf=document.getElementById('registerForm'); if(rf) rf.style.display = tab === 'register' ? 'block' : 'none';
+  const register = tab === 'register';
+  ['login', 'register'].forEach(name => {
+    const active = register === (name === 'register');
+    const button = document.getElementById(name + 'Tab');
+    button?.classList.toggle('active', active);
+    button?.setAttribute('aria-selected', String(active));
+    button?.setAttribute('tabindex', active ? '0' : '-1');
+    const panel = document.getElementById(name + 'Form');
+    if (panel) panel.style.display = active ? 'block' : 'none';
+  });
+  const title = document.getElementById('authModalTitle');
+  const sub = document.getElementById('authModalSub');
+  if (title) title.textContent = register ? 'Your fresh start' : 'Welcome back';
+  if (sub) sub.textContent = register ? 'Create your free Ozylix account' : 'Sign in to your Ozylix account';
+  // A switch link in a panel becomes hidden; move focus to the selected tab.
+  if (document.activeElement?.closest('.auth-link')) {
+    document.getElementById(register ? 'registerTab' : 'loginTab')?.focus({ preventScroll: true });
+  }
 }
+
+function initAuthDialog() {
+  const overlay = document.getElementById('authOverlay');
+  if (!overlay) return;
+  overlay.addEventListener('click', event => { if (event.target === overlay) closeAuth(); });
+  overlay.addEventListener('keydown', event => {
+    if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closeAuth(); return; }
+    if (event.target.matches('[role="tab"]') && ['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
+      event.preventDefault();
+      const tab = event.key === 'Home' ? 'login' : event.key === 'End' ? 'register' :
+        event.target.id === 'loginTab' ? 'register' : 'login';
+      switchAuthTab(tab);
+      document.getElementById(tab + 'Tab').focus();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const box = overlay.querySelector('.auth-box');
+    const items = Array.from(box.querySelectorAll('button, a[href], input, [tabindex="0"]'))
+      .filter(el => !el.disabled && el.tabIndex >= 0 && el.getClientRects().length);
+    const first = items[0], last = items[items.length - 1];
+    if (event.shiftKey && (document.activeElement === first || document.activeElement === box)) {
+      event.preventDefault(); last?.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault(); first?.focus();
+    }
+  });
+  // Navigation and the mobile Back guard can also remove .open directly.
+  new MutationObserver(() => {
+    if (!overlay.classList.contains('open') && _authInertElements.length) _releaseAuthFocus();
+  }).observe(overlay, { attributes: true, attributeFilter: ['class'] });
+  new MutationObserver(records => {
+    if (!overlay.classList.contains('open')) return;
+    records.forEach(record => record.addedNodes.forEach(el => {
+      if (_authBackgroundElement(el, overlay)) { el.inert = true; _authInertElements.push(el); }
+    }));
+  }).observe(document.body, { childList: true });
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAuthDialog);
+else initAuthDialog();
 
 function handleAccountNavClick() {
   const user = getCurrentUser();
@@ -6145,7 +6227,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function showForgotPassword() {
   clearAuthMessages();
-  showAuthSuccess('Password reset link would be sent to your email. (Feature coming soon)');
+  showAuthError('Password reset is not available yet. You can sign in with Google if it uses the same account email.');
 }
 
 // ═══════════════════════════════════════════════════════
