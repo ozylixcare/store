@@ -18,6 +18,10 @@ try {
  assert.equal((await handleApiRequest(new Request('https://www.ozylix.com/api/admin/orders'))).status,404);
  assert.equal((await handleApiRequest(new Request('https://www.ozylix.com/telemetry/api/orders',{method:'POST'}))).status,404);
  assert.equal((await handleApiRequest(new Request('https://www.ozylix.com/api/%2Fsecret'))).status,400);
+ await handleApiRequest(new Request('https://www.ozylix.com/api/auth/google-code',{method:'POST',headers:{Origin:'https://www.ozylix.com','Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},body:JSON.stringify({code:'test-only',flow:'redirect',auth_state:'state',verifier:'verifier',redirect_uri:'https://www.ozylix.com'})}));
+ assert.equal(calls.at(-1).options.headers.get('X-Requested-With'),'XMLHttpRequest','Google CSRF header must reach the backend');
+ assert.equal(calls.at(-1).options.headers.get('Origin'),'https://www.ozylix.com');
+ assert.equal(JSON.parse(await new Response(calls.at(-1).options.body).text()).auth_state,'state');
  await handleApiRequest(new Request('https://www.ozylix.com/telemetry/api/track',{method:'POST',body:'{}'}));assert.equal(calls.at(-1).url,'https://marketing-automation-rmcb.onrender.com/api/track');
  globalThis.fetch=async()=>{throw Error('private upstream host detail')};const failed=await handleApiRequest(new Request('https://www.ozylix.com/api/products'));assert.equal(failed.status,502);assert.ok(!(await failed.text()).includes('upstream'));
  assert.equal(publicMedia({list:['https://example.com/image.png']}).list[0],'https://example.com/image.png');

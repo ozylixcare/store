@@ -4623,6 +4623,8 @@ function openAuth(tab = 'login') {
   document.body.style.overflow = 'hidden';
   // Focus the dialog without opening the phone keyboard on arrival.
   overlay.querySelector('.auth-box')?.focus({ preventScroll: true });
+  // Prepare before the click so desktop popups retain browser user activation.
+  prepareGoogleOAuth().catch(() => {});
 }
 
 function closeAuth() {
@@ -5627,109 +5629,130 @@ async function verifySignupOtp() {
 
 const GOOGLE_CLIENT_ID = '984843590893-opkqurrknj9l8spuov4afudr1lcnv82c.apps.googleusercontent.com';
 
-// Where Google sends mobile users back after they approve sign-in. Pinned to
-// the bare origin (no trailing slash, no path) so it byte-for-byte matches
-// the "Authorised redirect URIs" registered for this OAuth client in Google
-// Cloud (https://www.ozylix.com and https://www.ozylix.com — neither has a
-// trailing slash). Previously this was derived from window.location.pathname,
-// which always appended a trailing "/" (and sometimes a page path), causing
-// redirect_uri_mismatch on every mobile sign-in. The redirect-return handler
-// below runs on page load regardless of path, so a fixed origin works no
-// matter which page the user was on when they tapped "Sign in with Google".
+// Google returns to the same origin registered in the OAuth client.
 const GOOGLE_REDIRECT_URI = window.location.origin;
-
-// ── State tracking ──
 let _googleInitialized = false;
 let _googleInitRetries = 0;
 const _GOOGLE_MAX_RETRIES = 8;
+const GOOGLE_FLOW_KEY = 'ozylix.google_flow';
+let _googleOAuthContext = null;
+let _googleOAuthPreparation = null;
 
-// Backend warm-up pings removed. They existed because Render's free tier
-// slept after 15 minutes and cold-started for ~30-60s, so the site woke it
-// early and hoped it was ready by checkout. The service is on a paid plan
-// now and never sleeps, so every one of these was a wasted round trip on
-// the critical path of a page load — three of them fired per visit.
+function freshGoogleOAuthContext(context) {
+  return context && context.origin === window.location.origin &&
+    typeof context.state === 'string' && context.state.length > 0 &&
+    /^[a-f0-9]{64}$/.test(context.verifier || '') &&
+    Number.isFinite(context.expiresAt) && context.expiresAt > Date.now() + 5000;
+}
 
-// ── Handle Google OAuth2 redirect return (mobile only) ──
+// The server signs state bound to a hash of a browser-only random verifier.
+// No Google secrets or access tokens are exposed by this configuration API.
+async function prepareGoogleOAuth() {
+  if (freshGoogleOAuthContext(_googleOAuthContext)) return _googleOAuthContext;
+  if (_googleOAuthPreparation) return _googleOAuthPreparation;
+  _googleOAuthPreparation = (async () => {
+    const bytes = crypto.getRandomValues(new Uint8Array(32));
+    const verifier = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+    const binding = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+    const response = await fetchWithTimeout(API_BASE + '/api/auth/google-config?binding=' + binding, {
+      cache: 'no-store', headers: { Accept: 'application/json' }
+    }, 15000);
+    if (!response.ok) throw new Error('Google sign-in is temporarily unavailable. Please try again or use email.');
+    const config = await response.json();
+    if (!config || typeof config.client_id !== 'string' || !config.client_id ||
+        config.redirect_uri !== window.location.origin || typeof config.state !== 'string' || !config.state ||
+        !Number.isFinite(config.expires_in) || config.expires_in <= 5) {
+      throw new Error('Google sign-in could not be prepared. Please try again or use email.');
+    }
+    _googleOAuthContext = {
+      clientId: config.client_id, origin: window.location.origin, state: config.state, verifier,
+      expiresAt: Date.now() + Math.min(config.expires_in, 600) * 1000
+    };
+    return _googleOAuthContext;
+  })();
+  try { return await _googleOAuthPreparation; }
+  finally { _googleOAuthPreparation = null; }
+}
+
+function googleCodeBody(code, context) {
+  if (!freshGoogleOAuthContext(context) || !['popup', 'redirect'].includes(context.flow)) {
+    throw new Error('Google sign-in expired. Please try again.');
+  }
+  return { code, redirect_uri: context.origin, auth_state: context.state,
+    verifier: context.verifier, flow: context.flow };
+}
+
+// Consume local redirect context before exchange. Authorization codes and the
+// server nonce are single-use; refresh or a timeout must never replay them.
+function takeGoogleRedirectContext(state) {
+  let context = null;
+  try {
+    context = JSON.parse(sessionStorage.getItem(GOOGLE_FLOW_KEY) || 'null');
+    sessionStorage.removeItem(GOOGLE_FLOW_KEY);
+  } catch (_) {}
+  if (!freshGoogleOAuthContext(context) || context.flow !== 'redirect' || context.state !== state) {
+    throw new Error('Google sign-in expired or could not be matched to this browser. Please try again.');
+  }
+  return context;
+}
+
+// Full-page OAuth return: verify browser binding before sending Google's code.
 (function() {
-  var params = new URLSearchParams(window.location.search);
-  var code   = params.get('code');
-  if (!code) return; // not a redirect return — do nothing
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const error = params.get('error');
+  const returnState = params.get('state');
+  if (!code && !(error && params.has('state'))) return;
+  window.__ozylixGoogleReturn = true;
+  ['code','state','error','error_description','scope','authuser','prompt','hd'].forEach(key => params.delete(key));
+  const search = params.toString();
+  history.replaceState(history.state, '', window.location.pathname + (search ? '?' + search : '') + window.location.hash);
 
-  // Clean URL so refresh doesn't retrigger
-  history.replaceState({}, '', window.location.pathname);
-
-  // Show spinner
-  var spinner = document.createElement('div');
-  spinner.id  = 'g-spinner';
-  spinner.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#FAFAF7;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;font-family:sans-serif';
-  spinner.innerHTML = '<style>@keyframes gs{to{transform:rotate(360deg)}}</style>'
-    + '<div style="width:40px;height:40px;border:3px solid var(--edge-hi);border-top-color:var(--f-mineral);border-radius:50%;animation:gs .8s linear infinite"></div>'
-    + '<p style="color:var(--f-mineral);margin:0;font-size:14px">Signing you in…</p>';
-  // FIX (Aug 2026, owner video report): appending via a DOMContentLoaded
-  // listener could RACE with the async code exchange — if the fetch
-  // resolved first, el.remove() ran on an unattached node (no-op) and the
-  // spinner was then appended AFTER removal, leaving a frozen full-screen
-  // overlay that blocked the page forever. Append synchronously instead;
-  // this IIFE runs in <head> so documentElement already exists.
+  const spinner = document.createElement('div');
+  spinner.id = 'g-spinner';
+  spinner.setAttribute('role', 'status');
+  spinner.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#FAFAF7;display:flex;align-items:center;justify-content:center;font:16px sans-serif';
+  spinner.textContent = 'Signing you in…';
   document.documentElement.appendChild(spinner);
-
-  // Send code to backend — server holds client_secret securely.
-  // redirect_uri MUST byte-for-byte match the one used to request the code
-  // (Google rejects the exchange otherwise) — both now derive from the live
-  // origin instead of the hardcoded non-resolving ozylix.com.
-  fetchWithTimeout(API_BASE + '/api/auth/google-code', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      code: code,
-      redirect_uri: window.location.origin
-    })
-  }, 60000)
-  .then(function(r){
-    if (!r.ok) throw new Error('Google sign-in could not be verified.');
-    return r.json();
-  })
-  .then(function(data) {
-    saveVerifiedGoogleSession(data);
-    var el = document.getElementById('g-spinner');
-    if (el) el.remove();
-    // FIX (Aug 2026, owner video report): this handler used to land every
-    // returning customer on the ACCOUNT page — even when they were mid-
-    // checkout or on a product page with a pack tier picked. The full-page
-    // reload also wiped the in-memory tier and the checkout resume
-    // callback, so after sign-in the customer had to rebuild the whole
-    // order. It now reads the return-to context that requireLoginFor-
-    // Checkout stashed in sessionStorage and goes back to that page,
-    // re-applying the restored tier and resuming the payment flow.
-    var _ret = null;
-    try { _ret = JSON.parse(sessionStorage.getItem('ozylix.login_return') || 'null'); } catch(e) {}
-    var _retFresh = _ret && (Date.now() - (_ret.at || 0)) < 10 * 60 * 1000;
-    try { sessionStorage.removeItem('ozylix.login_return'); } catch(e) {}
-    // SDK may not be ready yet — defer UI updates to DOMContentLoaded
-    function _finishMobileLogin() {
-      try { updateAccountNavBtn(); } catch(e) {}
-      var name = ((data.user && data.user.name) || 'there').split(' ')[0];
-      try { showToast('🌿 Welcome back, ' + name + '!'); } catch(e) {}
-      if (_retFresh && resumeCheckoutAfterRedirect(_ret)) return;
-      try { showPage('account'); loadAccountPage(); } catch(e) {}
+  function whenReady(callback) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', callback, { once: true });
+    else setTimeout(callback, 300);
+  }
+  (async () => {
+    try {
+      const context = takeGoogleRedirectContext(returnState);
+      if (error) throw new Error('Google sign-in was cancelled. Please try again or use email.');
+      const response = await fetchWithTimeout(API_BASE + '/api/auth/google-code', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        body: JSON.stringify(googleCodeBody(code, context))
+      }, 60000);
+      if (!response.ok) throw new Error('Google sign-in could not finish. Please try again or use email. Your cart is safe.');
+      const data = await response.json();
+      saveVerifiedGoogleSession(data);
+      let returnTo = null;
+      try {
+        returnTo = JSON.parse(sessionStorage.getItem('ozylix.login_return') || 'null');
+        sessionStorage.removeItem('ozylix.login_return');
+      } catch (_) {}
+      whenReady(() => {
+        spinner.remove();
+        closeAuth();
+        updateAccountNavBtn();
+        autofillCheckoutFromGoogle(data.user);
+        showToast('🌿 Welcome back, ' + (data.user.name || 'there').split(' ')[0] + '!');
+        if (returnTo && Date.now() - (returnTo.at || 0) < 10 * 60 * 1000 && resumeCheckoutAfterRedirect(returnTo)) return;
+        showPage('account');
+        loadAccountPage();
+      });
+    } catch (err) {
+      whenReady(() => {
+        spinner.remove();
+        openAuth('login');
+        showAuthError(err.message || 'Google sign-in could not finish. Please try again or use email.');
+      });
     }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', _finishMobileLogin);
-    } else {
-      setTimeout(_finishMobileLogin, 300); // slight delay so page scripts init
-    }
-  })
-  .catch(function(e) {
-    console.error('[Auth] redirect exchange failed:', e.message);
-    var el = document.getElementById('g-spinner');
-    if (el) el.remove();
-    function showRedirectFailure() {
-      openAuth('login');
-      showAuthError('Google sign-in could not finish. Please try again or sign in with email. Your cart is safe.');
-    }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showRedirectFailure, { once: true });
-    else showRedirectFailure();
-  });
+  })();
 })();
 
 // ── Global callback fired when GIS SDK finishes loading ──
@@ -5771,7 +5794,7 @@ function saveVerifiedGoogleSession(data) {
 }
 
 // ── Core: called after any successful Google auth (One Tap, popup, or OAuth2) ──
-async function handleGoogleCredential(response) {
+async function handleGoogleCredential(response, flowContext = null) {
   if (!response || (!response.credential && !response.code)) {
     _showAuthFeedback('error', 'Google sign-in returned no credential. Please try again.');
     return;
@@ -5793,7 +5816,7 @@ async function handleGoogleCredential(response) {
     const isCode = Boolean(response.code);
     const endpoint = isCode ? '/api/auth/google-code' : '/api/auth/google';
     const body = isCode
-      ? { code: response.code, redirect_uri: window.location.origin }
+      ? googleCodeBody(response.code, flowContext)
       : { credential: response.credential };
     // Authorization codes are single use: never replay after an ambiguous timeout.
     // One Tap token verification may cold-start the backend and Google can
@@ -5806,7 +5829,7 @@ async function handleGoogleCredential(response) {
       let res;
       try {
         res = await fetchWithTimeout(API_BASE + endpoint, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json', ...(isCode ? { 'X-Requested-With': 'XMLHttpRequest' } : {}) },
           body: JSON.stringify(body),
         }, timeouts[attempt]);
       } catch (err) {
@@ -5891,60 +5914,64 @@ function _isSafariBrowser() {
          !/CriOS|FxiOS|OPiOS|Chrome/i.test(navigator.userAgent);
 }
 
-function _tryOAuth2Popup() {
+let _googleFlowStarting = false;
+window.addEventListener('pageshow', event => {
+  if (!event.persisted) return;
+  // Back from Google's consent screen can revive this document from bfcache.
+  _googleFlowStarting = false;
+  _googleOAuthContext = null;
+  try { sessionStorage.removeItem(GOOGLE_FLOW_KEY); } catch (_) {}
+  prepareGoogleOAuth().catch(() => {});
+});
+async function _tryOAuth2Popup() {
+  if (_googleFlowStarting) return;
   if (typeof google === 'undefined' || !google.accounts?.oauth2) {
     _showAuthFeedback('error', 'Google sign-in is unavailable. Please use email login.');
     return;
   }
-
-  // Redirect only for actual mobile devices — desktop always uses popup
-  if (_isMobileBrowser() || _isSafariBrowser()) {
-    try {
-      const client = google.accounts.oauth2.initCodeClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: 'openid profile email',
-        ux_mode: 'redirect',
-        // FIX (mobile login broken): this was hardcoded to
-        // 'https://www.ozylix.com' — a domain that does not currently
-        // resolve — so every mobile Google sign-in bounced the customer to a
-        // dead page and the session was never created. Now derived from
-        // wherever the site is actually being served, so it works on the
-        // GitHub Pages URL, the custom domain, and local testing alike.
-        // NOTE: this exact origin must also be listed under
-        // "Authorised redirect URIs" in the Google Cloud console for the
-        // OAuth client, or Google returns redirect_uri_mismatch.
-        redirect_uri: GOOGLE_REDIRECT_URI,
-      });
-      client.requestCode();
-    } catch(e) {
-      console.error('[Ozylix Auth] OAuth2 redirect error:', e);
-      _showAuthFeedback('error', 'Google sign-in failed. Please use email login.');
-    }
-    return;
-  }
-
-  // Google issues a real authorization code; the backend exchanges and verifies it.
+  _googleFlowStarting = true;
   try {
-    const client = google.accounts.oauth2.initCodeClient({
-      client_id: GOOGLE_CLIENT_ID,
+    // Opening a popup after an awaited network request loses user activation.
+    // Use a redirect if preparation did not finish before this click.
+    let context = _googleOAuthContext;
+    const prepared = freshGoogleOAuthContext(context);
+    if (!prepared) {
+      _showAuthFeedback('success', 'Connecting to Google…');
+      context = await prepareGoogleOAuth();
+    }
+    const redirect = _isMobileBrowser() || _isSafariBrowser() || !prepared ||
+      (navigator.userActivation && !navigator.userActivation.isActive);
+    context = { ...context, flow: redirect ? 'redirect' : 'popup' };
+    const options = {
+      client_id: context.clientId,
       scope: 'openid profile email',
-      ux_mode: 'popup',
+      ux_mode: context.flow,
+      state: context.state,
       select_account: true,
-      callback: async (codeResponse) => {
-        if (codeResponse.error || !codeResponse.code) {
+      ...(redirect ? { redirect_uri: context.origin } : {}),
+      callback: async response => {
+        _googleFlowStarting = false;
+        if (response.error || !response.code || (response.state && response.state !== context.state)) {
           _showAuthFeedback('error', 'Google sign-in was cancelled or could not be completed.');
+          prepareGoogleOAuth().catch(() => {});
           return;
         }
-        await handleGoogleCredential({ code: codeResponse.code });
+        await handleGoogleCredential({ code: response.code }, context);
+        prepareGoogleOAuth().catch(() => {});
       },
       error_callback: () => {
+        _googleFlowStarting = false;
         _showAuthFeedback('error', 'Google sign-in could not open or was closed. Please try again.');
-      },
-    });
+        prepareGoogleOAuth().catch(() => {});
+      }
+    };
+    const client = google.accounts.oauth2.initCodeClient(options);
+    if (redirect) sessionStorage.setItem(GOOGLE_FLOW_KEY, JSON.stringify(context));
+    _googleOAuthContext = null;
     client.requestCode();
-  } catch(e) {
-    console.error('[Ozylix Auth] OAuth2 popup error:', e);
-    _showAuthFeedback('error', 'Google sign-in failed. Please use email login.');
+  } catch (err) {
+    _googleFlowStarting = false;
+    _showAuthFeedback('error', err.message || 'Google sign-in failed. Please try again or use email.');
   }
 }
 
@@ -5969,9 +5996,7 @@ function socialLogin(provider) {
   }
 
   _googleInitRetries = 0;
-  if (!_tryOneTap()) {
-    _tryOAuth2Popup();
-  }
+  _tryOAuth2Popup();
 }
 
 // ══════════════════════════════════════════════════════════

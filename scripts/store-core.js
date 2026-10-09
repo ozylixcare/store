@@ -65,6 +65,7 @@ window.waSync = function () {
   if (pop) {
     pop.classList.toggle('wa-hidden', hide);
     if (hide) pop.classList.remove('open');
+    document.querySelector('.vita-help-btn')?.setAttribute('aria-expanded', String(pop.classList.contains('open') && !hide));
   }
 };
 document.addEventListener('DOMContentLoaded', function () {
@@ -73,13 +74,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function toggleWAPopup() {
   const popup = document.getElementById('waChatPopup');
-  if (popup) popup.classList.toggle('open');
+  if (popup) {
+    const open = popup.classList.toggle('open');
+    document.querySelector('.vita-help-btn')?.setAttribute('aria-expanded', String(open));
+    if (!open) document.querySelector('.vita-help-btn')?.focus({ preventScroll: true });
+  }
 }
 
 setTimeout(() => {
   if (!sessionStorage.getItem('wa_shown')) {
     const popup = document.getElementById('waChatPopup');
     if (popup) popup.classList.add('open');
+    document.querySelector('.vita-help-btn')?.setAttribute('aria-expanded', String(!!popup && !popup.classList.contains('wa-hidden')));
     sessionStorage.setItem('wa_shown', '1');
   }
 }, 45000);

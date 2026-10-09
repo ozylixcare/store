@@ -10,14 +10,19 @@ function harness(reply) {
   const values = new Map();
   const events = [];
   const requests = [];
+  const flowContext = {origin:'https://www.ozylix.com',state:'bound-state',verifier:'a'.repeat(64),flow:'popup',expiresAt:Date.now()+600000};
   const context = vm.createContext({
     console: { error() {}, warn() {} }, Date, Number, String, JSON, Boolean,
     atob: s => Buffer.from(s, 'base64').toString(),
-    window: { location: { origin: 'https://www.ozylix.com' } },
+    window: { location: { origin: 'https://www.ozylix.com' }, addEventListener() {} },
     document: { getElementById: () => null },
     localStorage: { getItem: k => values.get(k), setItem: (k, v) => values.set(k, v) },
     API_BASE: 'https://api.example.test',
-    fetchWithTimeout: async (url, options) => { requests.push({ url, body: JSON.parse(options.body) }); return reply(); },
+    fetchWithTimeout: async (url, options) => { requests.push({ url, headers:options.headers, body: JSON.parse(options.body) }); return reply(); },
+    googleCodeBody: (code, context) => {
+      assert.ok(context && context.expiresAt > Date.now());
+      return {code,redirect_uri:context.origin,auth_state:context.state,verifier:context.verifier,flow:context.flow};
+    },
     _showAuthFeedback: (kind, message) => events.push({ kind, message }),
     closeAuth: () => events.push('close'), updateAccountNavBtn: () => events.push('account'),
     autofillCheckoutFromGoogle() {}, showToast: () => events.push('welcome'),
@@ -26,27 +31,33 @@ function harness(reply) {
   });
   vm.runInContext(slice('function parseGoogleJWT(', '// ── Core: called after') +
     slice('async function handleGoogleCredential(', '// ── Show inline feedback'), context);
-  return { context, values, events, requests };
+  return { context, values, events, requests, flowContext };
 }
 async function main() {
   const user = { email: 'shopper@example.test', name: 'Shopper' };
   const jwt = token(user.email);
   for (const input of [{ credential: 'google-id-token' }, { code: 'google-code' }]) {
     const h = harness(() => ({ ok: true, json: async () => ({ token: jwt, user }) }));
-    await h.context.handleGoogleCredential(input);
+    await h.context.handleGoogleCredential(input, h.flowContext);
     assert.equal(h.values.get('asc_jwt'), jwt);
     assert.deepEqual(JSON.parse(h.values.get('asc_user')), user);
     assert.ok(h.events.includes('account'));
     assert.ok(h.events.includes('welcome'));
     const request = h.requests[0];
     assert.equal(request.url, 'https://api.example.test/api/auth/' + (input.code ? 'google-code' : 'google'));
-    if (input.code) assert.equal(request.body.redirect_uri, 'https://www.ozylix.com');
+    if (input.code) {
+      assert.equal(request.body.redirect_uri, 'https://www.ozylix.com');
+      assert.equal(request.headers['X-Requested-With'],'XMLHttpRequest');
+      assert.equal(request.body.auth_state,'bound-state');
+      assert.equal(request.body.verifier,'a'.repeat(64));
+      assert.equal(request.body.flow,'popup');
+    }
   }
   const badSessions = [ {}, { user }, { token: jwt }, { token: 'invalid', user },
     { token: token(user.email, 1), user }, { token: token('other@example.test'), user } ];
   for (const session of badSessions) {
     const h = harness(() => ({ ok: true, json: async () => session }));
-    await h.context.handleGoogleCredential({ code: 'code' });
+    await h.context.handleGoogleCredential({ code: 'code' }, h.flowContext);
     assert.equal(h.values.size, 0);
     assert.ok(!h.events.includes('welcome'));
     assert.ok(!h.events.includes('resume'));
@@ -60,7 +71,7 @@ async function main() {
     assert.ok(!h.events.includes('welcome'));
   }
   const timeout = harness(() => { throw Error('timeout'); });
-  await timeout.context.handleGoogleCredential({ code: 'single-use' });
+  await timeout.context.handleGoogleCredential({ code: 'single-use' }, timeout.flowContext);
   assert.equal(timeout.requests.length, 1, 'never replay an authorization code');
   assert.equal(timeout.values.size, 0);
   const popup = {};
@@ -68,11 +79,15 @@ async function main() {
   h.context.GOOGLE_CLIENT_ID = 'client';
   h.context._isMobileBrowser = () => false;
   h.context._isSafariBrowser = () => false;
+  h.context.navigator = {};
+  h.context._googleOAuthContext = h.flowContext;
+  h.context.freshGoogleOAuthContext = () => true;
+  h.context.prepareGoogleOAuth = async () => h.flowContext;
   h.context.google = { accounts: { oauth2: { initCodeClient(options) {
     popup.options = options; return { requestCode() { popup.requested = true; } };
   } } } };
-  vm.runInContext(slice('function _tryOAuth2Popup(', '// ── Public: triggered'), h.context);
-  h.context._tryOAuth2Popup();
+  vm.runInContext(slice('let _googleFlowStarting =', '// ── Public: triggered'), h.context);
+  await h.context._tryOAuth2Popup();
   assert.equal(popup.options.ux_mode, 'popup');
   assert.equal(popup.requested, true);
   await popup.options.callback({ code: 'provider-code' });

@@ -5660,3 +5660,28 @@ button, [role="button"] {
   .auth-overlay .auth-box, .auth-vita-body, .auth-vita-hand { animation: none; }
   .auth-box *, .auth-box *::before, .auth-box *::after { transition: none; }
 }
+
+/* Shared pearl Vita greeting: the existing support popup keeps its behavior. */
+.vita-help-fab { display: flex; justify-content: flex-end; width: calc(100vw - 40px); max-width: none; left: 20px; right: auto; pointer-events: none; }
+.wa-chat-popup { left: calc(100vw - min(90vw, 330px) - 20px); right: auto; max-height: calc(100vh - 120px); max-height: calc(100dvh - 120px); overflow-y: auto; overscroll-behavior: contain; }
+@media (min-width: 901px) { .wa-chat-popup { bottom: 100px; } }
+@media (max-width: 900px) { .vita-help-fab { left: 14px; width: calc(100vw - 28px); } .wa-chat-popup { left: calc(100vw - min(90vw, 330px) - 14px); max-height: calc(100vh - 244px - env(safe-area-inset-bottom, 0px)); max-height: calc(100dvh - 244px - env(safe-area-inset-bottom, 0px)); } }
+.vita-help-btn { display: flex; flex: none; pointer-events: auto; align-items: center; gap: 7px; min-height: 64px; padding: 5px 17px 3px 8px; border: 1px solid #e8dde2; border-radius: 22px; background: #fffafc; box-shadow: 0 6px 24px rgba(81,46,65,.15); color: #59424e; text-align: left; }
+.vita-help-btn .auth-vita { transform: none; width: 58px; height: 60px; }
+.vita-help-copy { display: block; font-size: .75rem; line-height: 1.5; }
+.vita-help-copy strong { display: block; color: #59424e; font-size: .82rem; font-weight: 600; }
+.vita-help-copy > span { display: block; color: #70626b; }
+.vita-help-btn:hover { background: #fff; box-shadow: 0 8px 28px rgba(81,46,65,.19); }
+.vita-help-btn:focus-visible { outline: 2px solid #814554; outline-offset: 4px; }
+.vita-advisor-greeting { display: flex; width: max-content; max-width: 100%; align-items: center; gap: 10px; margin: 0 auto 16px; text-align: left; color: #59424e; font-size: .95rem; font-weight: 600; }
+.vita-advisor-greeting small { display: block; color: #70626b; font-size: .8rem; font-weight: 400; }
+.vita-chat-avatar.vita-pearl-avatar { width: 58px; height: 60px; border-radius: 0; background: none; box-shadow: none; }
+.vita-pearl-avatar .auth-vita { transform: none; width: 58px; height: 60px; }
+@media (max-width: 600px) {
+  .vita-help-btn { padding-right: 12px; gap: 4px; min-height: 58px; }
+  .vita-help-copy { font-size: .69rem; }
+  .vita-help-copy strong { font-size: .75rem; }
+  .vita-help-btn .auth-vita { transform: scale(.9); transform-origin: center; width: 54px; height: 54px; }
+  .vita-chat-hdr { gap: 9px; padding: 12px; }
+  .vita-chat-name { font-size: .9rem; }
+}

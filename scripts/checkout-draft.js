@@ -17,6 +17,9 @@
   });
   const BOOT_PATH = location.pathname;
   const BOOT_HASH = location.hash;
+  // The OAuth handler owns navigation after a Google return, even after it
+  // removes the code from the URL. A saved Home position must not undo it.
+  const BOOT_AUTH_RETURN = !!window.__ozylixGoogleReturn;
 
   const MAX_AGE_MS = 60 * 60 * 1000; // ignore positions older than 1 hour
 
@@ -129,7 +132,7 @@
 
   // ── Restore ──
   function restorePosition() {
-    if (userInteracted || BOOT_HASH) return;
+    if (userInteracted || BOOT_HASH || BOOT_AUTH_RETURN) return;
   
     if (new URLSearchParams(location.search).get('fresh')) { clearPosition(); return; }
     // Prefer the synchronous parse-time snapshot; fall back to a fresh read.

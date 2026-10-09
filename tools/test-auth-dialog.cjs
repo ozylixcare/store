@@ -39,11 +39,13 @@ async function main() {
         if (url.pathname.includes('/api/')) {
           let data = {data:[], products:[], banners:[]}, status = 200;
           if (url.pathname.endsWith('/products')) data = fixture;
+          if (url.pathname === '/api/auth/google-config') data = {client_id:'test-client',redirect_uri:origin,state:'test-state',expires_in:600};
           if (/\/api\/auth\/(email-login|register|google|google-code)$/.test(url.pathname)) {
             requests.push({path:url.pathname,body:req.postDataJSON()});
             if (mode === 'offline') { await route.abort('failed'); return; }
             status = mode === 'success' ? 200 : 401;
             data = mode === 'success' ? {user,token} : {error:'Please check your sign-in details.'};
+            if (mode === 'success' && url.pathname === '/api/auth/register' && !req.postDataJSON().code) data = {pending_otp:true,nonce:'test-email-challenge'};
           }
           await route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)}); return;
         }
@@ -53,6 +55,29 @@ async function main() {
       const page = await context.newPage();
       await page.goto(origin, {waitUntil:'load'});
       await page.waitForFunction(() => typeof openAuth === 'function');
+      // Vita replaces the launcher visual while opening the existing support box.
+      const launcher = page.locator('.vita-help-btn');
+      await launcher.waitFor({state:'visible'});
+      await page.waitForFunction(()=>getComputedStyle(document.querySelector('.vita-help-btn')).display==='flex');
+      assert.ok((await launcher.innerText()).includes('How can I help you?'));
+      const launcherBounds = await launcher.boundingBox();
+      assert.ok(launcherBounds.x >= 0 && launcherBounds.x+launcherBounds.width <= width+1 && launcherBounds.y+launcherBounds.height <= height+1,'Vita launcher inside viewport: '+JSON.stringify({launcherBounds,width,height,viewport:await page.evaluate(()=>({width:innerWidth,height:innerHeight,visualWidth:visualViewport.width,visualHeight:visualViewport.height}))}));
+      assert.equal(await launcher.locator('svg').count(),0,'old WhatsApp icon replaced');
+      assert.equal(await launcher.locator('.auth-vita-hand').evaluate(el=>getComputedStyle(el).animationName),'none','reduced motion respected');
+      if (shots && [390,1440].includes(width)) await page.screenshot({path:path.join(shots,'vita-launcher-'+width+'.png')});
+      await launcher.click();
+      await page.locator('#waChatPopup.open').waitFor();
+      assert.equal(await launcher.getAttribute('aria-expanded'),'true');
+      assert.ok((await page.locator('#waChatPopup').innerText()).includes('Start Chat on WhatsApp'));
+      await page.locator('#waChatPopup .wa-close-popup').click();
+      assert.equal(await launcher.getAttribute('aria-expanded'),'false');
+      await page.evaluate(()=>showPage('advisor'));
+      await page.locator('#page-advisor .vita-advisor-greeting .auth-vita').waitFor({state:'visible'});
+      await page.locator('#vitaPrivacyGate button').click();
+      await page.evaluate(()=>vitaShowChat());
+      await page.locator('#vitaChatWrap .vita-pearl-avatar .auth-vita').waitFor({state:'visible'});
+      if (shots && [390,1440].includes(width)) await page.screenshot({path:path.join(shots,'vita-ai-'+width+'.png')});
+      await page.evaluate(()=>showPage('home'));
       const trigger = width > 768 ? '#accountNavBtn' : '#appNav-account';
       await page.locator(trigger).focus();
       await page.evaluate(() => openAuth());
@@ -122,7 +147,7 @@ async function main() {
       assert.equal(requests.at(-1).path,'/api/auth/email-login');
       mode = 'offline';
       await page.locator('#loginSubmitBtn').click();
-      await page.getByRole('alert').filter({hasText:'temporarily unavailable'}).waitFor();
+      await page.getByRole('alert').filter({hasText:/fetch|unavailable/i}).waitFor();
       assert.equal(await page.evaluate(()=>localStorage.getItem('asc_jwt')),null);
       // Stub the account dashboard, not authentication: verify submitted credentials,
       // server session persistence and modal close without loading unrelated account APIs.
@@ -133,7 +158,12 @@ async function main() {
       assert.equal(await page.evaluate(()=>localStorage.getItem('asc_jwt')),token);
       assert.equal(await page.locator('#accountNavBtn').getAttribute('aria-label'),'Open my account');
       await page.evaluate(()=>{ localStorage.removeItem('asc_jwt'); localStorage.removeItem('asc_user'); openAuth('register'); });
+      await page.locator('#regPassword').fill('StrongTest42!');
       await page.locator('#registerSubmitBtn').click();
+      await page.locator('#signupOtpForm').waitFor({state:'visible'});
+      assert.equal(await page.evaluate(()=>localStorage.getItem('asc_jwt')),null,'pending email verification is not a session');
+      await page.locator('#signupOtp').fill('123456');
+      await page.locator('#signupOtpSubmit').click();
       await dialog.waitFor({state:'hidden'});
       assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('asc_user')).email),user.email);
       // Trigger the same Google button with a provider popup double.
@@ -146,6 +176,7 @@ async function main() {
         } };
         openAuth();
       });
+      await page.waitForFunction(()=>!!_googleOAuthContext);
       await page.locator('#googleSignInBtn').click();
       await dialog.waitFor({state:'hidden'});
       assert.equal(requests.at(-1).path,'/api/auth/google-code');

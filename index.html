@@ -220,8 +220,8 @@
   #shaderHero .shader-hero-inner { text-align: center; }
   #shaderHero .shader-cta-row { justify-content: center; }
 </style>
-<link rel="stylesheet" href="/styles/store-main.min.css?v=20261009-auth-vita" media="print" onload="this.media='all';this.onload=null">
-<noscript><link rel="stylesheet" href="/styles/store-main.min.css?v=20261009-auth-vita"></noscript>
+<link rel="stylesheet" href="/styles/store-main.min.css?v=20261009-google-flow-vita" media="print" onload="this.media='all';this.onload=null">
+<noscript><link rel="stylesheet" href="/styles/store-main.min.css?v=20261009-google-flow-vita"></noscript>
 <style id="hero-restore-overrides">
   /* Use the compact centered storefront hero consistently on every device. */
   #shaderHero .shader-hero-inner { text-align: center; }
@@ -1426,6 +1426,7 @@
 
     
     <div style="text-align:center;margin-bottom:36px">
+      <div class="vita-advisor-greeting"><span class="auth-vita" aria-hidden="true"><span class="auth-vita-body"><span class="auth-vita-eyes"></span><span class="auth-vita-smile"></span></span><span class="auth-vita-hand"></span><span class="auth-vita-shadow"></span></span><span>Hi, I’m Vita <span aria-hidden="true">👋</span><small>How can I help you?</small></span></div>
       <div class="section-label">Personalised</div>
       <h1 class="section-title">Your Personal Health Advisor</h1>
       <p class="section-sub" style="margin:0 auto">Answer four quick questions and we'll match you to the Ozylix supplements that fit your goal, age and routine.</p>
@@ -1449,7 +1450,7 @@
     <div class="vita-chat-wrap" id="vitaChatWrap" style="display:none">
       
       <div class="vita-chat-hdr">
-        <div class="vita-chat-avatar">🌿</div>
+        <div class="vita-chat-avatar vita-pearl-avatar"><span class="auth-vita" aria-hidden="true"><span class="auth-vita-body"><span class="auth-vita-eyes"></span><span class="auth-vita-smile"></span></span><span class="auth-vita-hand"></span><span class="auth-vita-shadow"></span></span></div>
         <div class="vita-chat-hdr-info">
           <div class="vita-chat-name">Vita — Ozylix Health Advisor</div>
           <div class="vita-chat-online"><span class="vita-online-dot"></span> AI Powered · Always Available</div>
@@ -1972,14 +1973,12 @@
 
 
 
-<div class="wa-fab" id="waFab">
-  <div class="wa-tooltip">Chat on WhatsApp</div>
-  <button class="wa-btn" onclick="toggleWAPopup()" title="Chat on WhatsApp" aria-label="Open WhatsApp chat">
-    <div class="wa-pulse"></div>
-    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+<div class="wa-fab vita-help-fab" id="waFab">
+  <button type="button" class="vita-help-btn" onclick="toggleWAPopup()" aria-label="Vita: How can I help you? Open support chat" aria-controls="waChatPopup" aria-expanded="false">
+    <span class="auth-vita" aria-hidden="true"><span class="auth-vita-body"><span class="auth-vita-eyes"></span><span class="auth-vita-smile"></span></span><span class="auth-vita-hand"></span><span class="auth-vita-shadow"></span></span>
+    <span class="vita-help-copy"><strong>Hi, I’m Vita <span aria-hidden="true">👋</span></strong><span>How can I help you?</span></span>
   </button>
 </div>
-
 
 <div class="wa-chat-popup" id="waChatPopup">
   <div class="wa-popup-hdr" style="position:relative">
@@ -2561,7 +2560,7 @@
 
 
 
-<script defer src="/scripts/store-core.min.js?v=20261008-email-verify1"></script>
+<script defer src="/scripts/store-core.min.js?v=20261009-google-flow-vita"></script>
 <script defer src="/scripts/img-hydrator.js?v=20261006-images1"></script>
 
 
@@ -2914,7 +2913,7 @@
   </div>
 </footer>
 
-<script defer src="/scripts/auth-core.min.js?v=20261009-email-verify2"></script>
+<script defer src="/scripts/auth-core.min.js?v=20261009-google-flow-vita"></script>
 
 <div id="stickyCart" style="position:fixed;bottom:0;left:0;right:0;z-index:920;display:none;align-items:center;gap:12px;padding:10px 14px;transform:translateY(100%);background:var(--paper);box-shadow:0 -1px 0 var(--edge),0 -10px 30px rgba(72,62,70,.10)">
   <div style="flex:1;min-width:0">
@@ -3355,7 +3354,7 @@ img.az-fade.az-in{opacity:1}
 
 
 <div id="ozylxNotify" aria-live="polite"></div>
-<script defer src="/scripts/checkout-draft.js?v=20261001-3"></script>
+<script defer src="/scripts/checkout-draft.js?v=20261009-google-flow-vita"></script>
 
 
 
