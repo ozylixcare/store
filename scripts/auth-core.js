@@ -4626,6 +4626,7 @@ function openAuth(tab = 'login') {
 }
 
 function closeAuth() {
+  emailAuthVersion++;
   document.getElementById('authOverlay')?.classList.remove('open');
   unlockBodyScroll();
   clearAuthMessages();
@@ -4651,6 +4652,8 @@ function showAuthSuccess(msg) {
 }
 
 function switchAuthTab(tab) {
+  emailAuthVersion++;
+  resetSignupVerification();
   clearAuthMessages();
   const register = tab === 'register';
   ['login', 'register'].forEach(name => {
@@ -5476,55 +5479,141 @@ function postLoginRedirect() {
   showPage('account'); loadAccountPage();
 }
 
+// Email signup stays pending in memory until the server verifies the code.
+let emailAuthPending = false;
+let emailAuthVersion = 0;
+let signupChallenge = null;
+
+function resetSignupVerification() {
+  signupChallenge = null;
+  const form = document.getElementById('signupOtpForm');
+  if (form) form.hidden = true;
+  const details = document.getElementById('registerDetails');
+  if (details) details.hidden = false;
+  const code = document.getElementById('signupOtp');
+  if (code) code.value = '';
+}
+
+function requestNewSignupCode() {
+  if (signupChallenge && Date.now() < signupChallenge.resendAt) {
+    showAuthError('Please wait 60 seconds before requesting another code.');
+    return;
+  }
+  resetSignupVerification();
+  showAuthSuccess('Confirm your password and request a new code. The previous code will stop working.');
+  document.getElementById('regPassword')?.focus();
+}
+
+function finishEmailSession(data) {
+  const claims = typeof data?.token === 'string' ? parseGoogleJWT(data.token) : null;
+  if (!data?.user?.id || !data.user.email || !claims ||
+      String(claims.id || '') !== String(data.user.id) ||
+      String(claims.email || '').toLowerCase() !== String(data.user.email).toLowerCase() ||
+      !Number.isFinite(claims.exp) || claims.exp * 1000 <= Date.now() + 5000) {
+    throw new Error('The server could not confirm your account. Please try again.');
+  }
+  localStorage.setItem('asc_jwt', data.token);
+  localStorage.setItem('asc_user', JSON.stringify(data.user));
+  closeAuth(); updateAccountNavBtn();
+  resumeCheckoutIfWaiting(); postLoginRedirect();
+  resetSignupVerification();
+  ['loginPassword','regPassword'].forEach(id => { const el=document.getElementById(id); if(el)el.value=''; });
+  showToast('Welcome to Ozylix, ' + (data.user.name || 'there').split(' ')[0] + '!');
+}
+
 async function doLogin() {
+  if (emailAuthPending) return;
   clearAuthMessages();
   const email = document.getElementById('loginEmail').value.trim();
-  const pass  = document.getElementById('loginPassword').value;
+  const pass = document.getElementById('loginPassword').value;
   if (!email || !pass) { showAuthError('Please enter your email and password.'); return; }
+  const version = emailAuthVersion;
+  const button = document.getElementById('loginSubmitBtn');
+  emailAuthPending = true;
+  if (button) { button.disabled=true; button.textContent='Signing in…'; }
   try {
     const res = await fetchWithTimeout(API_BASE + '/api/auth/email-login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password: pass }),
-    }, 8000);
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,password:pass}),
+    }, 20000);
     const data = await res.json();
-    if (!res.ok) { showAuthError(data.error || 'Invalid email or password.'); return; }
-    localStorage.setItem('asc_jwt', data.token);
-    localStorage.setItem('asc_user', JSON.stringify(data.user));
-    closeAuth(); updateAccountNavBtn();
-    resumeCheckoutIfWaiting();
-    postLoginRedirect();
-    showToast('🌿 Welcome back, ' + data.user.name.split(' ')[0] + '!');
+    if (version !== emailAuthVersion) return;
+    if (!res.ok) throw new Error(data.error || 'Invalid email or password.');
+    finishEmailSession(data);
   } catch(e) {
-    // Fail closed: a browser-local record is not an authenticated account and
-    // must never be promoted to a logged-in session when the API is offline.
-    showAuthError('Authentication service is temporarily unavailable. Please try again.');
+    if (version === emailAuthVersion) showAuthError(e.name === 'AbortError' ? 'Sign-in timed out. Please try again.' : e.message || 'Sign-in is temporarily unavailable.');
+  } finally {
+    emailAuthPending = false;
+    if (button) { button.disabled=false; button.textContent='Sign In →'; }
   }
 }
 
 async function doRegister() {
+  if (emailAuthPending) return;
   clearAuthMessages();
-  const name  = document.getElementById('regName').value.trim();
+  const name = document.getElementById('regName').value.trim();
   const email = document.getElementById('regEmail').value.trim();
   const phone = document.getElementById('regPhone').value.trim();
-  const pass  = document.getElementById('regPassword').value;
+  const pass = document.getElementById('regPassword').value;
   if (!name || !email || !pass) { showAuthError('Please fill in all required fields.'); return; }
-  if (pass.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showAuthError('Please enter a valid email address.'); return; }
+  if (pass.length < 8 || !/[a-z]/.test(pass) || !/[A-Z]/.test(pass) || !/[0-9]/.test(pass)) {
+    showAuthError('Use at least 8 characters, with uppercase, lowercase and a number.'); return;
+  }
+  const version = emailAuthVersion;
+  const button = document.getElementById('registerSubmitBtn');
+  emailAuthPending = true;
+  if (button) { button.disabled=true; button.textContent='Sending code…'; }
   try {
     const res = await fetchWithTimeout(API_BASE + '/api/auth/register', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, phone, password: pass }),
-    }, 8000);
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,email,phone,password:pass}),
+    }, 30000);
     const data = await res.json();
-    if (!res.ok) { showAuthError(data.error || 'Registration failed.'); return; }
-    localStorage.setItem('asc_jwt', data.token);
-    localStorage.setItem('asc_user', JSON.stringify(data.user));
-    closeAuth(); updateAccountNavBtn();
-    resumeCheckoutIfWaiting();
-    postLoginRedirect();
-    showToast('🌿 Account created! Welcome to Ozylix, ' + name.split(' ')[0] + '!');
+    if (version !== emailAuthVersion) return;
+    if (!res.ok) throw new Error(data.error || 'Could not send your verification code.');
+    // Older backends returning a token without verification must not activate signup.
+    if (!data.pending_otp || typeof data.nonce !== 'string' || !data.nonce) throw new Error('Email verification is not available yet. Please try again later.');
+    signupChallenge = {email,nonce:data.nonce,resendAt:Date.now()+60000};
+    document.getElementById('regPassword').value='';
+    document.getElementById('registerDetails').hidden=true;
+    document.getElementById('signupOtpForm').hidden=false;
+    document.getElementById('signupOtpEmail').textContent=email;
+    document.getElementById('signupOtp').value='';
+    showAuthSuccess('Code sent. Check your inbox and spam folder. It expires in 5 minutes.');
+    document.getElementById('signupOtp').focus();
   } catch(e) {
-    // Registration is server-authoritative; do not create local-only accounts.
-    showAuthError('Registration service is temporarily unavailable. Please try again.');
+    if (version === emailAuthVersion) showAuthError(e.name === 'AbortError' ? 'Sending the code timed out. Please wait one minute before retrying.' : e.message || 'Registration is temporarily unavailable.');
+  } finally {
+    emailAuthPending = false;
+    if (button) { button.disabled=false; button.textContent='Send verification code →'; }
+  }
+}
+
+async function verifySignupOtp() {
+  if (emailAuthPending || !signupChallenge) return;
+  clearAuthMessages();
+  const code = document.getElementById('signupOtp').value.trim();
+  if (!/^[0-9]{6}$/.test(code)) { showAuthError('Enter the six-digit code from your email.'); return; }
+  const version = emailAuthVersion;
+  const button = document.getElementById('signupOtpSubmit');
+  const challenge = signupChallenge;
+  emailAuthPending = true;
+  if (button) { button.disabled=true; button.textContent='Verifying…'; }
+  try {
+    const res = await fetchWithTimeout(API_BASE + '/api/auth/register', {
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email:challenge.email,nonce:challenge.nonce,code}),
+    }, 20000);
+    const data = await res.json();
+    if (version !== emailAuthVersion || signupChallenge !== challenge) return;
+    if (!res.ok) throw new Error(data.error || 'Could not verify your code.');
+    finishEmailSession(data);
+  } catch(e) {
+    if (version === emailAuthVersion) showAuthError(e.name === 'AbortError' ? 'Verification timed out. Try signing in; if the account was not created, request a new code.' : e.message || 'Verification is temporarily unavailable.');
+  } finally {
+    emailAuthPending = false;
+    if (button) { button.disabled=false; button.textContent='Verify email & create account →'; }
   }
 }
 
@@ -6014,6 +6103,8 @@ function _initGoogleOneTap() {
 
 // ── Sign out ──
 function doLogout() {
+  emailAuthVersion++;
+  resetSignupVerification();
   resetAccountSession();
   // Disable Google auto-select so it doesn't auto-sign in again
   if (typeof google !== 'undefined' && google.accounts?.id) {
@@ -6036,9 +6127,9 @@ function doLogout() {
 
 // ── Update nav avatar button ──
 function updateAccountNavBtn() {
+  syncAccountSession();
   const btn = document.getElementById('accountNavBtn');
   if (!btn) return;
-  syncAccountSession();
   const user = getCurrentUser();
   // When user logs in, tell Google to stop showing One Tap prompts
   if (user && typeof google !== 'undefined' && google.accounts?.id) {
