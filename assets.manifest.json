@@ -3,7 +3,7 @@
   "scripts/admin-audit.js": "e9a2c1da49f37df8",
   "scripts/admin-core.js": "56f52de075e8bf68",
   "scripts/admin-ui.js": "bf0c7e1abb066b61",
-  "scripts/auth-core.js": "1bef390529248504",
+  "scripts/auth-core.js": "3bffd9859333b1b5",
   "scripts/banners.js": "85dc21af1a670697",
   "scripts/invoice-renderer.js": "2c416c813833b1fe",
   "scripts/seo-core.js": "f4abf0fda5ea550e",

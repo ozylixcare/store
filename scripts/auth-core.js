@@ -5905,7 +5905,9 @@ function _tryOneTap() {
 
 // ── Strategy 2: authorization code popup (desktop) or redirect (mobile/Safari) ──
 function _isMobileBrowser() {
-  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  // iPadOS can present a desktop Mac user agent while retaining touch input.
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 }
 function _isSafariBrowser() {
   // Only match iOS Safari specifically — NOT desktop Safari, NOT Edge, NOT Chrome

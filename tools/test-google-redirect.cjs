@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
 const crypto = require('node:crypto');
-const { chromium } = require('playwright');
+const { chromium, webkit, firefox, devices } = require('playwright');
 const root = path.resolve(__dirname, '..');
 const fixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/cutout-products.json')));
 const types = {'.html':'text/html','.css':'text/css','.js':'text/javascript','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.json':'application/json'};
@@ -23,12 +23,27 @@ const token = 'header.' + Buffer.from(JSON.stringify({...user,exp:Math.floor(Dat
 async function main() {
   await new Promise(resolve => server.listen(0,'127.0.0.1',resolve));
   const origin = 'http://127.0.0.1:' + server.address().port;
-  const browser = await chromium.launch({channel:'chrome'});
+  const engine = process.env.GOOGLE_BROWSER || 'chrome';
+  const browserType = {chrome:chromium,edge:chromium,webkit,firefox}[engine];
+  assert.ok(browserType,'supported test browser');
+  const browser = await browserType.launch(engine === 'chrome' ? {channel:'chrome'} : engine === 'edge' ? {channel:'msedge'} : {});
+  const profile = process.env.GOOGLE_PROFILE || 'android';
   try {
     for (const scenario of JSON.parse(process.env.GOOGLE_SCENARIOS || '["mobile","popup","unprepared","mismatch","missing","expired","cancelled","rejected","back"]')) {
       const mobile = scenario !== 'popup';
-      const context = await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:1000},serviceWorkers:'block',
-        ...(mobile ? {isMobile:true,hasTouch:true,userAgent:'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/130.0.0.0 Mobile Safari/537.36'} : {})});
+      const mobileOptions = profile === 'iphone' ? devices['iPhone 13'] :
+        profile === 'ipad' ? devices['iPad (gen 7)'] :
+        profile === 'ipad-desktop' ? {viewport:{width:810,height:1080},isMobile:true,hasTouch:true,
+          userAgent:'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) AppleWebKit/605.1.15 Version/17.0 Safari/605.1.15'} :
+        {viewport:{width:390,height:844},isMobile:true,hasTouch:true,
+          userAgent:'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/130.0.0.0 Mobile Safari/537.36'};
+      const contextOptions = mobile ? {...mobileOptions} : {viewport:{width:1440,height:1000}};
+      if (engine === 'firefox') delete contextOptions.isMobile;
+      const context = await browser.newContext({...contextOptions,serviceWorkers:'block'});
+      if (mobile && profile === 'ipad-desktop') await context.addInitScript(() => {
+        Object.defineProperty(navigator,'platform',{get:()=> 'MacIntel'});
+        Object.defineProperty(navigator,'maxTouchPoints',{get:()=>5});
+      });
       const states = new Map(), exchanges = [], used = new Set();
       await context.route('**/*',async route => {
         const req = route.request(), url = new URL(req.url());
@@ -80,7 +95,7 @@ async function main() {
       await page.evaluate(()=>{
         localStorage.setItem('ozylix-position',JSON.stringify({page:'home',scrollY:0,at:Date.now()}));
       });
-      await page.locator(mobile?'#appNav-account':'#accountNavBtn').click();
+      await page.locator('#appNav-account:visible, #accountNavBtn:visible').first().click();
       await page.waitForFunction(()=>!!_googleOAuthContext);
       if (scenario === 'unprepared') await page.evaluate(()=>{_googleOAuthContext=null;});
       await page.locator('#googleSignInBtn').click();
@@ -99,7 +114,7 @@ async function main() {
         assert.equal(await page.locator('#authOverlay.open').count(),0);
         assert.equal(exchanges.length,1);
         assert.equal(exchanges[0].flow,scenario === 'popup'?'popup':'redirect');
-        await page.reload({waitUntil:'load'});
+        await page.reload({waitUntil:'domcontentloaded'});
         await page.waitForFunction(()=>typeof getCurrentUser==='function' && !!getCurrentUser(),null,{timeout:30000});
         assert.equal(exchanges.length,1,'refresh must not replay the authorization code');
       } else {
@@ -116,7 +131,7 @@ async function main() {
         assert.equal(await page.evaluate(()=>sessionStorage.getItem('ozylix.google_flow')),null);
         assert.equal(await page.locator('#g-spinner').count(),0);
       }
-      console.log('PASS Google full flow: '+scenario);
+      console.log('PASS Google full flow: '+engine+'/'+profile+'/'+scenario);
       await context.close();
     }
   } finally { await browser.close(); await new Promise(resolve=>server.close(resolve)); }
