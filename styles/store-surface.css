@@ -1,13 +1,19 @@
-/* Premium storefront: alternate full-width white and soft-white sections. */
+/* Premium storefront: deliberate full-width white and soft-white sections. */
 :root {
   --store-card-shadow: 0 1px 3px rgba(46,61,40,.035), 0 12px 30px rgba(46,61,40,.055);
 }
 html body { background: var(--white); }
-/* The colour changes between sections as the customer scrolls. */
-html body #page-home > .section { background: var(--white) !important; }
-html body #page-home > .section:nth-of-type(even) { background: var(--paper) !important; }
-html body :is(.shader-hero, .page-header, .footer) { background: var(--paper); }
-html body :is(.fizz-counters, .bundle-section),
+/* Existing section identities keep surfaces stable when promotions change. */
+html body #page-home > :is(.hero-banner, .shader-hero, .promise-section, .certs, .ig-section, .vph-section, .influencer-section),
+html body #page-home > .section:has(#featuredGrid, #newArrivalsGrid) {
+  background: var(--white) !important;
+}
+html body #page-home > :is(#promo-media-section, .bundle-section, .refer-section, .vita-home-section),
+html body #page-home > .section:has(.cat-grid-new, #homeFaqWrap) {
+  background: var(--paper) !important;
+}
+html body :is(.page-header, .footer) { background: var(--paper); }
+html body .fizz-counters,
 html body #statsMarquee { background: var(--white); }
 html body #shaderHero { border-bottom: 1px solid var(--edge); }
 html body :is(.product-card, .cat-card, .cat-card-sm, .cert-card, .trust-tile, .fizz-counter) {
