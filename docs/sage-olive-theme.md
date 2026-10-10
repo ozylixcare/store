@@ -10,6 +10,6 @@ Validation: minified asset freshness, JavaScript syntax, existing motion regress
 
 ## White and sage surface polish
 
-Added a shared canvas with approximately equal soft-white and pure-white halves and a narrow blended seam. The home sections, introduction, statistics and footer use the aligned canvas. White navigation and cards use restrained shadows and hairlines; mobile shadows are lighter. Product artwork, text sizes, spacing, animation and commerce logic are unchanged.
+Use full-width white and soft-white sections as the customer scrolls. The introduction and footer are soft white; the statistics and bundle section are white; the main home sections alternate between the two. The previous left/right split was removed at the owner’s request. White navigation and cards use restrained shadows and hairlines; mobile shadows are lighter. Product artwork, text sizes, spacing, animation and commerce logic are unchanged.
 
 Validation: CSS compilation, 37 storefront link references, existing asset freshness and motion regression passed. This update changes only presentation. Browser visual QA remains unavailable in this session.

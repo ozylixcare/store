@@ -1,14 +1,14 @@
-/* Premium storefront canvas: half reference soft white, half pure white. */
+/* Premium storefront: alternate full-width white and soft-white sections. */
 :root {
-  --store-canvas: linear-gradient(90deg, var(--paper) 0%, var(--paper) 49%, var(--white) 51%, var(--white) 100%);
   --store-card-shadow: 0 1px 3px rgba(46,61,40,.035), 0 12px 30px rgba(46,61,40,.055);
 }
-html body { background: var(--store-canvas); }
-/* A shared viewport-width canvas keeps the split aligned between sections.
-   Only the home sections with inline solid fills need the explicit override. */
-html body #page-home > .section { background: var(--store-canvas) !important; }
-html body :is(.shader-hero, .fizz-counters, .footer),
-html body #statsMarquee { background: var(--store-canvas); }
+html body { background: var(--white); }
+/* The colour changes between sections as the customer scrolls. */
+html body #page-home > .section { background: var(--white) !important; }
+html body #page-home > .section:nth-of-type(even) { background: var(--paper) !important; }
+html body :is(.shader-hero, .page-header, .footer) { background: var(--paper); }
+html body :is(.fizz-counters, .bundle-section),
+html body #statsMarquee { background: var(--white); }
 html body #shaderHero { border-bottom: 1px solid var(--edge); }
 html body :is(.product-card, .cat-card, .cat-card-sm, .cert-card, .trust-tile, .fizz-counter) {
   background: var(--paper-hi);
