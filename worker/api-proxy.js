@@ -37,7 +37,7 @@ export async function handleApiRequest(request) {
     if (request.headers.get('Sec-Fetch-Site') === 'cross-site') return privateResponse('Origin not allowed',403);
   }
   const headers = new Headers();
-  for (const name of ['Accept','Content-Type','Authorization','Range','If-Range','X-Session-Id','X-Device-Id','X-Idempotency-Key','X-Payment-Session','X-Security-Version','X-Request-Id','X-Requested-With']) {
+  for (const name of ['User-Agent','Accept','Content-Type','Authorization','Range','If-Range','X-Session-Id','X-Device-Id','X-Idempotency-Key','X-Payment-Session','X-Security-Version','X-Request-Id','X-Requested-With']) {
     if (request.headers.has(name)) headers.set(name,request.headers.get(name));
   }
   headers.set('Origin',url.origin);

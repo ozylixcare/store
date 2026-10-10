@@ -25,7 +25,7 @@
       return path.slice(0,200);
     }
     function send(path,body,auth,proof) {
-      if(disabled() || !API) {status='disabled';return Promise.resolve(false);}
+      if(disabled() || typeof API !== 'string') {status='disabled';return Promise.resolve(false);}
       var headers={'Content-Type':'application/json'};
       if(auth) headers.Authorization='Bearer '+auth;
       if(proof) headers['X-Payment-Session']=proof;
