@@ -1,0 +1,37 @@
+/* Premium storefront canvas: half reference soft white, half pure white. */
+:root {
+  --store-canvas: linear-gradient(90deg, var(--paper) 0%, var(--paper) 49%, var(--white) 51%, var(--white) 100%);
+  --store-card-shadow: 0 1px 3px rgba(46,61,40,.035), 0 12px 30px rgba(46,61,40,.055);
+}
+html body { background: var(--store-canvas); }
+/* A shared viewport-width canvas keeps the split aligned between sections.
+   Only the home sections with inline solid fills need the explicit override. */
+html body #page-home > .section { background: var(--store-canvas) !important; }
+html body :is(.shader-hero, .fizz-counters, .footer),
+html body #statsMarquee { background: var(--store-canvas); }
+html body #shaderHero { border-bottom: 1px solid var(--edge); }
+html body :is(.product-card, .cat-card, .cat-card-sm, .cert-card, .trust-tile, .fizz-counter) {
+  background: var(--paper-hi);
+  box-shadow: 0 0 0 1px var(--edge), var(--store-card-shadow);
+}
+html body .navbar {
+  background: var(--paper-hi);
+  box-shadow: 0 0 0 1px var(--edge), 0 8px 26px rgba(46,61,40,.055);
+}
+html body .app-topbar {
+  background: var(--paper-hi);
+  box-shadow: 0 1px 0 var(--edge), 0 4px 16px rgba(46,61,40,.035);
+}
+html body .hero-banner {
+  box-shadow: 0 0 0 1px var(--edge), 0 14px 36px rgba(46,61,40,.075);
+}
+@media (hover: hover) and (pointer: fine) {
+  html body :is(.product-card, .cat-card, .cat-card-sm):hover {
+    box-shadow: 0 0 0 1px var(--edge-hi), 0 16px 34px rgba(46,61,40,.09);
+  }
+}
+@media (max-width: 600px) {
+  html body :is(.product-card, .cat-card, .cat-card-sm, .trust-tile, .fizz-counter) {
+    box-shadow: 0 0 0 1px var(--edge), 0 5px 15px rgba(46,61,40,.045);
+  }
+}
