@@ -39,7 +39,7 @@
   body.oz-checkout .vita-help-fab { display: none; }
   .vita-help-copy { display: none; }
   .vita-help-btn { width: 44px; min-height: 44px; padding: 3px; }
-  .vita-help-btn .auth-vita { width: 38px; height: 38px; transform: none; }
+  .vita-help-btn .auth-vita { width: 36px; height: 36px; transform: none; }
   .wa-chat-popup { left: auto !important; right: 12px !important; bottom: calc(var(--store-tab-height) + 66px) !important; width: min(330px, calc(100vw - 24px)); max-height: calc(100vh - 240px); max-height: calc(100dvh - 240px); }
   body.oz-product .wa-chat-popup { bottom: calc(var(--store-tab-height) + 156px) !important; }
   body.oz-checkout #ozPayBar { display: flex; bottom: var(--store-tab-height); padding-bottom: 10px; }
@@ -70,3 +70,4 @@
   .qty-tier, .qty-tier:hover, .qty-tier.best-value .qt-flag { animation: none; transform: none; }
   .qty-tier { transform-style: flat; }
 }
+
