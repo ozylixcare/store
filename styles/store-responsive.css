@@ -70,3 +70,50 @@
   .qty-tier, .qty-tier:hover, .qty-tier.best-value .qt-flag { animation: none; transform: none; }
   .qty-tier { transform-style: flat; }
 }
+
+/* The character scales with its slot; no animated part enters the text column. */
+.vita-help-btn { gap: 10px; min-height: 56px; padding: 4px 14px 4px 6px; }
+:is(.vita-help-btn, .vita-pearl-avatar, .vita-advisor-greeting) .auth-vita {
+  --vita-size: 46px;
+  position: relative; flex: 0 0 var(--vita-size);
+  width: var(--vita-size); height: var(--vita-size);
+  transform: none; overflow: hidden; isolation: isolate;
+}
+:is(.vita-help-btn, .vita-pearl-avatar, .vita-advisor-greeting) .auth-vita-body {
+  left: 8%; top: 10%; width: 72%; height: 72%;
+  animation: vita-chat-bob 3s ease-in-out 1;
+}
+:is(.vita-help-btn, .vita-pearl-avatar, .vita-advisor-greeting) .auth-vita-eyes {
+  left: 28%; top: 43%; width: 8%; height: 13%;
+  box-shadow: calc(var(--vita-size) * .235) 0 #59414d;
+}
+:is(.vita-help-btn, .vita-pearl-avatar, .vita-advisor-greeting) .auth-vita-smile {
+  left: 40%; top: 63%; width: 28%; height: 15%; border-bottom-width: 1.5px;
+}
+:is(.vita-help-btn, .vita-pearl-avatar, .vita-advisor-greeting) .auth-vita-hand {
+  right: 6%; top: 32%; width: 17%; height: 32%;
+  animation: auth-vita-wave 1.8s ease-in-out 2;
+}
+:is(.vita-help-btn, .vita-pearl-avatar, .vita-advisor-greeting) .auth-vita-shadow {
+  left: 15%; bottom: 6%; width: 62%; height: 8%;
+}
+.vita-help-copy { min-width: 0; }
+.vita-help-copy strong { white-space: nowrap; }
+.vita-chat-avatar.vita-pearl-avatar { flex: 0 0 46px; width: 46px; height: 46px; }
+.vita-chat-hdr { gap: 12px; }
+.vita-chat-hdr > .vita-chat-avatar + div,
+.wa-popup-hdr > .wa-avatar + div { flex: 1; min-width: 0; }
+.wa-avatar { flex: 0 0 40px; }
+.wa-close-popup { flex: 0 0 36px; width: 36px; height: 36px; }
+.vita-chat-name, .vita-chat-online, .wa-popup-name, .wa-popup-status,
+.vita-bubble, .wa-bubble { overflow-wrap: anywhere; }
+.vita-chat-online, .wa-popup-status { flex-wrap: wrap; }
+.vita-advisor-greeting > .auth-vita + span { min-width: 0; }
+@keyframes vita-chat-bob { 0%,100% { transform: none; } 50% { transform: translateY(-2px) rotate(-2deg); } }
+@media (max-width: 1024px) {
+  .vita-help-btn { width: 48px; height: 48px; min-height: 48px; padding: 4px; gap: 0; }
+  .vita-help-btn .auth-vita { --vita-size: 38px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.vita-help-btn, .vita-pearl-avatar, .vita-advisor-greeting) :is(.auth-vita-body, .auth-vita-hand) { animation: none; }
+}
