@@ -116,6 +116,7 @@ async function serveAdmin(request, env, url) {
 }
 
 import { isApiRequest, handleApiRequest, publicMedia } from './api-proxy.js';
+import { isPrivateAsset } from './private-assets.js';
 
 import { isCdnRequest, handleCdnRequest } from './image-cdn.js';
 
@@ -239,6 +240,10 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    if (isPrivateAsset(url.pathname)) {
+      return new Response('Not found', { status: 404, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
+    }
+
     // Enforce transport security at the Worker edge. HSTS only protects
     // repeat visitors; first-time HTTP requests must receive a redirect.
     if (url.protocol === 'http:') {
@@ -320,5 +325,6 @@ export default {
 
 // Exported for the local routing test; ignored by the Workers runtime.
 export { isSpaPath, ADMIN_HOST, ADMIN_ENTRY, handleSiteMedia, PUBLIC_CSP };
+
 
 

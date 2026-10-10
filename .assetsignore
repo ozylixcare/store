@@ -5,6 +5,14 @@
 # The Worker script itself — uploading it as an asset would also serve its
 # source at /worker/index.js.
 worker
+functions
+docs
+security
+**/*.sql
+**/*.map
+**/*.log
+**/*.bak
+**/.env*
 
 # Deploy configuration.
 wrangler.jsonc
@@ -38,3 +46,4 @@ tools/
 
 # Engineering progress is not a storefront asset.
 PROGRESS.md
+
