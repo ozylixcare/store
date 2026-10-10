@@ -25,7 +25,12 @@ export async function handleApiRequest(request) {
   if (tracking && (!TRACK_PATHS.has(path) || !['POST','OPTIONS'].includes(request.method))) return privateResponse('Not found',404);
   // Admin APIs are available only on the existing admin host and still require
   // the backend's own authentication, role checks and rate limits.
-  if (!tracking && path.startsWith('/api/admin') && url.hostname !== 'back.ozylix.com') return privateResponse('Not found',404);
+  let decodedPath;
+  try { decodedPath = decodeURIComponent(path); } catch { return privateResponse('Invalid path',400); }
+  const privileged = /^\/api\/(?:admin|owner|upload|health|analytics)(?:\/|$)/i.test(decodedPath)
+    || /^\/api\/(?:docs|canary-7f3b|settings|gemini)\/?$/i.test(decodedPath)
+    || /^\/api\/visitors\/active\/?$/i.test(decodedPath);
+  if (!tracking && privileged && url.hostname !== 'back.ozylix.com') return privateResponse('Not found',404);
   if (!['GET','HEAD','OPTIONS'].includes(request.method)) {
     const origin = request.headers.get('Origin');
     if (origin && origin !== url.origin) return privateResponse('Origin not allowed',403);
