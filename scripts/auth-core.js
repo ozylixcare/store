@@ -1727,11 +1727,6 @@ function buildProductPage(p) {
           <div class="rating-big"><div class="rv-big-num">${avg !== null ? avg.toFixed(1) : '—'}</div><div class="rv-big-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</div><div style="font-size:.72rem;color:var(--gray)">${rvs.length} reviews</div></div>
           <div style="flex:1">${[5,4,3,2,1].map(s=>{const c=rvs.filter(r=>Math.round(r.rating)===s).length;const pct=rvs.length?(c/rvs.length)*100:0;return`<div class="rv-bar-row"><span style="width:14px">${s}&#x2605;</span><div class="rv-bar-track"><div class="rv-bar-fill" style="width:${pct}%"></div></div><span>${Math.round(pct)}%</span></div>`;}).join('')}</div>
         </div>
-        <!-- Filled by renderProductReviewList() once this HTML is in the
-             DOM: ten reviews per page. Loading and
-             empty states live in there too, so there is one place that
-             decides what this list shows. -->
-        <div id="rvListWrap"></div>
         <div class="rv-form" id="rvFormWrap">
           <h3>Write a Review</h3>
           ${getCurrentUser() ? `
@@ -1752,6 +1747,11 @@ function buildProductPage(p) {
           <button class="btn-primary" style="width:100%;justify-content:center" onclick="openAuth('login')">Sign In to Write a Review</button>
           `}
         </div>
+        <!-- Filled by renderProductReviewList() once this HTML is in the
+             DOM: three reviews initially, then ten per page. Loading and
+             empty states live in there too, so there is one place that
+             decides what this list shows. -->
+        <div id="rvListWrap"></div>
       </div>
       ${tiers ? `
       <div class="tab-content" id="tab-pricing">
