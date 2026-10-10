@@ -303,7 +303,13 @@ function azTogglePw() {
 // ── Curated palettes (each carries a meaning: paper ramp, brand crimson
 //    family, ink family, and the four ambient foil flavours). ──────────
 const STORE_ED_PALETTES = [
-  { name: 'Crimson Classic', desc: 'The current Ozylix look — crimson over warm near-white.', default: true, p: {
+  { name: 'Sage & Olive', desc: 'Soft white, sage green and deep olive — the current storefront.', default: true, p: {
+      paper:'#E8E9DF', paperHi:'#FFFFFF', paperLo:'#DCE0D0', white:'#FFFFFF',
+      brand:'#2E3D28', brandDeep:'#24301F', brandHi:'#A9B887',
+      secondary:'#526346', secondaryHi:'#DAE1CC',
+      ink:'#2E3D28', inkMid:'#526346', tHi:'#2E3D28', tMid:'#526047', tLow:'#5F6855',
+      flavour1:'#2E3D28', flavour2:'#526346', flavour3:'#A9B887', flavour4:'#526346' } },
+  { name: 'Crimson Classic', desc: 'Original crimson over warm near-white.', p: {
       paper:'#F5F3F4', paperHi:'#FFFFFF', paperLo:'#E9E5E7', white:'#FFFFFF',
       brand:'#C0394A', brandDeep:'#8E2333', brandHi:'#D7535D',
       secondary:'#6B5560', secondaryHi:'#EBD9DC',
@@ -383,6 +389,8 @@ function storeEdGetDraft() {
   catch(_) { return storeEdDefaultDraft(); }
 }
 function storeEdSetDraft(draft) {
+  // An explicit editor choice can retain any palette, including Crimson Classic.
+  draft.paletteRevision = 1;
   window.localStorage.setItem(STORE_ED_DRAFT_KEY, JSON.stringify(draft));
 }
 
