@@ -8,7 +8,7 @@ try {
  const routed=await storefront.fetch(new Request('https://www.ozylix.com/api/public-reviews?limit=3'),{ASSETS:assets},{});
  assert.equal(routed.status,200);assert.equal(calls.at(-1).url,'https://backend-s7ih.onrender.com/api/public-reviews?limit=3');
  await storefront.fetch(new Request('https://www.ozylix.com/telemetry/api/track',{method:'POST',body:'{}'}),{ASSETS:assets},{});
- assert.equal(calls.at(-1).url,'https://marketing-automation-rmcb.onrender.com/api/track');
+ assert.equal(calls.at(-1).url,'https://marketing-6pyb.onrender.com/api/track');
  assert.equal((await storefront.fetch(new Request('https://www.ozylix.com/api/admin/orders'),{ASSETS:assets},{})).status,404);
  calls=[];
  const req=new Request('https://www.ozylix.com/api/checkout?provider=cashfree',{method:'POST',headers:{Origin:'https://www.ozylix.com',Authorization:'Bearer customer-token','X-Payment-Session':'payment-proof','X-Forwarded-For':'spoof','CF-Connecting-IP':'192.0.2.4','Content-Type':'application/json'},body:'{"quantity":2}'});
@@ -16,6 +16,15 @@ try {
  assert.equal(calls[0].url,'https://backend-s7ih.onrender.com/api/checkout?provider=cashfree');assert.equal(calls[0].options.headers.get('Authorization'),'Bearer customer-token');assert.equal(calls[0].options.headers.get('X-Payment-Session'),'payment-proof');assert.equal(calls[0].options.headers.get('X-Forwarded-For'),'192.0.2.4');assert.equal(await new Response(calls[0].options.body).text(),'{"quantity":2}');
  await handleApiRequest(new Request('https://www.ozylix.com/api/visitors/ping',{method:'POST',headers:{'User-Agent':'Mozilla/5.0 (iPhone) Safari/604.1','Content-Type':'application/json'},body:'{}'}));
  assert.equal(calls.at(-1).options.headers.get('User-Agent'),'Mozilla/5.0 (iPhone) Safari/604.1','visitor identity must survive the proxy for bot filtering');
+ assert.equal(calls.at(-1).url,'https://backend-s7ih.onrender.com/api/visitors/ping');
+ for (const path of ['/api/visitors/event','/api/visitors/convert']) {
+  await handleApiRequest(new Request('https://www.ozylix.com'+path,{method:'POST',body:'{}'}));
+  assert.equal(calls.at(-1).url,'https://backend-s7ih.onrender.com'+path);
+ }
+ for (const path of ['/api/visitors/active','/api/analytics/dashboard']) {
+  await handleApiRequest(new Request('https://back.ozylix.com'+path,{headers:{Authorization:'Bearer admin'}}));
+  assert.equal(calls.at(-1).url,'https://backend-s7ih.onrender.com'+path);
+ }
  const before=calls.length;assert.equal((await handleApiRequest(new Request('https://www.ozylix.com/api/reviews',{method:'POST',headers:{Origin:'https://evil.example'},body:'{}'}))).status,403);assert.equal(calls.length,before);
  for(const path of ['/api/owner/ai/snapshot','/api/upload/library','/api/health/cache','/api/analytics/realtime','/api/docs','/api/settings','/api/gemini','/api/visitors/active','/api/%61dmin/orders']){
   assert.equal((await handleApiRequest(new Request('https://www.ozylix.com'+path))).status,404,path);
@@ -30,7 +39,7 @@ try {
  assert.equal(calls.at(-1).options.headers.get('X-Requested-With'),'XMLHttpRequest','Google CSRF header must reach the backend');
  assert.equal(calls.at(-1).options.headers.get('Origin'),'https://www.ozylix.com');
  assert.equal(JSON.parse(await new Response(calls.at(-1).options.body).text()).auth_state,'state');
- await handleApiRequest(new Request('https://www.ozylix.com/telemetry/api/track',{method:'POST',body:'{}'}));assert.equal(calls.at(-1).url,'https://marketing-automation-rmcb.onrender.com/api/track');
+ await handleApiRequest(new Request('https://www.ozylix.com/telemetry/api/track',{method:'POST',body:'{}'}));assert.equal(calls.at(-1).url,'https://marketing-6pyb.onrender.com/api/track');
  globalThis.fetch=async()=>{throw Error('private upstream host detail')};const failed=await handleApiRequest(new Request('https://www.ozylix.com/api/products'));assert.equal(failed.status,502);assert.ok(!(await failed.text()).includes('upstream'));
  assert.equal(publicMedia({list:['https://example.com/image.png']}).list[0],'https://example.com/image.png');
  console.log('PASS same-origin API: auth/payment proof/body preservation, origin gate, private admin, fixed telemetry, path validation, media masking, uncached error recovery');

@@ -1,6 +1,6 @@
 // Fixed upstreams only. Client-supplied URLs can never select a destination.
 const BACKEND = 'https://backend-s7ih.onrender.com';
-const MARKETING = 'https://marketing-automation-rmcb.onrender.com';
+const MARKETING = 'https://marketing-6pyb.onrender.com';
 const TRACK_PATHS = new Set(['/api/track']);
 const METHODS = new Set(['GET','HEAD','POST','PUT','PATCH','DELETE','OPTIONS']);
 
