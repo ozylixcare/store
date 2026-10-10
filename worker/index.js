@@ -164,6 +164,7 @@ function publicHeaders(res) {
 // misses), so an in-process cache is the reliable hot path. Cold origin fetch
 // happens at most once per isolate lifetime instead of once per minute.
 const smInMem = { body: null, headers: null, expiry: 0 };
+let smPending = null;
 
 async function handleSiteMedia() {
   const now = Date.now();
@@ -179,8 +180,17 @@ async function handleSiteMedia() {
     }));
   }
 
-  // Cold isolate — fetch from Render (may include cold-start time, but only
-  // once per isolate lifetime instead of on every page load).
+  // Collapse cold and expired-cache bursts into one public origin request.
+  // Each caller gets its own response stream; only sanitized media is shared.
+  if (!smPending) {
+    const task = Promise.resolve().then(refreshSiteMedia);
+    smPending = task;
+    task.finally(() => { if (smPending === task) smPending = null; }).catch(() => {});
+  }
+  return (await smPending).clone();
+}
+
+async function refreshSiteMedia() {
   try {
     const r = await fetch(SITE_MEDIA_URL, {
       headers: { Accept: 'application/json' },
@@ -204,15 +214,15 @@ async function handleSiteMedia() {
       'Cache-Control': `public, max-age=${SITE_MEDIA_EDGE_TTL}, stale-while-revalidate=${SITE_MEDIA_STALE_TTL}`,
       'Access-Control-Allow-Origin': '*',
     };
-    smInMem.storedAt = now;
-    smInMem.expiry = now + SITE_MEDIA_EDGE_TTL * 1000;
+    smInMem.storedAt = Date.now();
+    smInMem.expiry = smInMem.storedAt + SITE_MEDIA_EDGE_TTL * 1000;
     return publicHeaders(new Response(sanitizedBody, { status: 200, headers: smInMem.headers }));
   } catch (e) {
     // Render is down or slow — fail loudly so the storefront keeps its
     // hard-coded defaults instead of painting broken banner URLs.
     return publicHeaders(new Response(JSON.stringify({ error: 'site-media unavailable' }), {
       status: 502,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' },
     }));
   }
 }
