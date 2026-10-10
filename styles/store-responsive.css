@@ -50,7 +50,15 @@
   .hero-banner-slide:hover img { transform: none; }
   .page.active input, .page.active select, .page.active textarea { font-size: 16px !important; }
 }
+/* Shop carousel fills its container; phones extend through the page gutters. */
+#page-shop #shopHero { width: 100%; }
 @media (max-width: 600px) {
+  #page-shop #shopHero {
+    width: calc(100% + var(--gutter) + var(--gutter));
+    margin-left: calc(-1 * var(--gutter));
+    margin-right: calc(-1 * var(--gutter));
+    border-radius: 0;
+  }
   .qty-tiers-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 10px; }
   .qty-tier { padding: 18px 8px 12px; }
   .qt-flag { max-width: 95%; font-size: .55rem; letter-spacing: .04em; }
