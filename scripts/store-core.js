@@ -1058,7 +1058,7 @@ async function loadProductReviews(productId, options = {}) {
     try {
       let offset = 0, all = [], payload;
       do {
-        const response = await fetch(`${API_BASE}/api/public-reviews?product_id=${encodeURIComponent(productId)}&limit=100&offset=${offset}`, {
+        const response = await fetch(`${API_BASE}/api/public-reviews?product_id=${encodeURIComponent(productId)}&limit=100&offset=${offset}${options.force ? "&fresh=1" : ""}`, {
           headers: { Accept: 'application/json' }, credentials: 'omit', cache: 'no-store',
           signal: AbortSignal.timeout(20000),
         });

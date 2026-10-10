@@ -66,3 +66,41 @@ body.oz-product .vita-help-fab { bottom: calc(84px + env(safe-area-inset-bottom,
   .ann-inner { animation: none !important; }
 }
 
+
+/* Product detail: clear purchase controls and comfortable review reading. */
+#page-product .prod-title { line-height: 1.15; letter-spacing: -.025em; }
+#page-product .prod-price-block { gap: 10px; flex-wrap: wrap; align-items: baseline; }
+#page-product .add-cart-btn,
+#page-product .buy-now-btn { min-height: 50px; border-radius: 14px; font-size: .95rem; touch-action: manipulation; }
+#page-product :is(.add-cart-btn,.buy-now-btn,.qty-btn):disabled { opacity: .5; cursor: not-allowed; transform: none; }
+#page-product :is(button,.write-rv,[role="button"]):focus-visible { outline: 2px solid var(--indigo); outline-offset: 3px; }
+#page-product .tabs { overflow-x: auto; flex-wrap: nowrap; gap: 6px; scrollbar-width: thin; }
+#page-product .tabs .tab { flex: 0 0 auto; min-height: 44px; white-space: nowrap; }
+#page-product :is(#rvListWrap,#rvFormWrap) { scroll-margin-top: 120px; }
+#page-product .rv-card { padding: 18px; margin-bottom: 12px; border: 1px solid var(--edge); border-radius: 16px; background: var(--paper-hi); box-shadow: 0 3px 14px rgba(72,62,70,.04); }
+#page-product .rv-hdr { flex-wrap: wrap; gap: 8px; }
+#page-product .rv-text { line-height: 1.75; white-space: pre-wrap; overflow-wrap: anywhere; }
+#page-product .rv-form { border: 1px solid var(--edge); border-radius: 18px; padding: 20px; background: var(--paper-hi); }
+#page-product #rvText { min-height: 130px; resize: vertical; line-height: 1.6; }
+#page-product .star-picker { display: flex; gap: 8px; flex-wrap: wrap; }
+#page-product .star-picker span { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border-radius: 10px; cursor: pointer; }
+/* Keep the coin face readable: a small 3D tilt replaces the full flip. */
+#page-product .vp3d { isolation: isolate; --vp3d-drift: 2%; }
+#page-product .vp3d:has(img[src$="coin.webp"]) picture { animation: product-coin-tilt 6s ease-in-out infinite; }
+#page-product .vp3d:has(img[src$="coin.webp"]) picture::after { display: none; }
+#page-product .vp3d img { filter: drop-shadow(0 5px 5px rgba(146,106,28,.15)); }
+@keyframes product-coin-tilt {
+  0%,100% { transform: rotateY(-12deg) rotateZ(-3deg); }
+  50% { transform: rotateY(12deg) rotateZ(3deg); }
+}
+@media (max-width: 600px) {
+  #page-product .prod-rating-row { gap: 8px; margin-bottom: 14px; }
+  #page-product .rv-summary { gap: 16px; flex-wrap: wrap; }
+  #page-product .rv-card, #page-product .rv-form { padding: 16px; }
+  #page-product .prod-features { gap: 8px; }
+  #page-product .feat-item { min-width: 0; font-size: .72rem; overflow-wrap: anywhere; }
+  #page-product .qty-discount-header { flex-wrap: wrap; gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #page-product .vp3d picture, #page-product .vp3d img { animation: none !important; transform: none; }
+}

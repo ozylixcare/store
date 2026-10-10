@@ -1410,7 +1410,7 @@ function updatePriceDisplay(productId, tierIdx) {
    A product with a few hundred reviews used to print every one of them
    into the tab, pushing the "Write a Review" form and everything below it
    miles down the page and making the tab expensive to render on a phone.
-   Three are shown up front; the rest open on request, fifty to a page.
+   Reviews are shown ten to a page, newest first.
 
    The view state lives out here, keyed by product, NOT inside
    buildProductPage — that function re-runs whenever reviews finish
@@ -1420,12 +1420,12 @@ function updatePriceDisplay(productId, tierIdx) {
    Paging re-renders only #rvListWrap. Calling buildProductPage would
    rebuild the gallery, tabs and tier table to change a list of reviews,
    and would throw away the reading position while doing it. */
-const RV_TOP_N     = 3;    // before "Read all reviews"
-const RV_PAGE_SIZE = 50;   // per page once expanded
+const RV_TOP_N     = 10;    // before "Read all reviews"
+const RV_PAGE_SIZE = 10;   // per page once expanded
 const _rvView      = {};   // productId -> { expanded, page }
 
 function rvViewState(id) {
-  if (!_rvView[id]) _rvView[id] = { expanded: false, page: 0 };
+  if (!_rvView[id]) _rvView[id] = { expanded: true, page: 0 };
   return _rvView[id];
 }
 
@@ -1437,7 +1437,7 @@ function rvCardHTML(r) {
   return `<div class="rv-card" id="review-${esc(r.id)}"><div class="rv-hdr"><div><span class="rv-name">${esc(r.user)}</span>${r.verified?'<span class="rv-verified">&#x2713; Verified</span>':''}</div><span class="rv-date">${esc(label)}</span></div><div class="rv-stars">${'&#x2605;'.repeat(starCount(r.rating))}${'&#x2606;'.repeat(5-starCount(r.rating))}</div><p class="rv-text">${esc(r.text)}</p></div>`;
 }
 
-/* Paging from the bottom of a fifty-card list leaves the reader looking at
+/* Paging from the bottom of a ten-card list leaves the reader looking at
    the end of the NEXT page. Put the top of the list back under them. */
 function rvScrollToList() {
   const w = document.getElementById('rvListWrap');
@@ -1494,7 +1494,7 @@ function renderProductReviewList(pid) {
         Showing ${start + 1}–${end} of ${total} reviews${pages > 1 ? ` &middot; page ${page + 1} of ${pages}` : ''}
       </div>
       ${pages > 1 ? `<button type="button" style="${btn}${page === 0 ? ';' + dim : ''}" ${page === 0 ? 'disabled' : ''} onclick="rvGoPage(${pid},-1)">&#x2190; Previous</button>` : ''}
-      ${pages > 1 ? `<button type="button" style="${btn}${page >= pages - 1 ? ';' + dim : ''}" ${page >= pages - 1 ? 'disabled' : ''} onclick="rvGoPage(${pid},1)">Next 50 &#x2192;</button>` : ''}
+      ${pages > 1 ? `<button type="button" style="${btn}${page >= pages - 1 ? ';' + dim : ''}" ${page >= pages - 1 ? 'disabled' : ''} onclick="rvGoPage(${pid},1)">Next 10 &#x2192;</button>` : ''}
       <button type="button" style="${btn}" onclick="rvCollapse(${pid})">Show less</button>
     </div>`;
   wrap.innerHTML = html;
@@ -1512,7 +1512,7 @@ function refreshProductReviewUI(pid) {
   if (label) label.textContent = '(' + rows.length + ' reviews)';
   const row = root.querySelector('.prod-rating-row');
   if (row) row.innerHTML = (avg === null ? '<span>No ratings yet</span>' : stars(avg)) +
-    ' <span class="review-ct">(' + rows.length + ' reviews)</span> <span class="write-rv" onclick="document.getElementById(\'rvFormWrap\').scrollIntoView({behavior:\'smooth\'})">Write a Review</span>';
+    ' <span class="review-ct">(' + rows.length + ' reviews)</span> <span class="write-rv" onclick="openProductReviews(true)">Write a Review</span>';
   const tab = root.querySelector('[onclick*="rvs"]');
   if (tab) tab.textContent = 'Reviews (' + rows.length + ')';
   const summary = root.querySelector('.rv-summary');
@@ -1681,7 +1681,7 @@ function buildProductPage(p) {
     <div>
       <div class="prod-brand">${p.brand}</div>
       <h1 class="prod-title">${p.name}</h1>
-      <div class="prod-rating-row">${avg !== null ? stars(avg) : '<span class="review-ct" style="color:var(--gray)">No ratings yet</span>'} <span class="review-ct">(${REVIEWS_LOADED[p.id] ? rvs.length + ' reviews' : 'loading reviews…'})</span> <span class="write-rv" onclick="document.getElementById('rvFormWrap').scrollIntoView({behavior:'smooth'})">Write a Review</span></div>
+      <div class="prod-rating-row">${avg !== null ? stars(avg) : '<span class="review-ct" style="color:var(--gray)">No ratings yet</span>'} <span class="review-ct">(${REVIEWS_LOADED[p.id] ? rvs.length + ' reviews' : 'loading reviews…'})</span> <span class="write-rv" onclick="openProductReviews(true)">Write a Review</span></div>
       <div class="prod-price-block">
         <span class="prod-sale" id="dynSalePrice">&#x20B9;${displayRate.toLocaleString('en-IN')}</span>
         <span class="prod-orig" id="dynOrigPrice">&#x20B9;${displayMRP.toLocaleString('en-IN')}</span>
@@ -1728,24 +1728,24 @@ function buildProductPage(p) {
           <div style="flex:1">${[5,4,3,2,1].map(s=>{const c=rvs.filter(r=>Math.round(r.rating)===s).length;const pct=rvs.length?(c/rvs.length)*100:0;return`<div class="rv-bar-row"><span style="width:14px">${s}&#x2605;</span><div class="rv-bar-track"><div class="rv-bar-fill" style="width:${pct}%"></div></div><span>${Math.round(pct)}%</span></div>`;}).join('')}</div>
         </div>
         <!-- Filled by renderProductReviewList() once this HTML is in the
-             DOM: three reviews, then fifty a page on request. Loading and
+             DOM: ten reviews per page. Loading and
              empty states live in there too, so there is one place that
              decides what this list shows. -->
         <div id="rvListWrap"></div>
         <div class="rv-form" id="rvFormWrap">
           <h3>Write a Review</h3>
           ${getCurrentUser() ? `
-          <div class="star-picker" id="starPicker">${[1,2,3,4,5].map(s=>`<span onclick="setRating(${s})" onmouseenter="previewRating(${s})" onmouseleave="clearRatingPreview()" data-s="${s}">&#x2605;</span>`).join('')}</div>
+          <div class="star-picker" id="starPicker">${[1,2,3,4,5].map(s=>`<span role="button" tabindex="0" aria-label="${s} out of 5 stars" aria-pressed="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setRating(${s})}" onclick="setRating(${s})" onmouseenter="previewRating(${s})" onmouseleave="clearRatingPreview()" data-s="${s}">&#x2605;</span>`).join('')}</div>
           <div style="font-size:.8rem;color:var(--gray);margin:6px 0 10px">Posting as <strong>${esc(getCurrentUser().name || 'You')}</strong></div>
           <!-- The server only accepts a review from someone who has bought
                this product (reviews-routes.js checks the order history), and
-               it keeps one review per person per product. Both rules used to
+               it preserves each submission. Purchase rules used to
                be invisible until the POST came back 403, which is why people
                filled the form in and were told "no" afterwards. -->
           <div style="font-size:.78rem;color:var(--t-low);margin:0 0 12px;padding:9px 12px;border-radius:var(--r-sm);background:var(--paper);box-shadow:var(--neo-in)">
-            Reviews are open to customers who have ordered this product, one per person &mdash; posting again updates your existing review.
+            Purchased this product? Share your experience. Each submission appears as a separate review, newest first.
           </div>
-          <textarea class="form-input" placeholder="Share your experience with this product..." id="rvText" oninput="this.classList.remove('field-error')"></textarea>
+          <textarea class="form-input" placeholder="Share your experience with this product..." id="rvText" maxlength="1000" aria-label="Your product review" oninput="this.classList.remove('field-error')"></textarea>
           <button class="btn-primary" style="width:100%;justify-content:center" onclick="submitReview()">Submit Review &#x1F331;</button>
           ` : `
           <p style="font-size:.85rem;color:var(--gray);margin-bottom:14px">Sign in with the account you ordered on to write a review — reviews are open to customers who have bought this product.</p>
@@ -2063,9 +2063,15 @@ function switchTab(btn, id) {
   btn.classList.add('active');
   document.getElementById('tab-' + id)?.classList.add('active');
 }
+function openProductReviews(write = false) {
+  const tab = document.querySelector('#productDetail .tab[onclick*="rvs"]');
+  if (tab) switchTab(tab, 'rvs');
+  const target = document.getElementById(write ? 'rvFormWrap' : 'rvListWrap');
+  target?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
+}
 function setRating(v) {
   selectedRating = v;
-  document.querySelectorAll('#starPicker span').forEach((s,i) => s.classList.toggle('lit', i < v));
+  document.querySelectorAll('#starPicker span').forEach((s,i) => { s.classList.toggle('lit', i < v); s.setAttribute('aria-pressed', String(i + 1 === v)); });
   document.getElementById('starPicker')?.classList.remove('field-error');
 }
 function previewRating(v) {
@@ -2111,7 +2117,7 @@ async function submitReview() {
     const rows = await loadProductReviews(product.id, { force: true });
     const pending = r.status === 'pending';
     if (!pending && (!Array.isArray(rows) || !rows.some(row => String(row.id) === String(r.id)))) {
-      throw new Error('Your review was submitted, but publication could not be confirmed. Your draft has been kept; retry to update the same review.');
+      throw new Error('Your review was submitted, but publication could not be confirmed. Refresh the review list before submitting again.');
     }
     _reviewsBatchDone = null;
     _loadProductRatingsDone = null;
@@ -2122,10 +2128,11 @@ async function submitReview() {
       // An edit keeps the review count unchanged. Show the saved review
       // immediately, even when the reader was on a later review page.
       const view = rvViewState(product.id);
-      view.expanded = false;
+      view.expanded = true;
       view.page = 0;
       refreshProductReviewUI(product.id);
       if (!pending) {
+        openProductReviews();
         const card = document.getElementById('review-' + r.id);
         card?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
       }
