@@ -47,3 +47,9 @@ tools/
 # Engineering progress is not a storefront asset.
 PROGRESS.md
 
+# Unused legacy bundles with direct infrastructure URLs; current HTML/SW use
+# store-core.min.js and auth-core.min.js instead.
+scripts/store-core-20261007-hub.min.js
+scripts/store-core-20261001-cart.min.js
+scripts/auth-core-google-20260827.min.js
+

@@ -15,6 +15,12 @@ try {
  const res=await handleApiRequest(req);assert.equal(res.status,200);assert.equal(res.headers.get('Cache-Control'),'no-store');assert.equal((await res.json()).image,'/cdn-storage/ozylix%20store/example.webp');
  assert.equal(calls[0].url,'https://backend-s7ih.onrender.com/api/checkout?provider=cashfree');assert.equal(calls[0].options.headers.get('Authorization'),'Bearer customer-token');assert.equal(calls[0].options.headers.get('X-Payment-Session'),'payment-proof');assert.equal(calls[0].options.headers.get('X-Forwarded-For'),'192.0.2.4');assert.equal(await new Response(calls[0].options.body).text(),'{"quantity":2}');
  const before=calls.length;assert.equal((await handleApiRequest(new Request('https://www.ozylix.com/api/reviews',{method:'POST',headers:{Origin:'https://evil.example'},body:'{}'}))).status,403);assert.equal(calls.length,before);
+ for(const path of ['/api/owner/ai/snapshot','/api/upload/library','/api/health/cache','/api/analytics/realtime','/api/docs','/api/settings','/api/gemini','/api/visitors/active','/api/%61dmin/orders']){
+  assert.equal((await handleApiRequest(new Request('https://www.ozylix.com'+path))).status,404,path);
+ }
+ assert.equal(calls.length,before,'privileged public-host requests must never reach backend');
+ await handleApiRequest(new Request('https://back.ozylix.com/api/upload/library',{headers:{Authorization:'Bearer admin'}}));
+ assert.equal(calls.at(-1).options.headers.get('Authorization'),'Bearer admin');
  assert.equal((await handleApiRequest(new Request('https://www.ozylix.com/api/admin/orders'))).status,404);
  assert.equal((await handleApiRequest(new Request('https://www.ozylix.com/telemetry/api/orders',{method:'POST'}))).status,404);
  assert.equal((await handleApiRequest(new Request('https://www.ozylix.com/api/%2Fsecret'))).status,400);

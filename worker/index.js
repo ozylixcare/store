@@ -116,7 +116,7 @@ async function serveAdmin(request, env, url) {
 }
 
 import { isApiRequest, handleApiRequest, publicMedia } from './api-proxy.js';
-import { isPrivateAsset } from './private-assets.js';
+import { isPrivateAsset, isAdminAsset } from './private-assets.js';
 
 import { isCdnRequest, handleCdnRequest } from './image-cdn.js';
 
@@ -250,7 +250,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    if (isPrivateAsset(url.pathname)) {
+    if (isPrivateAsset(url.pathname) || (url.hostname !== ADMIN_HOST && isAdminAsset(url.pathname))) {
       return new Response('Not found', { status: 404, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
     }
 
