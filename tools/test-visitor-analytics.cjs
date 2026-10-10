@@ -1,11 +1,11 @@
 const vm=require('node:vm'),fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
-async function setup(optout=false){
+async function setup(optout=false,api='https://backend.example.test'){
  let now=Date.now(),counter=0;const calls=[],storage=new Map(),intervals=[],events={};if(optout)storage.set('ozy_optout','1');
  const storageAPI={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)};
  const date=class extends Date {static now(){return now;}};
  const context={Date:date,Math,Promise,JSON,URLSearchParams,AbortSignal,crypto:{randomUUID:()=>`uuid-fixture-${++counter}`},localStorage:storageAPI,sessionStorage:storageAPI,navigator:{userAgent:'Mozilla/5.0 Chrome',maxTouchPoints:0},location:{pathname:'/',hostname:'www.ozylix.com',hash:'',search:''},screen:{width:390,height:850},matchMedia:()=>({matches:false}),document:{referrer:'https://www.google.com/?q=private',hidden:false,addEventListener:(e,fn)=>events['doc:'+e]=fn},setInterval:fn=>intervals.push(fn),setTimeout:fn=>fn(),fetch:async(url,opts)=>{calls.push({url,body:JSON.parse(opts.body),headers:opts.headers});return{ok:true};},_trackViewItem(){return'original-result';},_trackAddToCart(){},_trackBeginCheckout(){},_trackSearch(){},showPage(name){context.location.pathname='/'+name;},addEventListener:(e,fn)=>events[e]=fn};
  context.window=context;vm.createContext(context);vm.runInContext(fs.readFileSync(path.join(__dirname,'../scripts/visitor-analytics.js'),'utf8'),context);
- const analytics=context.createOzylixAnalytics('https://backend.example.test');
+ const analytics=context.createOzylixAnalytics(api);
  const flush=async()=>{for(let i=0;i<12;i++)await Promise.resolve();};await flush();
  return {context,calls,analytics,flush,intervals,events,storage,advance:n=>now+=n};
 }
@@ -22,6 +22,8 @@ async function setup(optout=false){
  t.context.showPage('cart');await t.flush();assert.notEqual(t.analytics.sessionId,old,'30 minute idle visit rotates');
  t.analytics.convert('order-1',999999,'cashfree','verified-proof');await t.flush();const conversion=t.calls.find(c=>c.url.endsWith('/convert'));assert.ok(conversion);assert.equal('order_value' in conversion.body,false);assert.equal(conversion.headers['X-Payment-Session'],'verified-proof');
  t.storage.set('ozy_optout','1');const before=t.calls.length;t.context._trackSearch('private search');await t.analytics.ping(true);await t.flush();assert.equal(t.calls.length,before);
+ const sameOrigin=await setup(false,'');assert.equal(sameOrigin.calls[0].url,'/api/visitors/ping');assert.equal(sameOrigin.analytics.status,'collecting');
+ const sameOriginOptout=await setup(true,'');assert.equal(sameOriginOptout.calls.length,0);
  const disabled=await setup(true);assert.equal(disabled.calls.length,0);assert.equal(disabled.analytics.status,'disabled');
  console.log('Visitor client checks passed: distinct heartbeats, duplicate routes, action hooks, privacy, session rotation, payment proof and opt-out.');
 })().catch(e=>{console.error(e);process.exitCode=1;});
