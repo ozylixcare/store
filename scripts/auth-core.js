@@ -481,6 +481,11 @@ function showPage(pg) {
   // to stay open across a navigation, so closing everything is always
   // right and is the net that makes a stuck overlay impossible.
   closeAllOverlays();
+  // Delayed marketing prompts must not follow a shopper to purchase pages.
+  document.getElementById('ozylxConsentBar')?.remove();
+  try { ozylxNotify.clear(); } catch(e) {}
+  document.getElementById('waChatPopup')?.classList.remove('open');
+  document.querySelector('.vita-help-btn')?.setAttribute('aria-expanded', 'false');
   try { closeShopFilters(); } catch (e) {}   // shop filter drawer, same rule
   document.getElementById('codOverlay')?.remove();
   // Update URL to clean path (e.g. ozylix.com/about) — no hash
@@ -493,7 +498,7 @@ function showPage(pg) {
   const PAGE_SEO = {
     home:          [
       'Glutathione Effervescent Tablets | Ozylix India',
-      'FSSAI approved effervescent vitamins from Anand, Gujarat. Glutathione, Spirulina, Moringa, ACV & Multivitamins. FSSAI Approved. Free delivery, no minimum.'
+      'FSSAI approved effervescent vitamins from Anand, Gujarat. Glutathione, Spirulina, Moringa, ACV & Multivitamins. FSSAI Approved. Delivery charges shown at checkout.'
     ],
     shop:          [
       'Shop Effervescent Vitamins & Supplements | Ozylix India',
@@ -517,7 +522,7 @@ function showPage(pg) {
     ],
     cart:          [
       'Your Cart | Ozylix – Effervescent Vitamins India',
-      'Review your Ozylix supplement order. Free delivery, no minimum. Secure UPI, card and EMI checkout. FSSAI approved, made in Anand Gujarat.'
+      'Review your Ozylix supplement order. Delivery charges shown at checkout. Secure UPI, card and EMI checkout. FSSAI approved, made in Anand Gujarat.'
     ],
     checkout:      [
       'Secure Checkout | Ozylix – Made in Gujarat India',
@@ -707,6 +712,10 @@ function findProductBySlug(slug) {
 }
 
 function openProduct(id, routeOptions) {
+  document.getElementById('ozylxConsentBar')?.remove();
+  try { ozylxNotify.clear(); } catch(e) {}
+  document.getElementById('waChatPopup')?.classList.remove('open');
+  document.querySelector('.vita-help-btn')?.setAttribute('aria-expanded', 'false');
   currentProduct = PRODUCTS.find(p => p.id === id);
   window._currentProductId = id; // track for backend sync re-render
   if (currentProduct) window._trackViewItem && window._trackViewItem(currentProduct);
@@ -751,7 +760,7 @@ function openProduct(id, routeOptions) {
   if (_ogUrl) _ogUrl.setAttribute('content', 'https://www.ozylix.com' + window.location.pathname);
   const metaDesc = document.querySelector('meta[name="description"]');
   if (metaDesc) metaDesc.setAttribute('content',
-    'Buy ' + currentProduct.name + ' at ₹' + (currentProduct.salePrice||currentProduct.price) + discText + '. ' + (currentProduct.description||'').slice(0,120) + ' Free delivery on every order.'
+    'Buy ' + currentProduct.name + ' at ₹' + (currentProduct.salePrice||currentProduct.price) + discText + '. ' + (currentProduct.description||'').slice(0,120) + ' Delivery charges shown at checkout.'
   );
   // Show the page
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1567,7 +1576,7 @@ function refreshProductReviewUI(pid) {
       { h: 'FSSAI approved', p: 'Every Ozylix product carries FSSAI approval — check the licence on-pack.' },
       { h: 'Made in Anand', p: 'Manufactured at our own facility in Anand, Gujarat — no third-party white-labelling.' },
       { h: 'Real ingredients', p: 'What is on the label is what is in the tablet: disclosed ingredients, disclosed doses.' },
-      { h: 'Free delivery', p: 'Delivered across India with no minimum order — the whole range, not just overpriced packs.' }
+      { h: 'Delivery across India', p: typeof deliveryCopy === 'function' ? deliveryCopy('policy') : 'Delivery charges and availability are confirmed at checkout.' }
     ]
   };
   function escHtml(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
@@ -1773,6 +1782,9 @@ function buildProductPage(p) {
   try { renderProductReviewList(p.id); } catch(e) {}
   try { renderProductEduGallery(p); } catch(e) {}
   try { vp3dScan(pdEl); } catch(e) {}
+  // Reviews and catalogue refreshes replace the purchase button. Observe the
+  // replacement and keep the current selection instead of retaining old nodes.
+  try { if (stickyProdId === p.id) initStickyCart(p, true); } catch(e) {}
 }
 
 // ══════════════════════════════════════════════════════════════════════
@@ -1869,13 +1881,14 @@ window.renderProductMMProgress = function (p) {
 };
 
 // Adds a tiered product to cart, recording which tier (pack size) was chosen
-function addToCartWithTier(productId) {
+function addToCartWithTier(productId, quantity) {
   const p0 = PRODUCTS.find(p => p.id === productId);
   if (!p0 || Number(p0.stock) <= 0) { showToast("This product is out of stock."); return; }
+  const qty = Math.max(1, Math.floor(Number(quantity == null ? pQty : quantity) || 1));
   const tiers = getProductTiers(p0);
   if (!tiers) {
     // No tier system — standard add to cart
-    STORE.addToCart(productId, pQty);
+    STORE.addToCart(productId, qty);
     return;
   }
   const tierIdx = currentTierIdx(p0, tiers);
@@ -1891,11 +1904,11 @@ function addToCartWithTier(productId) {
   // qty = number of BUNDLES (1 bundle = physicalPacks physical packs)
   const ex = STORE.cart.find(i => i.id === productId && i.tierIdx === tierIdx);
   if (ex) {
-    ex.qty += 1; // add 1 more bundle
+    ex.qty += qty;
   } else {
     STORE.cart.push({
       id: productId,
-      qty: 1, // 1 bundle
+      qty,
       tierIdx,
       tierTabs: tier.tabs,
       tierRate: tier.rate,         // total price for this pack bundle
@@ -2043,7 +2056,7 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 });
 
-function chQty(d) { pQty = Math.max(1, pQty + d); document.getElementById('pQtyDisp').textContent = pQty; }
+function chQty(d) { pQty = Math.max(1, pQty + d); stickyQty = pQty; document.getElementById('pQtyDisp').textContent = pQty; const e=document.getElementById('scQtyVal');if(e)e.textContent=stickyQty; }
 function switchTab(btn, id) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -2283,10 +2296,10 @@ function renderCartUpsell() {
   var seen = {};
   var ups = candidates.filter(function(p){ if(!isStoreProductActive(p)||seen[p.id])return false; seen[p.id]=true; return true; }).slice(0,4);
   if (!ups.length) return '';
-  var sub = STORE.cart.reduce(function(s,item){ var p=PRODUCTS.find(function(x){return x.id===item.id;}); if(!p)return s; var up=item.tierRate!==undefined?item.tierRate:(p.salePrice||p.price); return s+up*item.qty; }, 0);
-  var shipMsg = sub < 599
-    ? '<div style="background:linear-gradient(135deg,var(--st-warn-bg),var(--st-warn-bg));border:1px solid var(--f-mineral);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px"><span style="font-size:1.4rem">&#x1F69A;</span><div><div style="font-size:.84rem;font-weight:700;color:var(--st-warn-fg)">Add just <strong>&#8377;' + (599-sub) + '</strong> more to unlock FREE shipping!</div><div style="font-size:.74rem;color:var(--st-warn-fg);margin-top:2px">You\'re so close &#x1F382;</div></div></div>'
-    : '<div style="background:linear-gradient(135deg,var(--st-ok-bg),var(--st-ok-bg));border:1px solid var(--st-ok-fg);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px"><span style="font-size:1.4rem">&#x1F381;</span><div><div style="font-size:.84rem;font-weight:700;color:var(--st-ok-fg)">&#x1F389; FREE shipping unlocked!</div><div style="font-size:.74rem;color:var(--st-ok-fg);margin-top:2px">Your order qualifies for free delivery</div></div></div>';
+  var sub = Number(getOrderTotal().paidSubtotal) || 0;
+  var shipMsg = calcShipping(sub, 'prepaid') > 0
+    ? '<div style="background:linear-gradient(135deg,var(--st-warn-bg),var(--st-warn-bg));border:1px solid var(--f-mineral);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px"><span style="font-size:1.4rem">&#x1F69A;</span><div><div style="font-size:.84rem;font-weight:700;color:var(--st-warn-fg)">Add just <strong>&#8377;' + Math.max(0, SHIP_THRESHOLD-sub).toLocaleString('en-IN') + '</strong> more to unlock free prepaid delivery!</div><div style="font-size:.74rem;color:var(--st-warn-fg);margin-top:2px">You\'re so close &#x1F382;</div></div></div>'
+    : '<div style="background:linear-gradient(135deg,var(--st-ok-bg),var(--st-ok-bg));border:1px solid var(--st-ok-fg);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px"><span style="font-size:1.4rem">&#x1F381;</span><div><div style="font-size:.84rem;font-weight:700;color:var(--st-ok-fg)">&#x1F389; Free prepaid delivery unlocked!</div><div style="font-size:.74rem;color:var(--st-ok-fg);margin-top:2px">Your prepaid order qualifies for free delivery</div></div></div>';
   var cards = ups.map(function(p){
     var price = p.salePrice||p.price;
     var disc = p.salePrice ? Math.round((1-p.salePrice/p.price)*100) : 0;
@@ -2393,7 +2406,7 @@ function updateCodBtnNote() {
   if (!codAllowed) note.textContent = 'COD is currently unavailable';
   else if (!within && min > 0 && net < min) note.textContent = 'COD available above ₹' + min.toLocaleString('en-IN');
   else if (!within && max > 0) note.textContent = 'COD available up to ₹' + max.toLocaleString('en-IN');
-  else note.textContent = calcShipping(net, 'cod') === 0 ? '✅ Free COD on your order!' : '+₹' + calcShipping(net, 'cod') + ' COD charge · Free if order ≥ ₹' + SHIP_THRESHOLD;
+  else note.textContent = calcShipping(net, 'cod') === 0 ? 'Free COD delivery on your order' : '+₹' + calcShipping(net, 'cod') + ' COD delivery charge';
   note.style.color = calcShipping(net, 'cod') === 0 ? 'var(--st-ok-bg)' : 'rgba(255,255,255,0.85)';
 }
 
@@ -2599,7 +2612,13 @@ function hydrateBlogImgs() {
 
 // ── FAQ ──
 function renderFaqItem(f) {
-  return `<div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">${f.q}<span class="faq-icon">+</span></button><div class="faq-a"><div class="faq-a-inner">${f.a}</div></div></div>`;
+  let answer = f.a;
+  if (typeof deliveryCopy === 'function') {
+    const policy = `<span data-delivery-copy="policy">${esc(deliveryCopy('policy'))}</span>`;
+    if (f.q === 'How long does delivery take?') answer = 'Standard delivery generally takes 3–5 business days after dispatch. ' + policy + ' Dispatch is normally within 24–48 hours, with tracking sent after dispatch.';
+    if (f.q === 'Is COD available? Are there extra charges?') answer = 'Cash on Delivery is offered only when available at checkout for your PIN code. ' + policy;
+  }
+  return `<div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">${f.q}<span class="faq-icon">+</span></button><div class="faq-a"><div class="faq-a-inner">${answer}</div></div></div>`;
 }
 function renderFullFaq() {
   const el=document.getElementById('fullFaqWrap'); if(!el) return;
@@ -7277,7 +7296,7 @@ function renderSideCart() {
     ${vitaStripHTML()}
     <button class="sc-checkout-btn" onclick="closeSideCart();showPage('checkout')">🔒 Proceed to Checkout</button>
     <button class="sc-view-btn" onclick="closeSideCart();showPage('cart')">View Full Cart</button>
-    <div style="text-align:center;font-size:0.7rem;color:var(--gray);margin-top:10px">🔒 Secured by GoKwik · Free delivery on every order</div>
+    <div style="text-align:center;font-size:0.7rem;color:var(--gray);margin-top:10px">Secured by GoKwik · Delivery charges confirmed at checkout</div>
   `;
   vp3dScan(foot);
 }
@@ -7860,17 +7879,37 @@ function updateBundleSummary(){
 }
 function addBundleToCart(){const ids=Object.keys(bundleQty).map(Number);const sel=ids.map(id=>PRODUCTS.find(p=>p.id===id)).filter(isStoreProductActive);if(!sel.length){showToast('Select at least one product 🌿','error');return;}sel.forEach(p=>STORE.addToCart(p.id,bundleQty[p.id]||1));openSideCart();const totalUnits=sel.reduce((s,p)=>s+(bundleQty[p.id]||1),0);showPtsToast('Earns VitaPoints on '+totalUnits+' '+(totalUnits===1?'item':'items')+' when delivered');bundleQty={};renderBundleBuilder();updateBundleSummary();}
 
-let stickyQty=1,stickyProdId=null;
-function initStickyCart(prod){if(!prod)return;stickyProdId=prod.id;stickyQty=1;const ne=document.getElementById('scProdName'),pe=document.getElementById('scProdPrice'),qe=document.getElementById('scQtyVal');if(ne)ne.textContent=prod.name;if(pe)pe.textContent='₹'+(prod.salePrice||prod.price);if(qe)qe.textContent=1;const sc=document.getElementById('stickyCart'),ab=document.getElementById('addCartBtn');if(!sc||!ab)return;const obs=new IntersectionObserver(en=>{if(!en[0].isIntersecting){sc.style.display='flex';requestAnimationFrame(()=>{sc.style.transform='translateY(0)';});}else{sc.style.transform='translateY(100%)';setTimeout(()=>{if(sc.style.transform==='translateY(100%)')sc.style.display='none';},300);}},{threshold:0.1});obs.observe(ab);}
-function scQtyChange(d){stickyQty=Math.max(1,stickyQty+d);const e=document.getElementById('scQtyVal');if(e)e.textContent=stickyQty;}
+let stickyQty=1,stickyProdId=null,stickyObserver=null;
+function initStickyCart(prod, preserveQuantity) {
+  if (!prod) return;
+  if (stickyObserver) stickyObserver.disconnect();
+  if (!preserveQuantity || stickyProdId !== prod.id) stickyQty = 1;
+  stickyProdId = prod.id;
+  const qe = document.getElementById('scQtyVal');
+  if (qe) qe.textContent = stickyQty;
+  refreshStickyCart();
+  const sc = document.getElementById('stickyCart'), ab = document.getElementById('addCartBtn');
+  if (!sc || !ab) return;
+  stickyObserver = new IntersectionObserver(entries => {
+    if (!entries[0].isIntersecting && currentPage === 'product') {
+      sc.style.display = 'flex';
+      requestAnimationFrame(() => { sc.style.transform = 'translateY(0)'; });
+    } else {
+      sc.style.transform = 'translateY(100%)';
+      setTimeout(() => { if (sc.style.transform === 'translateY(100%)') sc.style.display = 'none'; }, 300);
+    }
+  }, {threshold:0.1});
+  stickyObserver.observe(ab);
+}
+function scQtyChange(d){stickyQty=Math.max(1,stickyQty+d);pQty=stickyQty;const e=document.getElementById('scQtyVal');if(e)e.textContent=stickyQty;const main=document.getElementById('pQtyDisp');if(main)main.textContent=stickyQty;}
 /* FIX (Aug 2026): the sticky bottom bar showed only the single-unit price
    (₹900 on Glutathione) and never changed when the customer picked a tier —
    the 60-tablet pack still said ₹900 and its Add tapped the untiered cart
    path. It now re-reads the currently selected tier on every pack change,
    shows the pack's total price with the pack size in the name, and the Add
    button records the chosen tier like the main button does. */
-function refreshStickyCart(){if(!stickyProdId)return;const p0=PRODUCTS.find(p=>p.id===stickyProdId);if(!p0)return;const tiers=typeof getProductTiers==='function'?getProductTiers(p0):null;const ne=document.getElementById('scProdName'),pe=document.getElementById('scProdPrice');if(!pe)return;const t=tiers&&tiers[selectedTiers[stickyProdId]]||null;if(t){if(ne)ne.textContent=p0.name+' — '+t.tabs+' tablets';pe.textContent='₹'+t.rate.toLocaleString('en-IN');}else{if(ne)ne.textContent=p0.name;pe.textContent='₹'+((p0.salePrice||p0.price)||0).toLocaleString('en-IN');}}
-function scAddToCart(){if(!stickyProdId)return;if(typeof addToCartWithTier==='function'){addToCartWithTier(stickyProdId);}else{STORE.addToCart(stickyProdId,stickyQty);}openSideCart();showPtsToast('Earns VitaPoints when delivered');}
+function refreshStickyCart(){if(!stickyProdId)return;const p0=PRODUCTS.find(p=>p.id===stickyProdId);if(!p0)return;const tiers=typeof getProductTiers==='function'?getProductTiers(p0):null;const ne=document.getElementById('scProdName'),pe=document.getElementById('scProdPrice');if(!pe)return;const t=tiers?tiers[currentTierIdx(p0,tiers)]:null;if(t){if(ne)ne.textContent=p0.name+' — '+t.tabs+' tablets';pe.textContent='₹'+Math.round(Number(t.rate)||0).toLocaleString('en-IN');}else{if(ne)ne.textContent=p0.name;pe.textContent='₹'+((p0.salePrice||p0.price)||0).toLocaleString('en-IN');}}
+function scAddToCart(){if(!stickyProdId)return;if(typeof addToCartWithTier==='function'){addToCartWithTier(stickyProdId,stickyQty);}else{STORE.addToCart(stickyProdId,stickyQty);}openSideCart();showPtsToast('Earns VitaPoints when delivered');}
 // Nothing is earned by adding to a cart. Points are created when the order
 // is placed (prepaid) or when the courier delivers it and collects the cash
 // (COD), and the rate is 5 per ₹100 at the base tier — so a flat "+5
@@ -7883,7 +7922,7 @@ function showPtsToast(msg){const t=document.getElementById('ptsToast');if(!t)ret
 
 document.addEventListener('DOMContentLoaded',function(){
   if(document.getElementById('bundleProdList')&&typeof PRODUCTS!=='undefined')renderBundleBuilder();
-  if(typeof addToCartWithTier==='function'){const _o=addToCartWithTier;window.addToCartWithTier=function(id){_o(id);showPtsToast('Earns VitaPoints when delivered');};}
+  if(typeof addToCartWithTier==='function'){const _o=addToCartWithTier;window.addToCartWithTier=function(id,quantity){_o(id,quantity);showPtsToast('Earns VitaPoints when delivered');};}
 });
 document.addEventListener('productPageShown',function(e){const prod=e.detail;if(!prod)return;initStickyCart(prod);renderStockUrgency(prod);/* startLiveViewers() removed — fake viewer counts are not allowed */
   // Aug 2026: contextual product popup — rotated per-product, session-limited
@@ -8216,10 +8255,12 @@ function ozylixNotifyPref() { try { return localStorage.getItem(OZ_NOTIFY_PREF_K
 function ozylixSetNotifyPref(v) { try { localStorage.setItem(OZ_NOTIFY_PREF_KEY, v); } catch(e) {} }
 function ozylixSeen(key) { try { return localStorage.getItem(OZ_NOTIFY_SEEN_KEY + '.' + key) === '1'; } catch(e) { return false; } }
 function ozylixMarkSeen(key) { try { localStorage.setItem(OZ_NOTIFY_SEEN_KEY + '.' + key, '1'); } catch(e) {} }
-function ozylixTransactional() { return ['checkout','thankyou','login','account'].indexOf(String(currentPage || '')) >= 0; }
+function ozylixTransactional() { return ['product','cart','checkout','thankyou','login','account'].indexOf(String(currentPage || '')) >= 0; }
 
-function showOzylixConsentBar() {
-  if (ozylixNotifyPref() || typeof Notification === 'undefined' || ozylixTransactional()) return;
+function showOzylixConsentBar(manual) {
+  if (typeof Notification === 'undefined' || ozylixTransactional()) return;
+  if (manual !== true && (ozylixNotifyPref() || String(currentPage) !== 'home')) return;
+  if (document.querySelector('#authOverlay.open, #sideCart.open, #appMenuDrawer.open, #appMoreDrawer.open, #waChatPopup.open')) return;
   if (document.getElementById('ozylxConsentBar')) return;
   const bar = document.createElement('div');
   bar.id = 'ozylxConsentBar';
@@ -8259,10 +8300,11 @@ async function ozylixBrowserReminder(key, body, url) {
 function ozylixScheduleReminders() {
   if (ozylixTransactional()) return;
   // Ask once after the customer has had time to read the page; this is only a consent bar.
-  if (!ozylixNotifyPref() && typeof Notification !== 'undefined') setTimeout(showOzylixConsentBar, 12000);
+  if (!ozylixNotifyPref() && typeof Notification !== 'undefined') setTimeout(showOzylixConsentBar, 60000);
   // Logged-in customer with no known local order: offer help, but only once per device/account.
   setTimeout(async function() {
     try {
+      if (ozylixTransactional()) return;
       const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
       if (!user || !user.email || ozylixSeen('no-order-' + user.email)) return;
       let orders = JSON.parse(localStorage.getItem('asc_orders') || '[]');

@@ -37,8 +37,8 @@
     var fee = (typeof SHIP_FEE !== 'undefined') ? Number(SHIP_FEE) : 0;
     var thr = (typeof SHIP_THRESHOLD !== 'undefined') ? Number(SHIP_THRESHOLD) : 599;
     return fee === 0
-      ? { t: 'Free delivery', s: 'Every order, all India' }
-      : { t: 'Free over \u20b9' + thr, s: '\u20b9' + fee + ' below that' };
+      ? { t: 'Free prepaid delivery', s: 'Charges confirmed at checkout' }
+      : { t: 'Free prepaid from \u20b9' + thr, s: '\u20b9' + fee + ' below that' };
   }
 
   var ICO = {
@@ -231,6 +231,11 @@
      The store re-renders its grids after every fetch, so re-place the
      trust rails when the DOM changes rather than only once at boot. */
   placeTrust();
+  document.addEventListener('ozylix:delivery-policy-updated', function () {
+    document.getElementById('azTrustPdp')?.remove();
+    document.getElementById('azTrustCk')?.remove();
+    placeTrust();
+  });
   var obs = new MutationObserver(function () {
     var g = document.getElementById('shopGrid');
     if (g && g.getAttribute('aria-busy') && !g.querySelector('.az-skel')) g.removeAttribute('aria-busy');

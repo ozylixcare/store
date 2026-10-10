@@ -118,6 +118,21 @@ function calcShipping(netSubtotal, paymentMethod) {
   return (Number(netSubtotal) || 0) >= SHIP_THRESHOLD ? 0 : SHIP_FEE;
 }
 function shippingIsAlwaysFree() { return !SHIP_FEE; }
+function deliveryCopy(kind) {
+  const money = value => '₹' + Number(value).toLocaleString('en-IN');
+  const free = !SHIP_FEE || !SHIP_THRESHOLD;
+  const short = free ? 'Free prepaid delivery' : 'Free prepaid delivery from ' + money(SHIP_THRESHOLD);
+  const prepaid = free ? 'Prepaid delivery is free on every order.' : 'Prepaid delivery costs ' + money(SHIP_FEE) + ' below a paid subtotal of ' + money(SHIP_THRESHOLD) + ' and is free from ' + money(SHIP_THRESHOLD) + '.';
+  const codEnabled = DELIVERY_POLICY.cod_enabled === true || DELIVERY_POLICY.cod_enabled === 'true';
+  const cod = codEnabled ? (COD_SHIP_FEE ? ' COD delivery costs ' + money(COD_SHIP_FEE) + '.' : ' COD delivery is free.') : '';
+  return kind === 'policy' ? prepaid + cod + ' Final charges and availability are shown at checkout.' : short;
+}
+function syncDeliveryCopy() {
+  document.querySelectorAll('[data-delivery-copy]').forEach(el => {
+    const text = deliveryCopy(el.getAttribute('data-delivery-copy'));
+    if (el.textContent !== text) el.textContent = text;
+  });
+}
 var DELIVERY_POLICY = { store_online: true, shipping_mode: 'paid', shipping_fee: 69, cod_shipping_fee: 69, free_shipping_threshold: 999, cod_enabled: false, cod_min_order: 0, cod_max_order: 0, cod_allowed_all_orders: true };
 function applyDeliveryPolicy(policy) {
   if (!policy || typeof policy !== 'object') return;
@@ -161,6 +176,9 @@ function loadDeliveryPolicy(options) {
     });
 }
 loadDeliveryPolicy();
+document.addEventListener('DOMContentLoaded', syncDeliveryCopy);
+document.addEventListener('ozylix:delivery-policy-updated', syncDeliveryCopy);
+syncDeliveryCopy();
 // Admin policy changes should reach already-open mobile checkout sessions.
 window.setInterval(function(){ loadDeliveryPolicy({ force: true }); }, 30000);
 document.addEventListener('visibilitychange', function(){

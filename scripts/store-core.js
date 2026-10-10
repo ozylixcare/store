@@ -64,7 +64,8 @@ window.waSync = function () {
   fab.classList.toggle('wa-hidden', hide);
   if (pop) {
     pop.classList.toggle('wa-hidden', hide);
-    if (hide) pop.classList.remove('open');
+    // Navigation closes an open support panel; only a deliberate tap reopens it.
+    pop.classList.remove('open');
     document.querySelector('.vita-help-btn')?.setAttribute('aria-expanded', String(pop.classList.contains('open') && !hide));
   }
 };
@@ -81,14 +82,7 @@ function toggleWAPopup() {
   }
 }
 
-setTimeout(() => {
-  if (!sessionStorage.getItem('wa_shown')) {
-    const popup = document.getElementById('waChatPopup');
-    if (popup) popup.classList.add('open');
-    document.querySelector('.vita-help-btn')?.setAttribute('aria-expanded', String(!!popup && !popup.classList.contains('wa-hidden')));
-    sessionStorage.setItem('wa_shown', '1');
-  }
-}, 45000);
+// Keep support available without opening a panel over product options.
 
 const _rateCounters = {};
 const _RATE_LIMITS = {
@@ -374,7 +368,10 @@ function schemaOfferFor(p, url) {
       : 'https://schema.org/OutOfStock',
     itemCondition: 'https://schema.org/NewCondition',
     seller: { '@id': 'https://www.ozylix.com/#organization' },
-    shippingDetails: SCHEMA_SHIPPING,
+    shippingDetails: { ...SCHEMA_SHIPPING, shippingRate: {
+      '@type': 'MonetaryAmount', currency: 'INR',
+      value: String(typeof calcShipping === 'function' ? calcShipping(price, 'prepaid') : 69),
+    } },
     hasMerchantReturnPolicy: SCHEMA_RETURNS,
   };
 
@@ -1276,14 +1273,17 @@ function markAllNotificationsRead(){var a=ozylixReadCenterEntries();a.forEach(fu
 function openNotificationCenter(){showPage('notifications');renderNotificationCenter()}
 
 var ozylxNotify = (function () {
-  var MAX_PER_SESSION = 3;
-  var MIN_GAP_MS = 20000;
+  var MAX_PER_SESSION = 2;
+  var MIN_GAP_MS = 60000;
   var shownCount = 0, lastAt = 0;
   var shownIds = {}, queue = [], live = null;
 
   function isTransactionalPage() {
     return (typeof currentPage === 'string') &&
-      ['checkout', 'thankyou', 'account', 'login'].indexOf(currentPage) > -1;
+      ['product', 'cart', 'checkout', 'thankyou', 'account', 'login'].indexOf(currentPage) > -1;
+  }
+  function hasOpenLayer() {
+    return !!document.querySelector('#authOverlay.open, #sideCart.open, #appMenuDrawer.open, #appMoreDrawer.open, #waChatPopup.open, #ozylxConsentBar');
   }
   function removeLive() {
     if (!live) return;
@@ -1293,7 +1293,7 @@ var ozylxNotify = (function () {
   }
   function drain() {
     var now = Date.now();
-    if (queue.length && shownCount < MAX_PER_SESSION && (now - lastAt) >= MIN_GAP_MS && !live) {
+    if (queue.length && shownCount < MAX_PER_SESSION && (now - lastAt) >= MIN_GAP_MS && !live && !isTransactionalPage() && !hasOpenLayer()) {
       var item = queue.shift();
       shownIds[item.id] = true;
       paint(item);
@@ -1329,6 +1329,7 @@ var ozylxNotify = (function () {
   }
   function eligible(item) {
     if (isTransactionalPage()) return false;
+    if (hasOpenLayer()) return false;
     if (shownCount >= MAX_PER_SESSION) return false;
     if (shownIds[item.id]) return false;
     try { if (sessionStorage.getItem('ozylix.notifyDismissed.' + item.id)) return false; } catch (e) {}

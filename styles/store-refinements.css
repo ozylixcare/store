@@ -1,0 +1,39 @@
+/* Calm, consistent shopping surfaces; retain the current brand palette. */
+.ann-inner {
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  padding: 8px 16px;
+  animation: none;
+  transform: none;
+}
+.ann-inner > span:nth-child(n+4) { display: none; }
+.app-ann-track { width: 100%; justify-content: center; animation: none !important; transform: none !important; }
+.app-ann-track > .app-ann-item:not(:nth-child(2)) { display: none; }
+#page-home #statsMarquee, #page-home .trust-bar { display: none; }
+.navbar { box-shadow: 0 3px 14px rgba(72,62,70,.07); border: 1px solid var(--edge); }
+.product-card { box-shadow: 0 3px 14px rgba(72,62,70,.06); border: 1px solid var(--edge); }
+.qty-tier { box-shadow: 0 2px 8px rgba(72,62,70,.05); }
+.qty-tier.selected { box-shadow: 0 3px 12px rgba(72,62,70,.08); }
+.nav-icon-btn svg { width: 20px; height: 20px; }
+.vita-help-btn { min-height: 44px; padding: 4px 12px 4px 6px; border-radius: 999px; box-shadow: 0 3px 12px rgba(72,62,70,.08); }
+.vita-help-btn .auth-vita { width: 36px; height: 38px; }
+.vita-help-copy > span { display: none; }
+body.oz-product .vita-help-fab { bottom: calc(84px + env(safe-area-inset-bottom,0px)); }
+.wa-chat-popup { max-width: calc(100vw - 28px); }
+.footer-parent { max-width: 34ch; }
+@media (max-width: 900px) {
+  body.oz-product .vita-help-fab { bottom: calc(134px + env(safe-area-inset-bottom,0px)); }
+}
+@media (max-width: 600px) {
+  .ann-inner { gap: 6px; padding: 7px 12px; }
+  .ann-inner > span:not(:nth-child(2)) { display: none; }
+  .ann-inner span { font-size: .7rem; }
+  .vita-help-copy { display: none; }
+  .vita-help-btn { padding: 3px; min-width: 44px; }
+  .vita-help-btn .auth-vita { width: 38px; height: 38px; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ann-inner { animation: none !important; }
+}
