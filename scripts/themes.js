@@ -9,23 +9,6 @@
   function buildCss(theme) {
     var t = theme || {};
     var p = t.palette || {};
-    // Migrate the untouched pre-sage default, including its cached copy.
-    // Custom palettes, layout choices and Store Editor previews remain editable.
-    var oldDefault = {paper:'#F5F3F4', paperHi:'#FFFFFF', paperLo:'#E9E5E7', white:'#FFFFFF', brand:'#C0394A', brandDeep:'#8E2333', brandHi:'#D7535D', secondary:'#6B5560', secondaryHi:'#EBD9DC', ink:'#16121A', inkMid:'#46404A', tHi:'#16121A', tMid:'#5A5560', tLow:'#6B6570', flavour1:'#C0394A', flavour2:'#46404A', flavour3:'#C0304A', flavour4:'#6B5560'};
-    var isOldDefault = !t.paletteRevision && (!t.style || t.style === 'default') &&
-      ['paper','brand','brandDeep','ink'].every(function (key) { return p[key] !== undefined; }) &&
-      Object.keys(p).every(function (key) {
-        return String(p[key] || '').toUpperCase() === oldDefault[key];
-      });
-    if (isOldDefault && !/[?&]preview=1/.test(location.search)) {
-      p = Object.assign({}, p, {
-        paper:'#E8E9DF', paperHi:'#FFFFFF', paperLo:'#DCE0D0', white:'#FFFFFF',
-        brand:'#2E3D28', brandDeep:'#24301F', brandHi:'#A9B887',
-        secondary:'#526346', secondaryHi:'#DAE1CC',
-        ink:'#2E3D28', inkMid:'#526346', tHi:'#2E3D28', tMid:'#526047', tLow:'#5F6855',
-        flavour1:'#2E3D28', flavour2:'#526346', flavour3:'#A9B887', flavour4:'#526346'
-      });
-    }
     var f = t.fonts || {};
     var css = [];
     // Surface
@@ -43,7 +26,7 @@
     if (p.inkMid !== undefined)   css.push('--navy:' + p.inkMid + ';');
     if (p.tHi !== undefined)      css.push('--t-hi:' + p.tHi + ';');
     if (p.tMid !== undefined)     css.push('--t-mid:' + p.tMid + ';');
-    if (p.tLow !== undefined)     css.push('--t-low:' + p.tLow + ';');
+    if (p.tLow !== undefined)     css.push('--t-low:' + p.tLow + ';--t-dim:' + p.tLow + ';');
     // Ambient flavour field (drives liquid foil + card chips)
     if (p.flavour1 !== undefined) css.push('--f-citrus:' + p.flavour1 + ';');
     if (p.flavour2 !== undefined) css.push('--f-cobalt:' + p.flavour2 + ';');
@@ -68,10 +51,16 @@
     // Ambient bubbles
     if (t.bubbles === 'off') css.push('.particle{display:none !important;}#liquidFoil{display:none;}');
     if (!css.length) return '';
-    return ':root{' + css.join('') + '}';
+    var vars = css.filter(function (x) { return x.indexOf('{') === -1; });
+    var rules = css.filter(function (x) { return x.indexOf('{') !== -1; });
+    return ':root{' + vars.join('') + '}' + rules.join('');
   }
 
-  function applyThemeCss(cssText) {
+  function applyThemeCss(theme) {
+    theme = theme && typeof theme === 'object' ? theme : {};
+    var key = theme.template === 'sage-olive' ? 'sage-olive' : 'classic';
+    document.documentElement.setAttribute('data-store-template', key);
+    var cssText = buildCss(theme);
     var el = document.getElementById('live-theme');
     if (!el) {
       el = document.createElement('style');
@@ -79,12 +68,14 @@
       document.head.appendChild(el);
     }
     el.textContent = cssText;
+    document.dispatchEvent(new CustomEvent('ozylix-theme-updated', {detail:{theme:theme}}));
   }
 
   function loadTheme() {
     try {
       var draft = null;
-      try { draft = localStorage.getItem('ozylix_theme'); } catch (_) {}
+      try { draft = JSON.parse(localStorage.getItem('ozylix_storefront_theme_draft') || localStorage.getItem('ozylix_theme') || 'null'); } catch (_) {}
+      if (!draft || typeof draft !== 'object' || !draft.palette) draft = null;
       var isPreview = /[?&]preview=1/.test(location.search);
       var cached = null;
       try {
@@ -100,8 +91,10 @@
         try { localStorage.setItem('ozylix_theme_cache', JSON.stringify({ at: Date.now(), theme: theme })); } catch (_) {}
       };
 
+      var previewKey = new URLSearchParams(location.search).get('templatePreview');
       if (isPreview && draft) use = draft;
-      applyThemeCss(buildCss(use));
+      if (isPreview && window.OzylixStoreTemplates && Object.prototype.hasOwnProperty.call(window.OzylixStoreTemplates.templates,previewKey)) use = window.OzylixStoreTemplates.makeTheme(previewKey);
+      applyThemeCss(use);
 
       // Refresh from the backend in the background; admin drafts always win.
       fetch(API + '?key=' + STORE)
@@ -109,7 +102,7 @@
         .then(function (d) {
           if (d && d.ok && d.theme && Object.keys(d.theme).length) {
             save(d.theme);
-            if (!isPreview) applyThemeCss(buildCss(d.theme));
+            if (!isPreview) applyThemeCss(d.theme);
           }
         })
         .catch(function () {});

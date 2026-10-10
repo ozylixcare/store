@@ -1,15 +1,9 @@
-# Sage and olive storefront — 10 October 2026
+# Storefront templates
 
-Reference colours: soft white #E8E9DF, sage #A9B887, deep olive #2E3D28.
+Original Crimson is the built-in default. White & Sage is an optional template with alternating full-width white and soft-white sections. Both use the same commerce workflows and responsive layout.
 
-The storefront uses soft white backgrounds, white raised cards, sage decorative chips and olive text/purchase buttons. Product artwork and the logo retain their original colours. All 37 static route shells include the updated critical colours and matching stylesheet/theme-script versions.
+In the admin panel, open Store Editor → Storefront templates, select a template and inspect the device preview, then select Save theme to publish through the existing authenticated theme API. Select Original Crimson and save to restore the original. Preview selection alone does not change the published theme.
 
-The untouched saved crimson default and its cached copy resolve to the new palette. Alternate styles, custom palettes, preview drafts and explicit Store Editor choices retain their saved values. The editor exposes Sage & Olive as its default and retains Crimson Classic. No backend theme record, environment variable or customer data is changed.
+Storefront drafts use their own storage key so the admin interface colour preference stays independent. The preview stays on the admin origin and includes phone, tablet, iPad and desktop widths. Sage surface rules are scoped to the selected template.
 
-Validation: minified asset freshness, JavaScript syntax, existing motion regression, all 37 route references, and simulated saved/cached/default/custom/editor/preview theme handling passed. WCAG text contrast is 9.45:1 for deep olive on soft white, 5.45:1 on sage, 11.57:1 for white on deep olive, 5.49:1 for body text and 4.77:1 for muted text on soft white. Browser visual QA was unavailable in this session.
-
-## White and sage surface polish
-
-Use full-width white and soft-white sections as the customer scrolls. The introduction and footer are soft white; the statistics and bundle section are white; the main home sections alternate between the two. The previous left/right split was removed at the owner’s request. White navigation and cards use restrained shadows and hairlines; mobile shadows are lighter. Product artwork, text sizes, spacing, animation and commerce logic are unchanged.
-
-Validation: CSS compilation, 37 storefront link references, existing asset freshness and motion regression passed. This update changes only presentation. Browser visual QA remains unavailable in this session.
+Device layout fixes unify the tablet navigation breakpoint, safe-area offsets, purchase bar, pack grid and support controls. The shared final stylesheet applies to every storefront route.

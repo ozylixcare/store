@@ -185,6 +185,10 @@
   <link rel="stylesheet" href="styles/admin-mobile-fix.css?v=20260930-2">
   <link rel="stylesheet" href="styles/admin-bento.css?v=20261008-3">
 <link rel="stylesheet" href="styles/liquid-buttons.css?v=20261008-5">
+<style>
+@media(max-width:1100px){#storeEdStylePanel,#storeEdContentPanel{grid-template-columns:minmax(0,1fr)!important}#page-storeeditor .page-actions{flex-wrap:wrap}#page-storeeditor .page-hdr{flex-wrap:wrap}}
+#storeEdStylePanel > *,#storeEdContentPanel > *{min-width:0}
+</style>
 </head>
 <body>
 <script>
@@ -208,7 +212,8 @@
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js" integrity="sha384-/E7xfJz9bbCsrwJAbrt9CO5JB1REPVQjuSrQT4Cpz2BQBocDVsGLB2/VMAEzYaf+" crossorigin="anonymous"></script>
 <script defer src="scripts/admin-core.min.js?v=20261008-3"></script>
 <script defer src="scripts/admin-api.min.js?v=20261008-sync-status"></script>
-<script defer src="scripts/admin-ui.min.js?v=20261010-sage-olive"></script>
+<script defer src="scripts/store-templates.js?v=20261010-device-templates"></script>
+<script defer src="scripts/admin-ui.min.js?v=20261010-device-templates"></script>
 <script defer src="scripts/admin-seo.js?v=20260930-2"></script>
 <script defer src="scripts/admin-audit.min.js?v=20261008-behaviour"></script>
 <script defer src="scripts/admin-bento.js?v=20261008-behaviour"></script>
@@ -1953,6 +1958,12 @@
     <div id="storeEdContentStatus" style="font-size:0.72rem;color:var(--text3);align-self:center;margin-left:auto;"></div>
   </div>
   <div id="storeEdStylePanel" style="display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start;">
+    <!-- Saved storefront templates -->
+    <div class="card" style="grid-column:1/-1;">
+      <div class="card-hdr"><span class="card-title">Storefront templates</span></div>
+      <p style="padding:0 14px 12px;font-size:.8rem;">Choose Original Crimson or White &amp; Sage. Preview on a phone, tablet or desktop, then select Save theme to publish. You can switch back at any time.</p>
+      <div id="storeEdTemplates" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;padding:0 14px 14px;"></div>
+    </div>
     <!-- Palette library -->
     <div class="card">
       <div class="card-hdr"><span class="card-title">🎨 Curated palettes</span></div>
@@ -1975,7 +1986,7 @@
       <div class="card" style="margin-bottom:16px;">
         <div class="card-hdr"><span class="card-title">👁️ Live preview</span><button class="btn btn-secondary btn-sm" onclick="storeEdRefreshPreview()">↺ Reload</button></div>
         <div style="padding:10px;">
-          <iframe id="storeEdPreview" src="about:blank" style="width:100%;height:520px;border:1px solid var(--border);border-radius:10px;background:#fff;"></iframe>
+          <iframe id="storeEdPreview" src="about:blank" style="width:100%;height:760px;border:1px solid var(--border);border-radius:10px;background:#fff;"></iframe>
           <div style="margin-top:8px;display:flex;gap:14px;flex-wrap:wrap;font-size:0.74rem;color:var(--text3);">
             <span>Preview runs your <strong>unsaved draft</strong> (what visitors will see after you save).</span>
             <span>Editing pickers on the right updates this preview instantly.</span>

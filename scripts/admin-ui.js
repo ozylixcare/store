@@ -303,13 +303,13 @@ function azTogglePw() {
 // ── Curated palettes (each carries a meaning: paper ramp, brand crimson
 //    family, ink family, and the four ambient foil flavours). ──────────
 const STORE_ED_PALETTES = [
-  { name: 'Sage & Olive', desc: 'Soft white, sage green and deep olive — the current storefront.', default: true, p: {
+  { name: 'Sage & Olive', desc: 'Optional white-and-sage template.', template: 'sage-olive', p: {
       paper:'#E8E9DF', paperHi:'#FFFFFF', paperLo:'#DCE0D0', white:'#FFFFFF',
       brand:'#2E3D28', brandDeep:'#24301F', brandHi:'#A9B887',
       secondary:'#526346', secondaryHi:'#DAE1CC',
       ink:'#2E3D28', inkMid:'#526346', tHi:'#2E3D28', tMid:'#526047', tLow:'#5F6855',
       flavour1:'#2E3D28', flavour2:'#526346', flavour3:'#A9B887', flavour4:'#526346' } },
-  { name: 'Crimson Classic', desc: 'Original crimson over warm near-white.', p: {
+  { name: 'Crimson Classic', desc: 'Original crimson over warm near-white.', default: true, template: 'classic', p: {
       paper:'#F5F3F4', paperHi:'#FFFFFF', paperLo:'#E9E5E7', white:'#FFFFFF',
       brand:'#C0394A', brandDeep:'#8E2333', brandHi:'#D7535D',
       secondary:'#6B5560', secondaryHi:'#EBD9DC',
@@ -376,21 +376,22 @@ const STORE_ED_PICKERS = [
 
 // ── Draft = the in-flight theme (palette + layout + fonts). Kept in
 //    localStorage so a reload does not lose an unsaved edit. ────────────
-const STORE_ED_DRAFT_KEY = 'ozylix_theme';
-const STORE_ED_THEME_API = 'https://backend-s7ih.onrender.com/api/public/theme';
+const STORE_ED_DRAFT_KEY = 'ozylix_storefront_theme_draft';
+const STORE_ED_THEME_API = '/api/public/theme';
 
 function storeEdDefaultDraft() {
-  const pal = STORE_ED_PALETTES.find(x => x.default);
-  return { palette: JSON.parse(JSON.stringify(pal.p)), radius:'default', shadows:'default',
-           bubbles:'on', fonts: { display: "'Jost', sans-serif", body: "'Schibsted Grotesk', sans-serif" } , style: 'default', combos: {}};
+  return window.OzylixStoreTemplates.makeTheme('classic');
 }
 function storeEdGetDraft() {
-  try { return JSON.parse(window.localStorage.getItem(STORE_ED_DRAFT_KEY) || 'null') || storeEdDefaultDraft(); }
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(STORE_ED_DRAFT_KEY) || 'null');
+    return saved && typeof saved === 'object' && saved.palette ? saved : storeEdDefaultDraft();
+  }
   catch(_) { return storeEdDefaultDraft(); }
 }
 function storeEdSetDraft(draft) {
   // An explicit editor choice can retain any palette, including Crimson Classic.
-  draft.paletteRevision = 1;
+  draft.paletteRevision = 2;
   window.localStorage.setItem(STORE_ED_DRAFT_KEY, JSON.stringify(draft));
 }
 
@@ -400,7 +401,24 @@ let storeEdPreviewTimer = null;
 
 // ── Page lifecycle: render pickers + palettes, sync controls to draft,
 //    fetch the live theme so the status line tells the truth. ───────────
+function renderStoreTemplates() {
+  const box = document.getElementById('storeEdTemplates');
+  if (!box) return;
+  box.innerHTML = Object.entries(window.OzylixStoreTemplates.templates).map(([key,t]) =>
+    `<button type="button" class="btn btn-secondary" aria-pressed="${storeEdDraft.template === key}" onclick="storeEdApplyTemplate('${key}')" style="text-align:left;white-space:normal;min-height:72px;${storeEdDraft.template === key ? 'border-color:var(--gold);' : ''}"><strong>${t.name}${storeEdDraft.template === key ? ' ✓' : ''}</strong><span style="display:block;font-size:.75rem;line-height:1.5;">${t.description}</span></button>`).join('');
+}
+function storeEdApplyTemplate(key) {
+  if (!Object.prototype.hasOwnProperty.call(window.OzylixStoreTemplates.templates,key)) return;
+  storeEdDraft=window.OzylixStoreTemplates.makeTheme(key);
+  storeEdSetDraft(storeEdDraft);
+  document.getElementById('storeEdPickers').innerHTML='';
+  renderStoreEditor();
+  if (window.renderStyleStrip) window.renderStyleStrip();
+  if (window.renderCombos) window.renderCombos();
+}
+
 function renderStoreEditor() {
+  renderStoreTemplates();
   // Pickers
   const box = document.getElementById('storeEdPickers');
   if (box && !box.children.length) {
@@ -428,7 +446,7 @@ function renderStoreEditor() {
     palBox.innerHTML = STORE_ED_PALETTES.map((pal, i) => `
       <button class="btn btn-secondary" style="text-align:left;padding:10px 12px;" onclick="storeEdApplyPalette(${i})">
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;">
-          ${pal.name}${pal.default ? '<span style="font-size:0.62rem;font-weight:800;color:var(--text3);border:1px solid var(--border);border-radius:4px;padding:0 5px;">LIVE</span>' : ''}
+          ${pal.name}${pal.default ? '<span style="font-size:0.62rem;font-weight:800;color:var(--text3);border:1px solid var(--border);border-radius:4px;padding:0 5px;">DEFAULT</span>' : ''}
         </div>
         <div style="display:flex;gap:3px;margin-bottom:4px;">
           ${['paper','brand','brandHi','secondary','ink','flavour1','flavour3'].map(k =>
@@ -477,6 +495,7 @@ function storeEdPickerChange(key, value) {
 function storeEdApplyPalette(i) {
   const pal = STORE_ED_PALETTES[i];
   storeEdDraft.palette = JSON.parse(JSON.stringify(pal.p));
+  storeEdDraft.template = pal.template || 'classic';
   storeEdSetDraft(storeEdDraft);
   // update color inputs
   document.querySelectorAll('[data-se-picker]').forEach(inp => {
@@ -489,6 +508,7 @@ function storeEdApplyPalette(i) {
 function storeEdApplyDefaults() {
   const pal = STORE_ED_PALETTES.find(x => x.default);
   storeEdDraft.palette = JSON.parse(JSON.stringify(pal.p));
+  storeEdDraft.template = 'classic'; storeEdDraft.style = 'default'; storeEdDraft.combos = {};
   storeEdDraft.radius = 'default'; storeEdDraft.shadows = 'default';
   storeEdDraft.bubbles = 'on';
   storeEdDraft.fonts = { display: "'Jost', sans-serif", body: "'Schibsted Grotesk', sans-serif" };
@@ -523,7 +543,7 @@ function storeEdRefreshPreview() {
   try { window.localStorage.setItem(STORE_ED_DRAFT_KEY, JSON.stringify(storeEdDraft)); } catch(_) {}
   // Demo harness rewrites happen in memory only — keep the production URL
   // here and let demo-server.js (or this block) map it when previewing:
-  var previewUrl = location.pathname.indexOf('/demo/') === 0 ? '/demo/store?preview=1&ed=' : 'https://ozylix.com/?preview=1&ed=';
+  var previewUrl = location.pathname.indexOf('/demo/') === 0 ? '/demo/store?preview=1&ed=' : '/tools/store-preview.html?ed=';
   iframe.src = previewUrl + Date.now();
 }
 
@@ -540,7 +560,7 @@ function storeEdDraftServerMatch() {
   const dp = storeEdDraft.palette || {};
   const sMatch = (storeEdDraft.style || 'default') === (storeEdServerTheme.style || 'default');
   const cMatch = JSON.stringify(storeEdDraft.combos || {}) === JSON.stringify(storeEdServerTheme.combos || {});
-  return Object.keys(dp).length > 3 && Object.keys(dp).every(k => dp[k] === sp[k]) && sMatch && cMatch;
+  return Object.keys(dp).length > 3 && Object.keys(dp).every(k => dp[k] === sp[k]) && sMatch && cMatch && (storeEdDraft.template || 'classic') === (storeEdServerTheme.template || 'classic');
 }
 
 // ── Save: PUT the draft to the backend's public theme store. Owner/
@@ -787,7 +807,11 @@ function storeEdPatchContentPreview() {
   const iframe = document.getElementById('storeEdPreview');
   if (!iframe) return;
   let doc = null;
-  try { doc = iframe.contentDocument; } catch(_) {}
+  try {
+    doc = iframe.contentDocument;
+    const deviceFrame = doc && doc.getElementById('devicePreview');
+    if (deviceFrame) doc = deviceFrame.contentDocument;
+  } catch(_) {}
   if (!doc || !doc.body || doc.body.children.length === 0) return; // iframe still loading
   const c = storeEdGetContent();
   try {
@@ -1402,6 +1426,7 @@ async function storeEdSaveContent() {
   };
   function storeEdApplyStyle(key) {
     storeEdDraft.style = key;
+    storeEdDraft.template = 'classic';
     // v10.3: templates carry their own tuned palette so one click
     // recolors the whole website (custom pickers still win afterward).
     var tpl = TEMPLATE_PALETTE[key];

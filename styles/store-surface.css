@@ -1,37 +1,37 @@
 /* Premium storefront: alternate full-width white and soft-white sections. */
-:root {
+html[data-store-template="sage-olive"] {
   --store-card-shadow: 0 1px 3px rgba(46,61,40,.035), 0 12px 30px rgba(46,61,40,.055);
 }
-html body { background: var(--white); }
+html[data-store-template="sage-olive"] body { background: var(--white); }
 /* The colour changes between sections as the customer scrolls. */
-html body #page-home > .section { background: var(--white) !important; }
-html body #page-home > .section:nth-of-type(even) { background: var(--paper) !important; }
-html body :is(.shader-hero, .page-header, .footer) { background: var(--paper); }
-html body :is(.fizz-counters, .bundle-section),
-html body #statsMarquee { background: var(--white); }
-html body #shaderHero { border-bottom: 1px solid var(--edge); }
-html body :is(.product-card, .cat-card, .cat-card-sm, .cert-card, .trust-tile, .fizz-counter) {
+html[data-store-template="sage-olive"] body #page-home > .section { background: var(--white) !important; }
+html[data-store-template="sage-olive"] body #page-home > .section:nth-of-type(even) { background: var(--paper) !important; }
+html[data-store-template="sage-olive"] body :is(.shader-hero, .page-header, .footer) { background: var(--paper); }
+html[data-store-template="sage-olive"] body :is(.fizz-counters, .bundle-section),
+html[data-store-template="sage-olive"] body #statsMarquee { background: var(--white); }
+html[data-store-template="sage-olive"] body #shaderHero { border-bottom: 1px solid var(--edge); }
+html[data-store-template="sage-olive"] body :is(.product-card, .cat-card, .cat-card-sm, .cert-card, .trust-tile, .fizz-counter) {
   background: var(--paper-hi);
   box-shadow: 0 0 0 1px var(--edge), var(--store-card-shadow);
 }
-html body .navbar {
+html[data-store-template="sage-olive"] body .navbar {
   background: var(--paper-hi);
   box-shadow: 0 0 0 1px var(--edge), 0 8px 26px rgba(46,61,40,.055);
 }
-html body .app-topbar {
+html[data-store-template="sage-olive"] body .app-topbar {
   background: var(--paper-hi);
   box-shadow: 0 1px 0 var(--edge), 0 4px 16px rgba(46,61,40,.035);
 }
-html body .hero-banner {
+html[data-store-template="sage-olive"] body .hero-banner {
   box-shadow: 0 0 0 1px var(--edge), 0 14px 36px rgba(46,61,40,.075);
 }
 @media (hover: hover) and (pointer: fine) {
-  html body :is(.product-card, .cat-card, .cat-card-sm):hover {
+  html[data-store-template="sage-olive"] body :is(.product-card, .cat-card, .cat-card-sm):hover {
     box-shadow: 0 0 0 1px var(--edge-hi), 0 16px 34px rgba(46,61,40,.09);
   }
 }
 @media (max-width: 600px) {
-  html body :is(.product-card, .cat-card, .cat-card-sm, .trust-tile, .fizz-counter) {
+  html[data-store-template="sage-olive"] body :is(.product-card, .cat-card, .cat-card-sm, .trust-tile, .fizz-counter) {
     box-shadow: 0 0 0 1px var(--edge), 0 5px 15px rgba(46,61,40,.045);
   }
 }

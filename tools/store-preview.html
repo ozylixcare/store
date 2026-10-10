@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Ozylix Device Preview</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font:14px system-ui,sans-serif;background:#eae6e8;color:#302b31}header{display:flex;gap:10px;flex-wrap:wrap;align-items:end;padding:12px;background:#fff;border-bottom:1px solid #dcd3d7}label{display:grid;gap:4px;font-size:12px;font-weight:600}select{font:inherit;font-size:16px;padding:9px;border:1px solid #dcd3d7;border-radius:8px;background:#fff;color:#302b31}main{overflow:auto;padding:12px;display:flex;justify-content:safe center;align-items:start}iframe{flex:none;border:1px solid #ccc;border-radius:12px;background:#fff;display:block}#previewStatus{margin:0;padding:0 12px 10px;font-size:12px;line-height:1.5}a{color:#8e2333}header a{margin-left:auto;align-self:center}
+</style><script defer src="/scripts/store-preview.js?v=20261010-device-templates"></script></head>
+<body><header>
+<label>Device<select id="previewDevice"><option value="360">Small phone · 360</option><option value="390" selected>Phone · 390</option><option value="768">Tablet · 768</option><option value="820">iPad · 820</option><option value="1024">iPad landscape · 1024</option><option value="1280">Desktop · 1280</option></select></label>
+<label>Page<select id="previewPage"><option value="/">Home</option><option value="/shop">Shop</option><option value="/product/glutathione-effervescent-tablet">Product</option><option value="/cart">Cart</option></select></label>
+<label>Design<select id="previewDesign"><option value="draft">Admin draft</option><option value="published">Published</option><option value="classic">Original Crimson</option><option value="sage-olive">White &amp; Sage</option></select></label>
+<a id="openStore" href="/" target="_blank" rel="noopener">Open store</a></header>
+<main><iframe id="devicePreview" title="Storefront device preview" width="390" height="844"></iframe></main>
+<p id="previewStatus" aria-live="polite">Loading device preview…</p></body></html>

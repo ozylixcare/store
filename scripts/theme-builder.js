@@ -352,12 +352,12 @@
   }
 
   // ── Design-system CSS pass (style + combos) ────────────────────
-  function applyStyleCss() {
+  function applyStyleCss(publishedTheme) {
     try {
       var isPreview = /[?&]preview=1/.test(location.search);
-      var theme = null;
+      var theme = publishedTheme || null;
       if (isPreview) {
-        try { theme = JSON.parse(localStorage.getItem('ozylix_theme') || 'null'); } catch (_) {}
+        try { theme = JSON.parse(localStorage.getItem('ozylix_storefront_theme_draft') || localStorage.getItem('ozylix_theme') || 'null'); } catch (_) {}
       }
       if (!theme) {
         try {
@@ -368,9 +368,11 @@
           }
         } catch (_) {}
       }
-      if (!theme) return;
+      if (!theme || typeof theme !== 'object') theme = {};
+      var previewKey = new URLSearchParams(location.search).get('templatePreview');
+      if (isPreview && window.OzylixStoreTemplates && Object.prototype.hasOwnProperty.call(window.OzylixStoreTemplates.templates,previewKey)) theme=window.OzylixStoreTemplates.makeTheme(previewKey);
       var extra = buildStyleCss(theme);
-      if (!extra) return;
+
       // Write to a dedicated style element so the theme loader's fetch
       // refresh (which overwrites #live-theme entirely) never erases it.
       var el = document.getElementById('live-theme-v10');
@@ -384,6 +386,8 @@
       el.textContent = extra;
     } catch (_) {}
   }
+
+  document.addEventListener('ozylix-theme-updated', function (event) { applyStyleCss(event.detail.theme); });
 
   // Re-apply the style layer after the theme loader's background fetch
   // completes (it replaces #live-theme wholesale).
