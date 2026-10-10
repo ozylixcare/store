@@ -65,6 +65,8 @@ for (const entry of fs.readdirSync(root,{recursive:true}).filter(p=>p==='index.h
   assert.ok(html.includes('data-delivery-copy="policy"'),entry);
   assert.ok(html.includes('/styles/store-refinements.css'),entry);
   assert.ok(!html.includes('an online brand of Ozylix'),entry);
+  const aiMeta=html.match(/<meta name="ai-description"[^\n]*/)?.[0];
+  assert.ok(aiMeta && /^<meta name="ai-description" content="[^"<>]*">$/.test(aiMeta),entry+' metadata must remain a plain-text attribute');
   for(const match of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) JSON.parse(match[1]);
 }
 console.log('PASS: pack price initialization/revisit, quantity, observer cleanup, live delivery policy, purchase-page prompt blocking, route shells and structured data');
