@@ -13,7 +13,9 @@ const root=path.resolve(__dirname,'..');
   const result=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,items:[...document.querySelectorAll('#page-product *, .app-topbar *, #stickyCart *')].filter(e=>{const r=e.getBoundingClientRect();return r.width&&r.height&&getComputedStyle(e).visibility!=='hidden'&&(r.left < -1||r.right>innerWidth+1)}).slice(0,25).map(e=>({tag:e.tagName,id:e.id,class:e.className,width:e.getBoundingClientRect().width})),header:document.querySelector('.app-topbar').getBoundingClientRect().toJSON(),sticky:document.querySelector('#stickyCart').getBoundingClientRect().toJSON()}));
   assert.equal(result.overflow,false,`${width}: horizontal page overflow`);assert.deepEqual(errors,[]);
   const gallery=await page.locator('#galleryMain').boundingBox();
-  if(width<=600)assert.ok(gallery.height<=301,'phone gallery should not hide purchasing details');
+  assert.ok(Math.abs(gallery.width-gallery.height)<=1,`${width}: gallery must be square`);
+  const media=await page.locator('#galleryMain > img, #galleryMain > video').first().boundingBox();
+  assert.ok(media && Math.abs(media.width-gallery.width)<=1 && Math.abs(media.height-gallery.height)<=1 && Math.abs(media.x-gallery.x)<=1 && Math.abs(media.y-gallery.y)<=1,`${width}: media must fill gallery edge to edge`);
   if(width>=700&&width<=1024){const title=await page.locator('.prod-title').boundingBox();assert.ok(title.x>gallery.x+gallery.width,'tablet details beside gallery');}
   for(let tier=0;tier<3;tier++){await page.evaluate(i=>selectTier(38,i),tier);const price=await page.locator('#scProdPrice').textContent();assert.equal(price,['₹2,097','₹1,398','₹1,048'][tier]);}
   await page.evaluate(()=>{scQtyChange(1);scAddToCart()});

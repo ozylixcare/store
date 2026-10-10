@@ -51,8 +51,6 @@
   .page.active input, .page.active select, .page.active textarea { font-size: 16px !important; }
 }
 @media (max-width: 600px) {
-  .gallery-main { height: clamp(220px, 65vw, 300px); aspect-ratio: auto; }
-  .gallery-main > img, .gallery-main > video { width: 100%; height: 100%; object-fit: contain; }
   .qty-tiers-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 10px; }
   .qty-tier { padding: 18px 8px 12px; }
   .qt-flag { max-width: 95%; font-size: .55rem; letter-spacing: .04em; }
@@ -66,8 +64,6 @@
 /* Tablet screens have enough width for product details beside the gallery. */
 @media (min-width: 700px) and (max-width: 1024px) {
   .product-page { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 20px; }
-  .gallery-main { height: clamp(280px, 40vw, 420px); aspect-ratio: auto; }
-  .gallery-main > img, .gallery-main > video { width: 100%; height: 100%; object-fit: contain; }
   .qty-tiers-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 10px; }
   .qty-tier { padding: 18px 8px 12px; }
 }
@@ -82,3 +78,41 @@
 }
 
 
+
+/* Product gallery: the frame and media share the same square bounds at every width.
+   Position media explicitly so intrinsic image dimensions cannot stretch the frame. */
+#page-product .gallery-main {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  aspect-ratio: 1 / 1;
+  padding: 0 !important;
+  overflow: hidden;
+}
+#page-product .gallery-main > img,
+#page-product .gallery-main > video,
+#page-product .gallery-main .product-cutout {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none;
+  max-height: none;
+  margin: 0 !important;
+  padding: 0 !important;
+  object-fit: cover !important;
+  object-position: center;
+  border-radius: inherit;
+  transform: none !important;
+}
+#page-product .gallery-main:has(.product-cutout)::before {
+  inset: 0;
+  border-radius: inherit;
+}
+#page-product .thumb-strip > * {
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  object-fit: cover;
+}
