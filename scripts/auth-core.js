@@ -1406,11 +1406,11 @@ function updatePriceDisplay(productId, tierIdx) {
   typeof refreshStickyCart === 'function' && refreshStickyCart();
 }
 
-/* ── PRODUCT-PAGE REVIEW LIST: 3 shown, then paged 50 at a time ──────
+/* ── PRODUCT-PAGE REVIEW LIST: 3 shown, then paged 10 at a time ──────
    A product with a few hundred reviews used to print every one of them
    into the tab, pushing the "Write a Review" form and everything below it
    miles down the page and making the tab expensive to render on a phone.
-   Reviews are shown ten to a page, newest first.
+   Reviews start with three cards, then expand to ten per page, newest first.
 
    The view state lives out here, keyed by product, NOT inside
    buildProductPage — that function re-runs whenever reviews finish
@@ -1420,12 +1420,12 @@ function updatePriceDisplay(productId, tierIdx) {
    Paging re-renders only #rvListWrap. Calling buildProductPage would
    rebuild the gallery, tabs and tier table to change a list of reviews,
    and would throw away the reading position while doing it. */
-const RV_TOP_N     = 10;    // before "Read all reviews"
+const RV_TOP_N     = 3;    // before "Read all reviews"
 const RV_PAGE_SIZE = 10;   // per page once expanded
 const _rvView      = {};   // productId -> { expanded, page }
 
 function rvViewState(id) {
-  if (!_rvView[id]) _rvView[id] = { expanded: true, page: 0 };
+  if (!_rvView[id]) _rvView[id] = { expanded: false, page: 0 };
   return _rvView[id];
 }
 
@@ -1476,7 +1476,7 @@ function renderProductReviewList(pid) {
     let html = rvs.slice(0, RV_TOP_N).map(rvCardHTML).join('');
     if (total > RV_TOP_N) {
       html += `<div style="text-align:center;margin-top:14px">
-        <button type="button" style="${btn}" onclick="rvExpand(${pid})">Read all ${total} reviews &#x2193;</button></div>`;
+        <button type="button" style="${btn}" onclick="rvExpand(${pid})">Show more reviews (${total}) &#x2193;</button></div>`;
     }
     wrap.innerHTML = html;
     return;
