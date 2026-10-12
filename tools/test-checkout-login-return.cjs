@@ -44,6 +44,8 @@ events.length = 0;
 assert.equal(context.resumeCheckoutAfterRedirect({ page: 'account', intent: 'checkout_payment', paymentMethod: 'cod' }), false);
 assert.equal(context.resumeCheckoutAfterRedirect(null), false);
 assert.deepEqual(events, []);
-assert.ok(source.includes("requireLoginForCheckout(function(){ initiateCOD(); }, 'cod')"));
-assert.ok(source.includes("requireLoginForCheckout(function(){ initiatePayment(); }, 'prepaid')"));
+const paymentSource = fs.readFileSync(require.resolve('../scripts/payment-flow.js'), 'utf8');
+assert.ok(paymentSource.includes("requireLoginForCheckout(function(){ initiateCOD(); }, 'cod')"));
+assert.ok(paymentSource.includes("requireLoginForCheckout(function(){ initiatePayment(); }, 'prepaid')"));
 console.log('Checkout redirect: COD/prepaid selection, cart/product return and missing-session gate passed');
+

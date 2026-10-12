@@ -222,22 +222,11 @@ async function refreshAccountWelcome() {
   const accPoints = document.getElementById('accVitaCount');
   if (accPoints) accPoints.textContent = points.toLocaleString('en-IN');
 
-  // Orders + savings — backend first, localStorage merged as fallback
+  // Share the current authenticated request with orders/invoices.
   let orders = [];
   const jwt = localStorage.getItem('asc_jwt') || '';
-  if (jwt) {
-    try {
-      const r = await fetchWithTimeout(API_BASE + '/api/orders/my', {
-        headers: { 'Authorization': 'Bearer ' + jwt }
-      }, 8000);
-      if (r.ok) {
-        const d = await r.json();
-        orders = (d.data || d || []).filter(function(o){
-          return (o.customer_email || '').toLowerCase().trim() === user.email.toLowerCase().trim();
-        });
-      }
-    } catch(e) { console.warn('[Welcome] orders fetch failed:', e.message); }
-  }
+  try { orders = await readAccountOrders(); }
+  catch(e) { console.warn('[Welcome] orders fetch failed:', e.message); return; }
   if (!accountSessionMatches(jwt)) return;
   if (ordersEl) ordersEl.textContent = orders.length;
   window.__appBackendOrderCount = orders.length;
@@ -265,3 +254,4 @@ async function refreshAccountWelcome() {
 window.refreshAccountWelcome = refreshAccountWelcome;
 
 })();
+

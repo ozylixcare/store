@@ -1,6 +1,8 @@
 const fs=require('node:fs'), vm=require('node:vm'), assert=require('node:assert/strict');
 const path=require('node:path');
-const src=fs.readFileSync(path.join(__dirname,'../scripts/auth-core.js'),'utf8');
+const auth=fs.readFileSync(path.join(__dirname,'../scripts/auth-core.js'),'utf8');
+const flow=fs.readFileSync(path.join(__dirname,'../scripts/payment-flow.js'),'utf8');
+const src=flow+'\n'+auth;
 function fn(n){const start=src.indexOf('function '+n+'(');assert.ok(start>=0);const end=src.indexOf('\n}',start)+2;return (src.slice(start-6,start)==='async ' ? 'async ' : '')+src.slice(start,end);}
 const data=new Map();const localStorage={getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)};
 const ctx={localStorage,atob:s=>Buffer.from(s,'base64').toString(),Date,console,setTimeout:(fn)=>fn()};vm.createContext(ctx);vm.runInContext(fn('getCurrentUser'),ctx);
@@ -13,3 +15,4 @@ let resolveOrder;const calls=[];Object.assign(ctx,{DELIVERY_POLICY:{cod_enabled:
 // Reject an order: no courier call, no locally recorded success, cart stays intact.
 const requests=[];Object.assign(ctx,{API_BASE:'https://example.invalid',AbortSignal,PRODUCTS:[{id:1,name:'Test',price:1000,salePrice:800}],getOrderTotal:()=>({disc:0,mixMatchDiscount:0,vitaOff:25}),showVitaEarned:()=>{},fetch:async(url)=>{requests.push(url);return {ok:false,status:401,json:async()=>({error:'expired'})};},showPaymentError:()=>{},PAY_METHOD_LABEL:{cod:'COD'}});Object.assign(ctx,{recoverCodSignIn:()=>{data.delete('asc_jwt');data.delete('asc_user');}});vm.runInContext(fn('finalizeOrder'),ctx);await ctx.finalizeOrder('test-only',{firstName:'Test',lastName:'User',email:'test@example.invalid'},815,'cod',40);assert.deepEqual(requests,['https://example.invalid/api/confirm-cod-order']);assert.equal(data.has('asc_orders'),false);assert.equal(ctx.STORE.cart.length,1);assert.equal(data.has('asc_jwt'),false);
 console.log('PASS: expired session gate, VitaPoints total, COD double-tap guard, rejected order preserves cart and skips courier');})().catch(e=>{console.error(e);process.exitCode=1;});
+

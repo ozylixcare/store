@@ -626,6 +626,7 @@ async function syncHomeThumbnails() {
 }
 
 let _productsSyncInFlight = null;
+let _lastProductsSnapshot = null;
 async function syncProductsFromBackend() {
   if (_productsSyncInFlight) return _productsSyncInFlight;
   _productsSyncInFlight = (async function () {
@@ -652,7 +653,10 @@ async function syncProductsFromBackend() {
       const data = await r.json();
       const products = data.data || data;
       if (Array.isArray(products)) {
+        const snapshot = JSON.stringify(products);
+        if (snapshot === _lastProductsSnapshot) return;
         if (mergeBackendProducts(products, { fullSnapshot: true }) === false) return;
+        _lastProductsSnapshot = snapshot;
 
         STORE.normalizeCartTiers();
         if (typeof renderSideCart === 'function') renderSideCart();
@@ -1048,47 +1052,34 @@ if (document.readyState === 'loading') {
   loadProductRatings();
 }
 
-const REVIEW_REQUEST_VERSION = {};
-const REVIEW_REQUEST_PENDING = {};
+// Review cards are fetched on demand; totals remain independent of each page.
+const REVIEW_META = {};
+let _featureLoaderPending = null;
+function ensureOzylixModules() {
+  if (window.OzylixModules) return Promise.resolve(window.OzylixModules);
+  if (_featureLoaderPending) return _featureLoaderPending;
+  _featureLoaderPending = new Promise((resolve,reject)=>{
+    const script = document.createElement('script');
+    script.src = '/scripts/module-loader.js?v=20261012-1';
+    script.onload = ()=>window.OzylixModules ? resolve(window.OzylixModules) : reject(new Error('Feature loader unavailable'));
+    script.onerror = ()=>{script.remove();reject(new Error('Could not load features'));};
+    document.head.appendChild(script);
+  });
+  _featureLoaderPending.catch(()=>{_featureLoaderPending=null;});
+  return _featureLoaderPending;
+}
 async function loadProductReviews(productId, options = {}) {
-  if (!options.force && REVIEW_REQUEST_PENDING[productId]) return REVIEW_REQUEST_PENDING[productId];
-  const version = (REVIEW_REQUEST_VERSION[productId] || 0) + 1;
-  REVIEW_REQUEST_VERSION[productId] = version;
-  const task = (async () => {
-    try {
-      let offset = 0, all = [], payload;
-      do {
-        const response = await fetch(`${API_BASE}/api/public-reviews?product_id=${encodeURIComponent(productId)}&limit=100&offset=${offset}${options.force ? "&fresh=1" : ""}`, {
-          headers: { Accept: 'application/json' }, credentials: 'omit', cache: 'no-store',
-          signal: AbortSignal.timeout(20000),
-        });
-        payload = await response.json();
-        if (!response.ok) throw new Error(payload.error || 'Reviews are temporarily unavailable');
-        if (!Array.isArray(payload.reviews)) throw new Error('The server returned an invalid review list');
-        if (REVIEW_REQUEST_VERSION[productId] !== version) return;
-        if (payload.has_more && !payload.reviews.length) throw new Error('Incomplete review list');
-        all.push(...payload.reviews); offset += payload.reviews.length;
-      } while (payload.has_more);
-      REVIEWS[productId] = all.map(r => ({
-        id: r.id, user: r.user_name, rating: Number(r.rating), text: r.review_text,
-        date: r.created_at, updatedAt: r.updated_at, verified: r.verified === true
-      }));
-      REVIEWS_LOADED[productId] = true;
-      if (typeof refreshProductReviewUI === 'function') refreshProductReviewUI(productId);
-      return REVIEWS[productId];
-    } catch (e) {
-      if (REVIEW_REQUEST_VERSION[productId] !== version) return;
-      if (currentProduct?.id === productId && !REVIEWS_LOADED[productId]) {
-        const wrap = document.getElementById('rvListWrap');
-        if (wrap) wrap.innerHTML = '<p>Reviews could not load. <button type="button" onclick="loadProductReviews(' + Number(productId) + ')">Retry</button></p>';
-      }
-      if (options.force) throw e;
-    } finally {
-      if (REVIEW_REQUEST_VERSION[productId] === version) delete REVIEW_REQUEST_PENDING[productId];
+  try {
+    const modules = await ensureOzylixModules();
+    await modules.load('reviews');
+    return await window.OzylixReviewData.load(productId, options);
+  } catch(error) {
+    if (currentProduct?.id === productId) {
+      const wrap = document.getElementById('rvListWrap');
+      if (wrap) wrap.innerHTML = '<p role="status">Reviews could not load. <button type="button" onclick="loadProductReviews(' + Number(productId) + ')">Retry</button></p>';
     }
-  })();
-  REVIEW_REQUEST_PENDING[productId] = task;
-  return task;
+    if (options.force) throw error;
+  }
 }
 
 const STORE = {
@@ -1417,4 +1408,5 @@ function renderProductCard(p, options = {}){
   const buyNowOnclick = `event.stopPropagation();openProduct(${p.id})`;
   return `<div class="product-card${cutoutClass}" data-product-id="${p.id}" data-image-state="${mediaState}" style="--card-flavour:${cardFlavour}" onclick="openProduct(${p.id})"><div class="p-img-wrap">${cardMedia}${safeBadge}${mediaBadge} ${maxDisc>0?`<span class="p-disc-badge">${tiers?'Up to ':'-'}${maxDisc}%</span>`:''}<div class="p-actions"><button class="btn-wishlist" onclick="event.stopPropagation();STORE.toggleWishlist(${p.id})" title="Wishlist">♡</button><button class="btn-qadd" onclick="${qAddOnclick}">${qAddLabel}</button></div></div><div class="p-info"><div class="p-brand">${safeKicker}</div><div class="p-name">${safeName}</div><div class="p-rating">${ratingDisplay}</div><div class="p-price"><span class="sale-price">${priceDisplay}</span>${(baseMRP&&baseMRP!==baseRate)?`<span class="orig-price">₹${baseMRP.toLocaleString('en-IN')}</span>`:''}</div>${tiers?`<div class="tier-offer-tag">⚡ Up to ${maxDisc.toFixed(maxDisc%1?1:0)}% OFF on larger packs${tiers[0]?.offerType==='buy_get' ? ` · ${esc(tiers[0].label || `Buy ${tiers[0].buyQuantity||1} Get ${tiers[0].freeQuantity||0}`)}` : ''}</div>`:safeOffer}<div class="p-enter" aria-hidden="true">Shop now<svg viewBox="0 0 15 8" fill="none"><path d="M0 4h13M9.5 1L13 4l-3.5 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div><div class="p-buyrow"><button class="btn-buynow" onclick="${buyNowOnclick}">⚡ Buy Now</button></div></div>`;
 }
+
 
