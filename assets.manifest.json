@@ -3,15 +3,18 @@
   "scripts/admin-audit.js": "e9a2c1da49f37df8",
   "scripts/admin-core.js": "56f52de075e8bf68",
   "scripts/admin-ui.js": "8e20e9908e2a4876",
-  "scripts/auth-core.js": "5fa05f21aba91a2c",
+  "scripts/auth-core.js": "df52328c01f43dfe",
   "scripts/banners.js": "85dc21af1a670697",
   "scripts/invoice-renderer.js": "2c416c813833b1fe",
   "scripts/seo-core.js": "99ce3f0bc9aa614c",
-  "scripts/store-core.js": "46cde4a2c8e1e9f6",
+  "scripts/store-core.js": "82e111106559c5df",
   "scripts/theme-builder.js": "5d0eceb296735717",
   "styles/admin-main.css": "063bf10f95877ca6",
   "styles/admin-palettes.css": "605130aa31169755",
   "styles/admin-reference-os.css": "cfdb010ea21c080e",
   "styles/store-account-mobile.css": "54e09753a28c7bc3",
-  "styles/store-main.css": "a739921ec1f1dcb4"
+  "styles/store-main.css": "a739921ec1f1dcb4",
+  "scripts/blog-page.js": "c5cd708a9be23b51",
+  "scripts/payment-flow.js": "eca60ee51e286f95",
+  "scripts/account-page.js": "35f98459d06d2a31"
 }

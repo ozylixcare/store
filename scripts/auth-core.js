@@ -95,239 +95,6 @@
 // Ozylix – Main Application
 
 // ── BLOG DATA ──
-const BLOGS = [
-  // ── Category 1: Skin & Glow ──
-  { id:1,  tag:"Skin Glow",
-    title:"The 30-Day Glutathione Glow: What to Expect Week-by-Week",
-    excerpt:"A science-backed timeline of results from Ozylix's 650mg L-Glutathione with L-Cysteine and Astaxanthin — week by week, from first fizz to visible skin brightening.",
-    img:"https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=600&q=80",
-    date:"Jan 15, 2026", readTime:"6 min read", author:"Dr. Ananya Gupta",
-    relatedProduct:1 },
-
-  { id:2,  tag:"Hyperpigmentation",
-    title:"Why Your Face Serum Isn't Working: The Internal Approach to Hyperpigmentation",
-    excerpt:"Topical creams treat the surface. Glutathione with Vitamin C tackles melanin synthesis from within — here's why internal supplementation changes everything.",
-    img:"https://images.unsplash.com/photo-1552693673-1bf958298935?w=600&q=80",
-    date:"Jan 22, 2026", readTime:"7 min read", author:"Dr. Kavita Sharma",
-    relatedProduct:1 },
-
-  { id:3,  tag:"Effervescent Science",
-    title:"Effervescent vs. Capsules: Why 'Fizzy' Glutathione Absorbs 3x Faster",
-    excerpt:"Bioavailability research explains why Ozylix's effervescent format reaches your bloodstream 3× faster than traditional capsules or softgels.",
-    img:"https://images.unsplash.com/photo-1587854680352-936b22b91030?w=600&q=80",
-    date:"Feb 1, 2026", readTime:"6 min read", author:"Dr. Sanjay Mehta",
-    relatedProduct:1 },
-
-  { id:4,  tag:"Bridal Wellness",
-    title:"The Ultimate Bridal Supplement Routine: 3 Months to Radiant Wedding Skin",
-    excerpt:"India's wedding season demands glowing skin. A 12-week supplement stack — Glutathione, B12+Biotin, and Vitamin C — for brides across Gujarat and beyond.",
-    img:"https://images.unsplash.com/photo-1519741497674-611481863552?w=600&q=80",
-    date:"Feb 10, 2026", readTime:"8 min read", author:"Dr. Kavita Sharma",
-    relatedProduct:4 },
-
-  { id:5,  tag:"Anti-Pollution",
-    title:"Pollution vs. Skin: How Antioxidants Shield Urban Indian Skin",
-    excerpt:"Delhi, Mumbai, Bangalore — pollution accelerates skin ageing by 10 years. Astaxanthin and Glutathione form a protective antioxidant shield against smog damage.",
-    img:"https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&q=80",
-    date:"Feb 18, 2026", readTime:"5 min read", author:"Dr. Ananya Gupta",
-    relatedProduct:1 },
-
-  // ── Category 2: Superfoods & Superpowers ──
-  { id:6,  tag:"Superfood Guide",
-    title:"Spirulina vs. Moringa: Which 'Green Superfood' Does Your Body Need More?",
-    excerpt:"Both are nutritional powerhouses — but Spirulina leads on protein and B12 while Moringa wins on iron and antioxidants. A complete comparison to help you choose.",
-    img:"https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80",
-    date:"Mar 1, 2026", readTime:"7 min read", author:"Nutritionist Priya Rao",
-    relatedProduct:10 },
-
-  { id:7,  tag:"Vegan Nutrition",
-    title:"The Vegan B12 Crisis in India: How Spirulina Bridges the Nutritional Gap",
-    excerpt:"Over 47% of Indian vegetarians are B12 deficient. Ozylix's Certified Organic Spirulina with D3 is the plant-based answer — no animal products, full absorption.",
-    img:"https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&q=80",
-    date:"Mar 8, 2026", readTime:"6 min read", author:"Dr. Sanjay Mehta",
-    relatedProduct:10 },
-
-  { id:8,  tag:"Hair Growth",
-    title:"Moringa for Hair Growth: The 'Miracle Tree' Secret to Thicker Hair",
-    excerpt:"Moringa contains sulphur-rich amino acids that directly feed hair follicles. Combined with Biotin in effervescent form — results come faster than you'd expect.",
-    img:"https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&q=80",
-    date:"Mar 15, 2026", readTime:"6 min read", author:"Nutritionist Meera Iyer",
-    relatedProduct:4 },
-
-  { id:9,  tag:"Fitness Recovery",
-    title:"Post-Workout Recovery: Why Spirulina is the Natural Alternative to Synthetic BCAAs",
-    excerpt:"Spirulina contains all essential amino acids, phycocyanin, and iron. For plant-based athletes, Ozylix's VitaPlus Spirulina is the clean recovery choice.",
-    img:"https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&q=80",
-    date:"Mar 22, 2026", readTime:"7 min read", author:"Fitness Expert Rohit Shah",
-    relatedProduct:10 },
-
-  { id:10, tag:"Weight Management",
-    title:"Ancient Wisdom, Modern Format: Why We Combined ACV with Moringa",
-    excerpt:"Apple Cider Vinegar with Garcinia Cambogia and Moringa Leaf Extract — the story behind Ozylix's Green Apple effervescent and why it outperforms plain ACV.",
-    img:"https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=600&q=80",
-    date:"Mar 29, 2026", readTime:"7 min read", author:"Nutritionist Priya Rao",
-    relatedProduct:2 },
-
-  // ── Category 3: Urban Wellness & Lifestyle ──
-  { id:11, tag:"Productivity",
-    title:"The 'Sluggish Morning' Fix: A Supplement Routine for High-Performance Professionals",
-    excerpt:"Corporate India runs on caffeine. Here's a smarter morning stack — L-Carnitine, Vitamin C+Moringa, and B12+Biotin — that delivers sustainable all-day energy.",
-    img:"https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=600&q=80",
-    date:"Apr 5, 2026", readTime:"6 min read", author:"Wellness Expert Rahul Verma",
-    relatedProduct:3 },
-
-  { id:12, tag:"Eye Health",
-    title:"Screen Time & Eye Strain: Can Superfoods Save Your Vision in 2026?",
-    excerpt:"The average Indian professional spends 11+ hours on screens. Astaxanthin and Spirulina's zeaxanthin protect the macula from blue light damage.",
-    img:"https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&q=80",
-    date:"Apr 12, 2026", readTime:"5 min read", author:"Dr. Sanjay Mehta",
-    relatedProduct:10 },
-
-  { id:13, tag:"Metabolic Health",
-    title:"Metabolic Flexibility: How Apple Cider Vinegar Effervescent Prevents 3 PM Brain Fog",
-    excerpt:"Post-lunch blood sugar crashes cause 3 PM brain fog. ACV with Moringa and B-vitamins stabilises glucose metabolism and keeps cognition sharp all afternoon.",
-    img:"https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&q=80",
-    date:"Apr 19, 2026", readTime:"6 min read", author:"Nutritionist Priya Rao",
-    relatedProduct:2 },
-
-  { id:14, tag:"Deficiency Alert",
-    title:"The Silent Epidemic: Why 70% of Indians Are Vitamin D & B12 Deficient",
-    excerpt:"You can live in a sunny country and still be severely deficient. This is why urban Indians need targeted daily supplementation — and which Ozylix products help most.",
-    img:"https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=600&q=80",
-    date:"Apr 26, 2026", readTime:"8 min read", author:"Dr. Kavita Sharma",
-    relatedProduct:8 },
-
-  { id:15, tag:"Gut-Skin Axis",
-    title:"Gut-Skin Axis: Why Your Digestion Is the Key to Clear Skin",
-    excerpt:"Leaky gut triggers systemic inflammation that shows up on your face. Moringa, ACV and zinc-rich effervescents repair the gut lining from within.",
-    img:"https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=600&q=80",
-    date:"May 3, 2026", readTime:"7 min read", author:"Dr. Ananya Gupta",
-    relatedProduct:2 },
-
-  // ── Category 4: B2B & Manufacturing ──
-  { id:16, tag:"Gujarat Manufacturing",
-    title:"Anand: Why India's 'Milk Capital' Is Becoming the Global Hub for Nutraceuticals",
-    excerpt:"Ozylix's FSSAI approved plant in Anand, Gujarat sits at the centre of India's emerging nutraceutical corridor — here's why it matters for global quality.",
-    img:"https://images.unsplash.com/photo-1581092921461-39b392021a78?w=600&q=80",
-    date:"May 10, 2026", readTime:"6 min read", author:"Ozylix Team" },
-
-  { id:17, tag:"Private Label",
-    title:"How to Start Your Own Supplement Brand in India: A Step-by-Step Guide to Private Labeling",
-    excerpt:"From FSSAI registration to formulation, packaging and launch — Ozylix's B2B arm handles everything for aspiring supplement entrepreneurs across India.",
-    img:"https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80",
-    date:"May 17, 2026", readTime:"9 min read", author:"Ozylix B2B Team" },
-
-  { id:18, tag:"Manufacturing Science",
-    title:"The Science of Solubility: What Goes into Making a World-Class Effervescent Tablet?",
-    excerpt:"pH balance, CO₂ release rate, citric acid ratios and coating technology — an inside look at how Ozylix's FSSAI approved plant formulates effervescents that actually work.",
-    img:"https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=600&q=80",
-    date:"May 24, 2026", readTime:"7 min read", author:"Dr. Sanjay Mehta" },
-
-  { id:19, tag:"Global Exports",
-    title:"Exporting Health: Why Indian Supplements Are Taking Over Global Markets in 2026",
-    excerpt:"India's nutraceutical exports crossed $6 billion in 2025. FSSAI licensed manufacturers from Gujarat are leading the charge — and Ozylix is part of that story.",
-    img:"https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=600&q=80",
-    date:"May 28, 2026", readTime:"6 min read", author:"Ozylix Team" },
-
-  { id:20, tag:"Sustainability",
-    title:"Sustainable Supplementation: How Ozylix Supports Local Farmers in Gujarat",
-    excerpt:"Ozylix's Moringa and Spirulina are ethically sourced from certified farms across Gujarat. Here's our commitment to sustainable, local, and traceable nutrition.",
-    img:"https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&q=80",
-    date:"Jun 4, 2026", readTime:"5 min read", author:"Ozylix Team" },
-  // ── Category 5: Ozylix Company & Customer Journey ──
-  { id:21, tag:"Factory to Home", slug:"from-ozylix-factory-to-your-home",
-    title:"From the Ozylix Factory to Your Home",
-    excerpt:"Discover Ozylix’s direct-to-consumer factory-to-home story, including product information, ordering, delivery, and customer support.",
-    img:"/assets/blog/ozylix-factory-to-home.webp", alt:"Ozylix effervescent supplement tubes representing the brand’s factory-to-home model",
-    date:"Aug 15, 2026", readTime:"5 min read", author:"Ozylix Editorial Team",
-    metaTitle:"From the Ozylix Factory to Your Home | Ozylix",
-    metaDescription:"Learn how Ozylix presents its Indian supplement range through a direct factory-to-home shopping model.",
-    bodyHtml:`
-      <p>When people search for a wellness brand, they want to know where a product comes from, how it reaches them, how they can contact the company, and whether the brand explains its purpose clearly. Ozylix presents a direct-to-consumer supplement experience built around its own factory-to-home story: products are introduced through the Ozylix storefront and delivered through the company’s online ordering journey.</p>
-      <p>Ozylix’s public catalogue includes effervescent vitamins, spirulina products, moringa products, and other nutraceutical formats. The factory-to-home message gives that catalogue a clear customer journey: discover a product, read its information, place an order, and receive it through Ozylix’s support and delivery process.</p>
-      <h3>What “factory to home” means</h3>
-      <p>“Factory to home” describes Ozylix’s intended direct customer journey, not a promise about every delivery route or order. The company’s public information presents an Indian manufacturing story and a direct online storefront. Customers should still read the product label, order confirmation, shipping policy, and support information for the details that apply to their purchase.</p>
-      <p>A company story is only one part of a purchasing decision. Readers should also check the product name, serving instructions, ingredient list, allergen information, storage guidance, batch or lot information, and the contact details printed on the packaging. People who take medicines, are pregnant or breastfeeding, have a medical condition, or are preparing for a procedure should discuss supplement use with a qualified healthcare professional.</p>
-      <p>Explore the <a href="/about">Ozylix About page</a>, browse the <a href="/shop">current product range</a>, review the <a href="/faq">FAQs</a>, or <a href="/contact">contact the team</a> with a product or order question.</p>
-      <p><strong>Important:</strong> Dietary supplements are not a substitute for professional medical advice. Always follow the product label and current website terms.</p>` },
-
-  { id:22, tag:"Gujarat Manufacturing", slug:"ozylix-supplement-manufacturing-anand-gujarat",
-    title:"Made in Anand, Gujarat: How Ozylix Approaches Supplement Manufacturing",
-    excerpt:"Explore Ozylix’s public manufacturing story in Anand, Gujarat, its factory-to-home model, and the importance of clear product information.",
-    img:"/assets/blog/ozylix-quality-you-can-trust.webp", alt:"Ozylix supplement tube displayed with an Anand, Gujarat manufacturing story",
-    date:"Aug 15, 2026", readTime:"6 min read", author:"Ozylix Editorial Team",
-    metaTitle:"Made in Anand, Gujarat: Ozylix Supplement Manufacturing",
-    metaDescription:"Explore Ozylix’s public manufacturing story in Anand, Gujarat, including its factory-to-home model and clear product information.",
-    bodyHtml:`
-      <p>Anand, Gujarat is part of Ozylix’s public identity. The brand’s website presents Ozylix as a direct-to-consumer wellness brand and identifies Anand as the location associated with its manufacturing story. For customers, the location matters because origin is one of the first questions people ask when they compare supplement brands online.</p>
-      <p>A manufacturing story is most valuable when it goes beyond a photograph or a slogan. It should explain the relationship between the facility, product format, quality checks, packaging, and customer support, while distinguishing what is verified from what is aspirational. Ozylix can build trust by keeping that explanation specific and current.</p>
-      <h3>From location to process</h3>
-      <p>“Made in India” gives a product an origin, but it does not by itself explain how a product was formulated, tested, packed, stored, or shipped. Customers should use the product page and packaging to review ingredients, serving information, warnings, storage instructions, and other details relevant to the specific product.</p>
-      <p>Effervescent products are designed to be dissolved in water before consumption. That creates practical questions about moisture protection, tube closure, serving instructions, and storage. The most useful manufacturing communication answers those questions using the product label rather than making broad statements about absorption or guaranteed results.</p>
-      <h3>A quality story is a documentation story</h3>
-      <p>Ozylix’s public site uses phrases such as FSSAI licensed, lab tested, and third-party tested in its company narrative. Those phrases should always be read together with the exact licence or testing documentation and the scope of the claim. A facility approval is not the same as approval of a medical treatment, and a supplement should not be presented as preventing, treating, or curing a disease.</p>
-      <p>Visit the <a href="/about">About page</a> for company information, use the <a href="/shop">Shop</a> for current availability, or <a href="/contact">contact Ozylix</a> with manufacturing or product questions.</p>
-      <p><strong>Important:</strong> Consumers who take medicines or have health concerns should speak with a healthcare professional before using a new supplement.</p>` },
-
-  { id:23, tag:"Effervescent Guide", slug:"how-to-choose-effervescent-vitamins-india",
-    title:"How to Choose an Effervescent Vitamin Supplement in India",
-    excerpt:"A practical checklist for comparing effervescent vitamin supplements in India, from labels and storage to company transparency and support.",
-    img:"/assets/blog/ozylix-grand-launch-effervescent-vitamins.webp", alt:"Ozylix effervescent vitamin tubes shown in a product-format guide",
-    date:"Aug 15, 2026", readTime:"6 min read", author:"Ozylix Editorial Team",
-    metaTitle:"How to Choose Effervescent Vitamin Supplements in India | Ozylix",
-    metaDescription:"Use this practical checklist to compare effervescent vitamin supplements in India, including labels, storage, support, and product information.",
-    bodyHtml:`
-      <p>Effervescent supplements are designed to be dissolved in water before they are consumed. The format can be convenient for people who prefer a drinkable routine, but convenience should not replace careful product selection. Before buying an effervescent vitamin supplement in India, compare the label, company information, instructions, storage requirements, and support available after purchase.</p>
-      <h3>Start with the product label</h3>
-      <p>The label is the most important source of information for a specific supplement. Check the product name, serving size, ingredient list, quantity per tube or pack, directions for use, storage instructions, warnings, manufacturer or marketer details, and batch information. If a product is intended to be dissolved in water, follow the stated volume and preparation instructions.</p>
-      <p>A company webpage can provide context, but it should not contradict the packaging. If the online description and label differ, contact the company before using the product. Product information, safety, quality, and possible interactions are important considerations when evaluating a dietary supplement.</p>
-      <h3>Look for a clear company identity</h3>
-      <p>A supplement brand should make it reasonably easy to identify who is responsible for the product and how customers can ask questions. Ozylix provides public routes for shopping, FAQs, and customer contact. That information is a useful starting point for checking whether the company explains its products and policies consistently.</p>
-      <h3>Do not choose by exaggerated promises</h3>
-      <p>Words such as “instant,” “miracle,” “guaranteed,” “cures,” or “works for everyone” should prompt caution. Dissolving a product in water does not by itself prove a particular absorption speed or outcome. A better approach is to ask whether the format fits your routine, whether you can store the tube as directed, and whether the ingredients are appropriate for you.</p>
-      <p>Browse the <a href="/shop">Ozylix effervescent range</a>, read the <a href="/faq">FAQs</a>, and <a href="/contact">contact the company</a> if you need help understanding a product label.</p>
-      <p><strong>Important:</strong> Supplements are not a substitute for diagnosis, medication, a balanced diet, sleep, or professional care.</p>` },
-
-  { id:24, tag:"Product Range", slug:"ozylix-effervescent-vitamins-spirulina-wellness-range",
-    title:"Inside the Ozylix Range: Effervescent Vitamins, Spirulina and Everyday Wellness",
-    excerpt:"A clear guide to exploring the Ozylix range, including effervescent formats, spirulina, moringa, and label-first product selection.",
-    img:"/assets/blog/ozylix-quality-you-can-trust.webp", alt:"Ozylix product tube illustrating the company’s quality and product-range story",
-    date:"Aug 15, 2026", readTime:"6 min read", author:"Ozylix Editorial Team",
-    metaTitle:"Inside the Ozylix Range: Effervescent Vitamins and Spirulina",
-    metaDescription:"Explore the Ozylix range of effervescent vitamins, spirulina, moringa, and other wellness formats with a practical label-first guide.",
-    bodyHtml:`
-      <p>People shop for supplements for different reasons: some prefer an effervescent drink, some look for a plant-based format, and others want to compare a particular ingredient or serving routine. Ozylix presents a range that includes effervescent vitamins, spirulina products, moringa products, and other nutraceutical formats. The exact formula and suitability of each product depend on its individual label.</p>
-      <h3>Effervescent formats</h3>
-      <p>Effervescent products are dissolved in water before consumption. This can make the routine feel different from swallowing a conventional tablet or capsule. Follow the product’s directions for the amount of water, serving frequency, storage, and use after opening.</p>
-      <h3>Plant-based formats</h3>
-      <p>Spirulina and moringa are plant-based ingredients that appear in parts of the Ozylix range. Category language is not a substitute for checking the full ingredient list, allergen information, serving details, or dietary suitability of a particular product. Customers following a strict dietary pattern should check the label and contact the company when needed.</p>
-      <h3>Choose by information, not promises</h3>
-      <p>The most useful question is not “Which product is best for everyone?” It is “Which product information matches my needs, routine, and professional guidance?” Read the label, compare the current product page, and avoid claims that promise guaranteed transformation or disease treatment.</p>
-      <p>Use the <a href="/shop">Ozylix Shop</a> for current availability, learn more on the <a href="/about">About page</a>, and review the <a href="/faq">FAQs</a> before ordering.</p>
-      <p><strong>Important:</strong> People who take medicines, are pregnant or breastfeeding, or have a medical condition should seek professional advice before using a new supplement.</p>` },
-
-  { id:25, tag:"Customer Support", slug:"shopping-direct-from-ozylix-delivery-vita-points-support",
-    title:"Shopping Direct from Ozylix: Delivery, Vita Points and Customer Support",
-    excerpt:"What to check when shopping direct from Ozylix, from product information and delivery terms to Vita Points and support.",
-    img:"/assets/blog/ozylix-vita-points-rewards.webp", alt:"Ozylix Vita Points rewards visual with an effervescent supplement tube",
-    date:"Aug 15, 2026", readTime:"5 min read", author:"Ozylix Editorial Team",
-    metaTitle:"Shopping Direct from Ozylix: Delivery, Vita Points and Support",
-    metaDescription:"Learn what to check when shopping direct from Ozylix, including product information, delivery terms, Vita Points, and customer support.",
-    bodyHtml:`
-      <p>Shopping direct from a brand is easiest when the company identity, product information, ordering flow, delivery terms, and support route are easy to find. Ozylix’s customer journey is designed around moving from the company’s factory-to-home story to an online storefront where customers can review products and place orders.</p>
-      <h3>Check the product before ordering</h3>
-      <p>Start with the product page and packaging information. Review the ingredient list, serving size, directions, warnings, storage guidance, pack quantity, price, and any terms that apply to the product or promotion. If you have a health condition or take medicines, speak with a healthcare professional before using a new supplement.</p>
-      <h3>Review delivery and returns</h3>
-      <p>Delivery promises and return terms can change, so use the current Ozylix website and order confirmation as the source of truth. Check the delivery address, dispatch information, estimated arrival, and return or replacement conditions before completing an order. If a shipment arrives damaged or incorrect, contact the company with the order details and photographs where appropriate.</p>
-      <h3>How Vita Points fit into the customer journey</h3>
-      <p>Ozylix presents Vita Points as a customer rewards programme in its public campaign material. Customers should review the current programme terms for how points are earned, when they become available, how they can be redeemed, and whether exclusions or expiry rules apply.</p>
-      <p>Visit the <a href="/shop">Shop</a> to view current products, read the <a href="/faq">FAQs</a> for common ordering questions, or use the <a href="/contact">Contact page</a> when you need assistance.</p>
-      <p><strong>Important:</strong> Product, price, delivery, loyalty, and return terms are subject to the current website and order confirmation.</p>` }
-
-];
-
-
-
 // ── FAQ DATA ──
 const FAQS = [
   { q:"How long does delivery take?", a:"Standard delivery across India generally takes 3–5 business days. Online prepaid orders below ₹999 have a ₹69 shipping fee; prepaid shipping is free when the paid subtotal reaches ₹999 or more. COD orders have a ₹69 delivery fee. Dispatch is normally within 24–48 hours, and the tracking link is sent after dispatch.", cat:"Shipping" },
@@ -471,6 +238,7 @@ const OZYLIX_SUBSCRIPTIONS_ENABLED = false;
 window.OZYLIX_SUBSCRIPTIONS_ENABLED = OZYLIX_SUBSCRIPTIONS_ENABLED;
 
 function showPage(pg) {
+  if (pg !== 'account') clearInterval(window._ordersRefreshTimer);
   // Recurring subscriptions are not active. Keep stale links and cached routes
   // from presenting an offer that the backend cannot fulfil.
   if (pg === 'subscriptions' && !OZYLIX_SUBSCRIPTIONS_ENABLED) {
@@ -637,6 +405,7 @@ function showPage(pg) {
     } catch(e){}
   }
   if (pg === 'checkout') {
+    ensureOzylixModules().then(modules=>modules.load('checkout')).catch(()=>{});
     renderCheckoutSummary();
     // Pull the authoritative VitaPoints balance before the customer decides
     // how many to redeem — the server re-verifies at order time anyway, but
@@ -1444,15 +1213,16 @@ function rvScrollToList() {
   if (w && w.scrollIntoView) { try { w.scrollIntoView({ block: 'start' }); } catch (e) { w.scrollIntoView(); } }
 }
 
-function rvExpand(pid)   { const v = rvViewState(pid); v.expanded = true;  v.page = 0; renderProductReviewList(pid); }
-function rvCollapse(pid) { const v = rvViewState(pid); v.expanded = false; v.page = 0; renderProductReviewList(pid); rvScrollToList(); }
+function rvExpand(pid)   { const v = rvViewState(pid); v.expanded = true;  v.page = 0; return loadProductReviews(pid); }
+function rvCollapse(pid) { const v = rvViewState(pid); v.expanded = false; v.page = 0; const request = loadProductReviews(pid); rvScrollToList(); return request; }
 function rvGoPage(pid, delta) {
   const v = rvViewState(pid);
-  const total = (REVIEWS[pid] || []).length;
+  const total = REVIEW_META[pid]?.total || 0;
   const last  = Math.max(0, Math.ceil(total / RV_PAGE_SIZE) - 1);
   v.page = Math.min(last, Math.max(0, v.page + delta));
-  renderProductReviewList(pid);
+  const request = loadProductReviews(pid);
   rvScrollToList();
+  return request;
 }
 
 function renderProductReviewList(pid) {
@@ -1467,7 +1237,7 @@ function renderProductReviewList(pid) {
     return;
   }
 
-  const v = rvViewState(pid), total = rvs.length;
+  const v = rvViewState(pid), total = REVIEW_META[pid]?.total ?? rvs.length;
   const btn = 'display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 20px;' +
               'border-radius:var(--r-pill);font-weight:700;font-size:.82rem;background:var(--paper);' +
               'box-shadow:var(--neo-1);color:var(--indigo);touch-action:manipulation;min-height:44px';
@@ -1488,7 +1258,7 @@ function renderProductReviewList(pid) {
   const end   = Math.min(start + RV_PAGE_SIZE, total);
   const dim   = 'opacity:.4;pointer-events:none';
 
-  let html = rvs.slice(start, end).map(rvCardHTML).join('');
+  let html = rvs.map(rvCardHTML).join('');
   html += `<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin-top:16px">
       <div style="width:100%;text-align:center;font-size:.78rem;color:var(--t-low);margin-bottom:2px">
         Showing ${start + 1}–${end} of ${total} reviews${pages > 1 ? ` &middot; page ${page + 1} of ${pages}` : ''}
@@ -1502,26 +1272,27 @@ function renderProductReviewList(pid) {
 
 function refreshProductReviewUI(pid) {
   const rows = REVIEWS[pid] || [];
-  const avg = rows.length ? rows.reduce((sum, r) => sum + Number(r.rating), 0) / rows.length : null;
-  PRODUCT_RATINGS[pid] = { avg, count: rows.length };
+  const meta = REVIEW_META[pid] || {total:0,average:null,histogram:{}};
+  const avg = meta.average, total = meta.total;
+  PRODUCT_RATINGS[pid] = { avg, count: total };
   if (!currentProduct || currentProduct.id !== pid) return;
   renderProductReviewList(pid);
   const root = document.getElementById('productDetail');
   if (!root) return;
   const label = root.querySelector('.prod-rating-row .review-ct');
-  if (label) label.textContent = '(' + rows.length + ' reviews)';
+  if (label) label.textContent = '(' + total + ' reviews)';
   const row = root.querySelector('.prod-rating-row');
   if (row) row.innerHTML = (avg === null ? '<span>No ratings yet</span>' : stars(avg)) +
-    ' <span class="review-ct">(' + rows.length + ' reviews)</span> <span class="write-rv" onclick="openProductReviews(true)">Write a Review</span>';
+    ' <span class="review-ct">(' + total + ' reviews)</span> <span class="write-rv" onclick="openProductReviews(true)">Write a Review</span>';
   const tab = root.querySelector('[onclick*="rvs"]');
-  if (tab) tab.textContent = 'Reviews (' + rows.length + ')';
+  if (tab) tab.textContent = 'Reviews (' + total + ')';
   const summary = root.querySelector('.rv-summary');
   if (summary) {
     summary.querySelector('.rv-big-num').textContent = avg === null ? '—' : avg.toFixed(1);
     const count = summary.querySelector('.rating-big > div:last-child');
-    if (count) count.textContent = rows.length + ' reviews';
+    if (count) count.textContent = total + ' reviews';
     summary.querySelectorAll('.rv-bar-row').forEach((bar, index) => {
-      const pct = rows.length ? rows.filter(r => Math.round(r.rating) === 5 - index).length / rows.length * 100 : 0;
+      const pct = total ? (meta.histogram[5 - index] || 0) / total * 100 : 0;
       bar.querySelector('.rv-bar-fill').style.width = pct + '%';
       bar.lastElementChild.textContent = Math.round(pct) + '%';
     });
@@ -1657,8 +1428,9 @@ function buildProductPage(p) {
   // none, avg must NOT silently fall back to the hardcoded p.rating — that's
   // exactly how "4.8★ (567 reviews)" type mismatches happened elsewhere.
   // Only show a computed average when real reviews exist.
-  const hasRealReviews = REVIEWS_LOADED[p.id] && rvs.length > 0;
-  const avg = hasRealReviews ? rvs.reduce((s,r)=>s+r.rating,0)/rvs.length : null;
+  const reviewMeta = REVIEW_META[p.id] || {total:0,average:null,histogram:{}};
+  const reviewTotal = reviewMeta.total;
+  const avg = reviewMeta.average;
   const related = PRODUCTS.filter(r=>isStoreProductActive(r)&&r.category===p.category&&r.id!==p.id).slice(0,4);
   const rg=document.getElementById('relatedGrid'); if(rg) rg.innerHTML = related.map(r=>renderProductCard(r)).join('');
 
@@ -1681,7 +1453,7 @@ function buildProductPage(p) {
     <div>
       <div class="prod-brand">${p.brand}</div>
       <h1 class="prod-title">${p.name}</h1>
-      <div class="prod-rating-row">${avg !== null ? stars(avg) : '<span class="review-ct" style="color:var(--gray)">No ratings yet</span>'} <span class="review-ct">(${REVIEWS_LOADED[p.id] ? rvs.length + ' reviews' : 'loading reviews…'})</span> <span class="write-rv" onclick="openProductReviews(true)">Write a Review</span></div>
+      <div class="prod-rating-row">${avg !== null ? stars(avg) : '<span class="review-ct" style="color:var(--gray)">No ratings yet</span>'} <span class="review-ct">(${REVIEWS_LOADED[p.id] ? reviewTotal + ' reviews' : 'loading reviews…'})</span> <span class="write-rv" onclick="openProductReviews(true)">Write a Review</span></div>
       <div class="prod-price-block">
         <span class="prod-sale" id="dynSalePrice">&#x20B9;${displayRate.toLocaleString('en-IN')}</span>
         <span class="prod-orig" id="dynOrigPrice">&#x20B9;${displayMRP.toLocaleString('en-IN')}</span>
@@ -1708,7 +1480,7 @@ function buildProductPage(p) {
       <div class="tabs">
         <button class="tab active" onclick="switchTab(this,'desc')">Description</button>
         <button class="tab" onclick="switchTab(this,'ingr')">Ingredients</button>
-        <button class="tab" onclick="switchTab(this,'rvs')">Reviews (${rvs.length})</button>
+        <button class="tab" onclick="switchTab(this,'rvs')">Reviews (${reviewTotal})</button>
         ${tiers ? `<button class="tab" onclick="switchTab(this,'pricing')">&#x1F4CB; Pricing</button>` : ''}
       </div>
       <div class="tab-content active" id="tab-desc">
@@ -1724,8 +1496,8 @@ function buildProductPage(p) {
       </div>
       <div class="tab-content" id="tab-rvs">
         <div class="rv-summary">
-          <div class="rating-big"><div class="rv-big-num">${avg !== null ? avg.toFixed(1) : '—'}</div><div class="rv-big-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</div><div style="font-size:.72rem;color:var(--gray)">${rvs.length} reviews</div></div>
-          <div style="flex:1">${[5,4,3,2,1].map(s=>{const c=rvs.filter(r=>Math.round(r.rating)===s).length;const pct=rvs.length?(c/rvs.length)*100:0;return`<div class="rv-bar-row"><span style="width:14px">${s}&#x2605;</span><div class="rv-bar-track"><div class="rv-bar-fill" style="width:${pct}%"></div></div><span>${Math.round(pct)}%</span></div>`;}).join('')}</div>
+          <div class="rating-big"><div class="rv-big-num">${avg !== null ? avg.toFixed(1) : '—'}</div><div class="rv-big-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</div><div style="font-size:.72rem;color:var(--gray)">${reviewTotal} reviews</div></div>
+          <div style="flex:1">${[5,4,3,2,1].map(s=>{const c=reviewMeta.histogram[s]||0;const pct=reviewTotal?(c/reviewTotal)*100:0;return`<div class="rv-bar-row"><span style="width:14px">${s}&#x2605;</span><div class="rv-bar-track"><div class="rv-bar-fill" style="width:${pct}%"></div></div><span>${Math.round(pct)}%</span></div>`;}).join('')}</div>
         </div>
         <div class="rv-form" id="rvFormWrap">
           <h3>Write a Review</h3>
@@ -2114,6 +1886,8 @@ async function submitReview() {
     if (Number(r.product_id) !== Number(product.id)) throw new Error('The server returned a different product. Your draft has been kept.');
     // Read the same server feed used after reload. Never add a temporary
     // review to the page that the public endpoint cannot return.
+    rvViewState(product.id).expanded = false;
+    rvViewState(product.id).page = 0;
     const rows = await loadProductReviews(product.id, { force: true });
     const pending = r.status === 'pending';
     if (!pending && (!Array.isArray(rows) || !rows.some(row => String(row.id) === String(r.id)))) {
@@ -2128,7 +1902,7 @@ async function submitReview() {
       // An edit keeps the review count unchanged. Show the saved review
       // immediately, even when the reader was on a later review page.
       const view = rvViewState(product.id);
-      view.expanded = true;
+      view.expanded = false;
       view.page = 0;
       refreshProductReviewUI(product.id);
       if (!pending) {
@@ -2577,47 +2351,18 @@ function placeOrder() {
 }
 
 // ── BLOG ──
-const BLOGS_NEWEST_FIRST = BLOGS.slice().sort(function(a,b){ return new Date(b.date).getTime()-new Date(a.date).getTime(); });
-
-function renderBlogCard(b) {
-  const shopBtn = b.relatedProduct
-    ? `<div style="margin-top:12px">
-        <button onclick="event.preventDefault();event.stopPropagation();openProduct(${b.relatedProduct})"
-          style="background:var(--face-warm);color:var(--clay-lo);box-shadow:inset 0 0 0 1.5px rgba(138,74,51,.32);border:none;border-radius:8px;padding:7px 16px;font-size:0.76rem;font-weight:700;cursor:pointer;letter-spacing:0.3px">
-          🛒 Shop This Product →
-        </button>
-       </div>`
-    : '';
-  return `<a class="blog-card" href="#blog-${b.id}" onclick="openBlog(${b.id});return false" aria-label="Read: ${b.title}">
-    <img class="blog-img" data-src="${b.img}" alt="${b.alt || b.title}" loading="lazy"
-      onerror="this.src=PRODUCT_FALLBACKS.default" decoding="async">
-    <div class="blog-body">
-      <span class="blog-tag">${b.tag}</span>
-      <h3 class="blog-title">${b.title}</h3>
-      <p class="blog-exc">${b.excerpt}</p>
-      <div class="blog-meta"><span>📅 ${b.date}</span><span>⏱ ${b.readTime}</span><span>✍ ${b.author}</span></div>
-      ${shopBtn}
-    </div>
-  </a>`;
-}
-function renderFullBlog() { const el=document.getElementById('fullBlogGrid'); if(el) el.innerHTML=BLOGS_NEWEST_FIRST.map(renderBlogCard).join(''); hydrateBlogImgs(); }
-// v10.2: blog tile images hydrate just before entering view, so a stalled
-// image host can never hold the load event hostage. Pattern mirrors the promo
-// marquee (6b6c50b). Any tiles still unhydrated after 6s load anyway.
-function hydrateBlogImgs() {
-  var pending = document.querySelectorAll('img.blog-img[data-src]');
-  if (!pending.length) return;
-  function hydrate(img) { if (img && img.dataset.src) { img.src = img.dataset.src; img.removeAttribute('data-src'); } }
-  if ('IntersectionObserver' in window) {
-    var io = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) { if (entry.isIntersecting) { hydrate(entry.target); io.unobserve(entry.target); } });
-    }, { rootMargin: '600px 0px 600px 0px' });
-    pending.forEach(function(img) { io.observe(img); });
-    setTimeout(function() { pending.forEach(hydrate); }, 6000);
-  } else { pending.forEach(hydrate); }
+async function renderFullBlog() {
+  const grid = document.getElementById('fullBlogGrid');
+  if (grid && !window.OzylixBlogPage) grid.innerHTML = '<p role="status">Loading articles…</p>';
+  try {
+    const modules = await ensureOzylixModules();
+    await modules.load('blog');
+    if (currentPage === 'blog') window.OzylixBlogPage.renderFullBlog();
+  } catch(error) {
+    if (grid) grid.innerHTML = '<p>Articles could not load. <button type="button" onclick="renderFullBlog()">Retry</button></p>';
+  }
 }
 
-// ── FAQ ──
 function renderFaqItem(f) {
   let answer = f.a;
   if (typeof deliveryCopy === 'function') {
@@ -2670,7 +2415,7 @@ async function loadReviewsBatch() {
   if (_reviewsBatchDone) return _reviewsBatchDone;
   REVIEWS_BATCH_ERROR = false;
   const task = (async () => {
-    const response = await fetch(API_BASE + '/api/public-reviews?limit=100', {
+    const response = await fetch(API_BASE + '/api/public-reviews?limit=9', {
       headers: { Accept: 'application/json' }, credentials: 'omit', cache: 'no-store',
       signal: AbortSignal.timeout(15000),
     });
@@ -2901,7 +2646,7 @@ function bootApp() {
   syncProductsFromBackend();
   // Keep syncing every 2 minutes so a customer with the page already open
   // sees stock/price changes made in the admin panel without reloading.
-  setInterval(() => { syncProductsFromBackend(); }, 2 * 60 * 1000);
+  setInterval(() => { if (!document.hidden) syncProductsFromBackend(); }, 2 * 60 * 1000);
 
   // 🎯 Capture campaign attribution (UTM params + Meta's fbclid) on landing.
   // Last-touch: overwrites only when the URL actually carries new params,
@@ -3151,636 +2896,31 @@ function validateCheckoutForm() {
 }
 
 // ── MAIN ENTRY — called by "Pay Online" button ──
-function initiatePayment() {
-  if (DELIVERY_POLICY && DELIVERY_POLICY.store_online === false) {
-    showToast('The store is temporarily unavailable for new orders. Please try again shortly.', 'error');
-    return;
-  }
-  if (STORE.cart.length === 0) { showToast('🛒 Your cart is empty!', 'error'); return; }
-  // 2026-08: never open a payment session for a PIN Delhivery cannot serve —
-  // a courier failure discovered AFTER payment is India's #1 frustration.
-  // Only blocks when the pin has actually been checked and failed; an unchecked
-  // pin is tolerated (the server will re-check before creating the shipment).
-  const pinEl = document.getElementById('ckPinInput');
-  const clean = (pinEl?.value || '').replace(/\D/g, '');
-  if (clean.length === 6) {
-    const cached = window.__pinCache && window.__pinCache[clean];
-    if (cached && !cached.serviceable) {
-      showToast('⚠️ We cannot deliver to PIN ' + clean + '. Please change the delivery address first.', 'error');
-      pinEl.focus();
-      return;
-    }
-  }
-  // LOGIN GATE: orders can only be placed by signed-in customers.
-  if (!getCurrentUser()) { requireLoginForCheckout(function(){ initiatePayment(); }, 'prepaid'); return; }
-  const formData = validateCheckoutForm();
-  if (!formData) return;
-
-  const { sub, disc, mixMatchDiscount, paidSubtotal, vitaOff } = getOrderTotal();
-  const ship  = calcShipping(paidSubtotal);
-  const total = Math.max(0, paidSubtotal + ship - vitaOff);
-  const displayedDiscount = disc + mixMatchDiscount;
-
-  const orderId = generateOrderId();
-  const btn = document.getElementById('onlinePayBtn') || document.querySelector('#page-checkout .checkout-btn');
-  const origText = btn ? btn.textContent : '';
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Opening Secure Checkout...'; }
-
-  // 2026-08: the compact gateway row lets the customer pick Cashfree or
-  // GoKwik before paying — send each to its own processor. COD bypasses
-  // the online modal entirely.
-  const gw = getSelectedGateway();
-  if (gw === 'cod') {
-    initiateCOD();
-    if (btn) { btn.disabled = false; btn.textContent = origText || '💳 Pay Online'; }
-    return;
-  }
-  openPaymentGateway(orderId, total, sub, displayedDiscount, ship, formData, btn, origText, gw);
+function runPaymentFeature(name, args) {
+  if (window.OzylixPaymentFlow) return window.OzylixPaymentFlow[name](...args);
+  return ensureOzylixModules().then(modules=>modules.load('checkout')).then(()=>window.OzylixPaymentFlow[name](...args)).catch(error=>{
+    showToast('Checkout could not load. Please try again.','error');
+  });
 }
+function initiatePayment(...args) { return runPaymentFeature('initiatePayment', args); }
+function openPaymentGateway(...args) { return runPaymentFeature('openPaymentGateway', args); }
+function closePaymentModal(...args) { return runPaymentFeature('closePaymentModal', args); }
+function startPayment(...args) { return runPaymentFeature('startPayment', args); }
+function startGoKwikPayment(...args) { return runPaymentFeature('startGoKwikPayment', args); }
+function startCashfreePayment(...args) { return runPaymentFeature('startCashfreePayment', args); }
+function handleGoKwikReturn(...args) { return runPaymentFeature('handleGoKwikReturn', args); }
+function handleCashfreeReturn(...args) { return runPaymentFeature('handleCashfreeReturn', args); }
+function recoverCodSignIn(...args) { return runPaymentFeature('recoverCodSignIn', args); }
+function initiateCOD(...args) { return runPaymentFeature('initiateCOD', args); }
+function confirmCODOrder(...args) { return runPaymentFeature('confirmCODOrder', args); }
+function showProcessingScreen(...args) { return runPaymentFeature('showProcessingScreen', args); }
+function animateProcessing(...args) { return runPaymentFeature('animateProcessing', args); }
+function hideProcessingScreen(...args) { return runPaymentFeature('hideProcessingScreen', args); }
+function friendlyPaymentError(...args) { return runPaymentFeature('friendlyPaymentError', args); }
+function closePaymentResult(...args) { return runPaymentFeature('closePaymentResult', args); }
+function showPaymentResult(...args) { return runPaymentFeature('showPaymentResult', args); }
+function showPaymentError(...args) { return runPaymentFeature('showPaymentError', args); }
 
-// ══════════════════════════════════════════════
-// PAYMENT MODAL — GoKwik only
-// ══════════════════════════════════════════════
-function openPaymentGateway(orderId, total, sub, disc, ship, formData, btn, origText, gateway) {
-  gateway = gateway === 'cashfree' ? 'cashfree' : 'gokwik';
-  window._pendingPayment = { orderId, total, sub, disc, ship, formData, gateway };
-  document.getElementById('cfPayModal')?.remove();
-
-  const cartItems = STORE.cart.map(item => {
-    const p = PRODUCTS.find(p => p.id === item.id);
-    if (!p) return '';
-    const price = item.tierRate !== undefined ? item.tierRate : (p.salePrice || p.price);
-    const pack = item.tierTabs ? ` (${item.tierTabs} tabs)` : '';
-    return `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--st-muted-bg);font-size:.82rem">
-      <span style="color:var(--t-mid)">${p.name}${pack} × ${item.qty}</span>
-      <span style="font-weight:700;color:var(--f-mineral-d)">₹${(price * item.qty).toLocaleString('en-IN')}</span>
-    </div>`;
-  }).join('');
-
-  const discHtml = disc > 0
-    ? `<div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--f-mineral-d);margin-bottom:4px">
-        <span>Discount</span><span>-₹${disc.toLocaleString('en-IN')}</span>
-       </div>` : '';
-
-  const modal = document.createElement('div');
-  modal.id = 'cfPayModal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
-
-  modal.innerHTML = `
-    <div style="background:var(--sub-1);border-radius:20px;width:100%;max-width:420px;max-height:94vh;overflow-y:auto;box-shadow:0 25px 80px rgba(0,0,0,0.45)">
-      <!-- Header -->
-      <div style="background:linear-gradient(135deg,var(--f-mineral-d),var(--f-mineral));padding:20px 24px;border-radius:20px 20px 0 0;color:var(--t-hi);display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <div style="font-size:1.05rem;font-weight:800">🔒 Secure Checkout</div>
-          <div style="font-size:.68rem;opacity:.8;margin-top:2px">PCI DSS Secured · 256-bit SSL</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:1.8rem;font-weight:900">₹${total.toLocaleString('en-IN')}</div>
-          <div style="font-size:.62rem;opacity:.75">Total payable</div>
-        </div>
-      </div>
-      <div style="padding:20px 22px">
-        <!-- Order Summary -->
-        <div style="background:var(--sub-1);border:1px solid var(--t-low);border-radius:12px;padding:14px;margin-bottom:16px">
-          <div style="font-weight:700;font-size:.75rem;color:var(--f-mineral-d);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">📦 Order · ${orderId}</div>
-          ${cartItems}
-          <div style="margin-top:10px;padding-top:8px;border-top:1.5px solid var(--t-low)">
-            <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--t-low);margin-bottom:3px"><span>Subtotal</span><span>₹${sub.toLocaleString('en-IN')}</span></div>
-            ${discHtml}
-            <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--t-low);margin-bottom:6px"><span>Shipping</span><span style="color:${ship===0?'var(--f-mineral-d)':'var(--t-hi)'}">${ship===0?'FREE':'₹'+ship}</span></div>
-            <div style="display:flex;justify-content:space-between;font-weight:800;font-size:.95rem;color:var(--f-mineral-d)"><span>Total</span><span>₹${total.toLocaleString('en-IN')}</span></div>
-          </div>
-        </div>
-        <!-- Delivery Info -->
-        <div style="background:var(--st-muted-bg);border-radius:10px;padding:11px 14px;margin-bottom:16px;font-size:.78rem;color:var(--t-mid);line-height:1.6">
-          <span style="font-weight:700;color:var(--t-mid)">👤 Ship to: </span>
-          ${formData.firstName} ${formData.lastName} · ${formData.phone}<br>
-          ${formData.addr1}, ${formData.city}, ${formData.state} – ${formData.pin}<br>
-          <span style="color:var(--f-mineral-d)">✉ ${formData.email}</span>
-        </div>
-        <!-- Single Secure Pay Button (2026-08: one confident button per
-             picked gateway — Cashfree or GoKwik, both kept visible in the
-             compact selector above so the customer knows their choice) -->
-        <button class="cfPayBtn ${gateway === 'cashfree' ? 'cashfree-pay-btn' : 'gk-pay-btn'}" onclick="startPayment('${gateway}')"
-          style="width:100%;background:var(--face-warm);color:var(--st-danger-fg);box-shadow:inset 0 0 0 1.5px rgba(192,48,74,.34);border:none;border-radius:14px;padding:18px 20px;font-size:.95rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:14px;margin-bottom:10px;transition:opacity .15s">
-          <span style="display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;background:rgba(255,255,255,0.18);border-radius:10px;flex-shrink:0">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-          </span>
-          <div style="flex:1;text-align:left">
-            <div style="font-size:1rem;font-weight:800">Pay ₹${total.toLocaleString('en-IN')} via ${gateway === 'cashfree' ? 'Cashfree' : 'GoKwik'}</div>
-            <div style="font-size:.7rem;opacity:.85;margin-top:2px">UPI · GPay · PhonePe · BHIM · Card · Net Banking · EMI</div>
-          </div>
-          <span style="background:rgba(255,255,255,.22);padding:4px 10px;border-radius:100px;font-size:.6rem;font-weight:800;letter-spacing:.5px">SECURE →</span>
-        </button>
-        <!-- Trust Badges -->
-        <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:14px;flex-wrap:wrap">
-          <span style="font-size:.67rem;color:var(--t-low)">🔒 256-bit SSL</span>
-          <span style="font-size:.67rem;color:var(--t-low)">✅ PCI DSS</span>
-          <span style="font-size:.67rem;color:var(--t-low)">🛡️ ${gateway === 'cashfree' ? 'Cashfree' : 'GoKwik'} Secured</span>
-        </div>
-        <!-- Cancel -->
-        <button onclick="closePaymentModal()" style="width:100%;background:var(--st-muted-bg);color:var(--t-low);border:none;border-radius:10px;padding:11px;font-size:.82rem;cursor:pointer">
-          ✕ Cancel &amp; Go Back
-        </button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-  if (btn) { btn.disabled = false; btn.textContent = origText || '💳 Pay Online'; }
-}
-
-function closePaymentModal() { document.getElementById('cfPayModal')?.remove(); }
-
-// ══════════════════════════════════════════════
-// startPayment — routes to GoKwik
-// ══════════════════════════════════════════════
-async function startPayment(method) {
-  const pd = window._pendingPayment;
-  if (!pd) { showToast('Payment session expired. Please try again.', 'error'); closePaymentModal(); return; }
-  const { orderId, total, formData } = pd;
-  const btn = document.getElementById('onlinePayBtn') || document.querySelector('#page-checkout .checkout-btn');
-  const origText = btn ? btn.textContent : '💳 Pay Online';
-  document.querySelectorAll('.cfPayBtn').forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
-  const activeBtn = method === 'cashfree'
-    ? document.querySelector('.cashfree-pay-btn')
-    : document.querySelector('.gk-pay-btn');
-  const gatewayLabel = method === 'cashfree' ? 'Cashfree' : 'GoKwik';
-  if (activeBtn) { activeBtn.style.opacity = '1'; activeBtn.innerHTML = `<span style="font-size:1.4rem">⏳</span> <span>Connecting to ${gatewayLabel}...</span>`; }
-  await new Promise(r => setTimeout(r, 500));
-  closePaymentModal();
-  showProcessingScreen(orderId, total, method);
-  return method === 'cashfree'
-    ? startCashfreePayment(orderId, total, formData, btn, origText)
-    : startGoKwikPayment(orderId, total, formData, btn, origText);
-}
-
-// ══════════════════════════════════════════════
-// startGoKwikPayment
-// STILL MISSING in the deployed file — it is CALLED at the end of the
-// payment modal flow but defined nowhere, so every online payment
-// throws "startGoKwikPayment is not defined" before it ever reaches
-// the backend. Only COD works today. Implemented against the existing
-// /api/create-gokwik-order endpoint.
-//
-// The server recomputes the amount from real product prices (and now also
-// factors in any VitaPoints applied), so the `total` passed in is
-// display-only — the customer is charged the server's figure, never the
-// browser's.
-// ══════════════════════════════════════════════
-async function startGoKwikPayment(orderId, total, formData, btn, origText) {
-  try {
-    const resp = await fetch(API_BASE + '/api/create-gokwik-order', {
-      method: 'POST',
-      headers: Object.assign({ 'Content-Type': 'application/json' },
-        localStorage.getItem('asc_jwt') ? { 'Authorization': 'Bearer ' + localStorage.getItem('asc_jwt') } : {}),
-      body: JSON.stringify({
-        merchant_reference_id: orderId,
-        amount: total,
-        items: STORE.cart.map(function(i){
-          var o = { id: i.id, qty: i.qty };
-          if (i.tierTabs) { o.tierTabs = i.tierTabs; o.tierIdx = i.tierIdx; }
-          return o;
-        }),
-        coupon_code: (typeof activePromoCode !== 'undefined' && activePromoCode) ? activePromoCode.code : null,
-        vita_points: (typeof VITA_APPLIED !== 'undefined' && VITA_APPLIED > 0) ? VITA_APPLIED : 0,
-        customer_name:  [formData.firstName, formData.lastName].filter(Boolean).join(' ') || formData.name || '',
-        customer_email: formData.email,
-        customer_phone: formData.phone,
-        description: 'Ozylix order ' + orderId,
-      }),
-    });
-    const data = await resp.json();
-    if (!resp.ok || !data.success || !data.short_url) {
-      throw new Error(data.error || 'Could not start payment');
-    }
-    try {
-      sessionStorage.setItem('asc_pending_gk', JSON.stringify({
-        orderId: orderId, formData: formData, t: Date.now(),
-        vitaApplied: (typeof VITA_APPLIED !== 'undefined' ? VITA_APPLIED : 0),
-        promoCode: (typeof activePromoCode !== 'undefined' && activePromoCode) ? activePromoCode : null,
-        paymentToken: data.payment_session_token,
-      }));
-    } catch (e) {}
-    window.location.href = data.short_url;
-  } catch (err) {
-    console.error('[startGoKwikPayment]', err);
-    if (typeof hideProcessingScreen === 'function') hideProcessingScreen();
-    if (btn) { btn.disabled = false; btn.textContent = origText || '💳 Pay via GoKwik'; }
-    document.querySelectorAll('.cfPayBtn').forEach(function(b){ b.disabled = false; b.style.opacity = '1'; });
-    if (typeof showPaymentError === 'function') {
-      showPaymentError('Payment could not be started: ' + err.message, orderId, formData, total, 'gokwik');
-    } else if (typeof showToast === 'function') {
-      showToast('❌ ' + err.message, 'error');
-    }
-  }
-}
-
-// ══════════════════════════════════════════════
-// startCashfreePayment
-//
-// Same trust model as startGoKwikPayment: the amount passed here is
-// display-only. /api/create-cashfree-order recomputes it from real
-// product prices server-side, so a tampered request can't open a
-// session for less than the cart is actually worth.
-//
-// Cashfree's JS SDK opens its hosted checkout with redirectTarget:"_self"
-// — a full-page redirect, same shape as GoKwik's short_url flow, so the
-// customer is returned to this site via order_meta.return_url and the
-// same "resume on return" pattern (handleCashfreeReturn) picks it up.
-// ══════════════════════════════════════════════
-async function startCashfreePayment(orderId, total, formData, btn, origText) {
-  try {
-    if (typeof Cashfree === 'undefined') {
-      throw new Error('Payment SDK failed to load — please check your connection and try again.');
-    }
-    const resp = await fetch(API_BASE + '/api/create-cashfree-order', {
-      method: 'POST',
-      headers: Object.assign({ 'Content-Type': 'application/json' },
-        localStorage.getItem('asc_jwt') ? { 'Authorization': 'Bearer ' + localStorage.getItem('asc_jwt') } : {}),
-      body: JSON.stringify({
-        merchant_reference_id: orderId,
-        items: STORE.cart.map(function(i){
-          var o = { id: i.id, qty: i.qty };
-          if (i.tierTabs) { o.tierTabs = i.tierTabs; o.tierIdx = i.tierIdx; }
-          return o;
-        }),
-        coupon_code: (typeof activePromoCode !== 'undefined' && activePromoCode) ? activePromoCode.code : null,
-        vita_points: (typeof VITA_APPLIED !== 'undefined' && VITA_APPLIED > 0) ? VITA_APPLIED : 0,
-        customer_name:  [formData.firstName, formData.lastName].filter(Boolean).join(' ') || formData.name || '',
-        customer_email: formData.email,
-        customer_phone: formData.phone,
-        description: 'Ozylix order ' + orderId,
-      }),
-    });
-    const data = await resp.json();
-    if (!resp.ok || !data.success || !data.payment_session_id) {
-      throw new Error(data.error || 'Could not start payment');
-    }
-    try {
-      sessionStorage.setItem('asc_pending_cf', JSON.stringify({
-        orderId: orderId, formData: formData, t: Date.now(),
-        vitaApplied: (typeof VITA_APPLIED !== 'undefined' ? VITA_APPLIED : 0),
-        promoCode: (typeof activePromoCode !== 'undefined' && activePromoCode) ? activePromoCode : null,
-        paymentToken: data.payment_session_token,
-      }));
-    } catch (e) {}
-
-    // Use whichever mode the backend actually created this order under
-    // (data.cf_env), so a sandbox session always opens in sandbox mode
-    // and a production session always opens in production mode — this
-    // can never drift out of sync with CASHFREE_ENV on Render, unlike a
-    // hardcoded/manual frontend flag.
-    const cashfree = Cashfree({ mode: (data.cf_env || window.CASHFREE_MODE || 'production') });
-    cashfree.checkout({ paymentSessionId: data.payment_session_id, redirectTarget: '_self' });
-  } catch (err) {
-    console.error('[startCashfreePayment]', err);
-    if (typeof hideProcessingScreen === 'function') hideProcessingScreen();
-    if (btn) { btn.disabled = false; btn.textContent = origText || '💳 Pay Online'; }
-    document.querySelectorAll('.cfPayBtn').forEach(function(b){ b.disabled = false; b.style.opacity = '1'; });
-    if (typeof showPaymentError === 'function') {
-      showPaymentError('Payment could not be started: ' + err.message, orderId, formData, total, 'cashfree');
-    } else if (typeof showToast === 'function') {
-      showToast('❌ ' + err.message, 'error');
-    }
-  }
-}
-
-// ══════════════════════════════════════════════
-// PAYMENT RETURN HANDLERS
-//
-// handleGoKwikReturn was called from the boot sequence's "Handle GoKwik
-// payment return" block but was never defined anywhere in this file — so
-// every customer who completed an online GoKwik payment and was
-// redirected back threw a ReferenceError right there, and the order was
-// never confirmed: no thank-you page, no VitaPoints, nothing saved. COD
-// was the only online-payment-adjacent path that actually worked.
-//
-// Both handlers here follow the same shape: restore the checkout state
-// that was stashed in sessionStorage before the redirect away (cart
-// itself survives via STORE's own localStorage persistence), verify
-// payment directly with the gateway (never trust the return URL alone —
-// it's just a hint to check, exactly like the GoKwik/Cashfree webhooks
-// do), then run the SAME finalizeOrder() used by every other payment
-// path so there is only one order-saving code path to trust.
-// ══════════════════════════════════════════════
-async function handleGoKwikReturn(merchantRefId) {
-  let pending = null;
-  try { pending = JSON.parse(sessionStorage.getItem('asc_pending_gk') || 'null'); } catch (e) {}
-  if (!pending || pending.orderId !== merchantRefId) {
-    console.warn('[handleGoKwikReturn] No matching pending session for', merchantRefId);
-    return;
-  }
-  sessionStorage.removeItem('asc_pending_gk');
-  if (typeof VITA_APPLIED !== 'undefined') VITA_APPLIED = pending.vitaApplied || 0;
-  if (typeof activePromoCode !== 'undefined') activePromoCode = pending.promoCode || null;
-
-  showProcessingScreen(merchantRefId, 0, 'gokwik');
-  try {
-    const resp = await fetch(API_BASE + '/api/verify-gokwik-order/' + encodeURIComponent(merchantRefId), {
-      headers: pending.paymentToken ? { 'X-Payment-Session': pending.paymentToken } : {},
-    });
-    const data = await resp.json();
-    if (!resp.ok || !data.success) throw new Error(data.error || 'Could not verify payment');
-    if (!data.paid) {
-      if (typeof hideProcessingScreen === 'function') hideProcessingScreen();
-      showPaymentError('Payment was not completed. If money was deducted, it will be auto-refunded by GoKwik within 5-7 days.',
-        merchantRefId, pending.formData, data.amount || 0, 'gokwik');
-      return;
-    }
-    await finalizeOrder(merchantRefId, pending.formData, data.amount || 0, 'gokwik', 0, pending.paymentToken);
-  } catch (err) {
-    console.error('[handleGoKwikReturn]', err);
-    if (typeof hideProcessingScreen === 'function') hideProcessingScreen();
-    showPaymentError('We could not confirm your payment automatically. If money was deducted, contact +91 98985 82650 with Order ID: ' + merchantRefId + '. (' + err.message + ')',
-      merchantRefId, pending.formData, 0, 'gokwik');
-  }
-}
-
-async function handleCashfreeReturn(orderId) {
-  let pending = null;
-  try { pending = JSON.parse(sessionStorage.getItem('asc_pending_cf') || 'null'); } catch (e) {}
-  if (!pending || pending.orderId !== orderId) {
-    console.warn('[handleCashfreeReturn] No matching pending session for', orderId);
-    return;
-  }
-  sessionStorage.removeItem('asc_pending_cf');
-  if (typeof VITA_APPLIED !== 'undefined') VITA_APPLIED = pending.vitaApplied || 0;
-  if (typeof activePromoCode !== 'undefined') activePromoCode = pending.promoCode || null;
-
-  showProcessingScreen(orderId, 0, 'cashfree');
-  try {
-    const resp = await fetch(API_BASE + '/api/verify-cashfree-order/' + encodeURIComponent(orderId), {
-      headers: pending.paymentToken ? { 'X-Payment-Session': pending.paymentToken } : {},
-    });
-    const data = await resp.json();
-    if (!resp.ok || !data.success) throw new Error(data.error || 'Could not verify payment');
-    if (!data.paid) {
-      if (typeof hideProcessingScreen === 'function') hideProcessingScreen();
-      showPaymentError('Payment was not completed. If money was deducted, it will be auto-refunded by Cashfree within 5-7 days.',
-        orderId, pending.formData, data.order_amount || 0, 'cashfree');
-      return;
-    }
-    await finalizeOrder(orderId, pending.formData, data.order_amount || 0, 'cashfree', 0, pending.paymentToken);
-  } catch (err) {
-    console.error('[handleCashfreeReturn]', err);
-    if (typeof hideProcessingScreen === 'function') hideProcessingScreen();
-    showPaymentError('We could not confirm your payment automatically. If money was deducted, contact +91 98985 82650 with Order ID: ' + orderId + '. (' + err.message + ')',
-      orderId, pending.formData, 0, 'cashfree');
-  }
-}
-function recoverCodSignIn() {
-  localStorage.removeItem('asc_jwt');
-  localStorage.removeItem('asc_user');
-  updateAccountNavBtn();
-  if (typeof hideProcessingScreen === 'function') hideProcessingScreen();
-  requireLoginForCheckout(function () { initiateCOD(); }, 'cod');
-  showAuthError('Your session is no longer valid on the store server. Sign in again to continue your COD order.');
-}
-
-var codOrderInFlight = false;
-async function initiateCOD() {
-  if (codOrderInFlight) return;
-  if (DELIVERY_POLICY && DELIVERY_POLICY.store_online === false) {
-    showToast('The store is temporarily unavailable for new orders. Please try again shortly.', 'error');
-    return;
-  }
-  const codEnabled = DELIVERY_POLICY && (DELIVERY_POLICY.cod_enabled === true || DELIVERY_POLICY.cod_enabled === 'true');
-  if (!codEnabled) { showToast('COD is currently unavailable. Please choose online payment.', 'error'); updateCodBtnNote(); return; }
-  if (STORE.cart.length === 0) { showToast('🛒 Your cart is empty!', 'error'); return; }
-  // 2026-08: PIN serviceability gate — see initiatePayment for the why.
-  const pinEl = document.getElementById('ckPinInput');
-  const clean = (pinEl?.value || '').replace(/\D/g, '');
-  if (clean.length === 6) {
-    const cached = window.__pinCache && window.__pinCache[clean];
-    if (cached && !cached.serviceable) {
-      showToast('⚠️ We cannot deliver to PIN ' + clean + '. Please change the delivery address first.', 'error');
-      pinEl.focus();
-      return;
-    }
-    if (cached && !cached.cod) {
-      showToast('⚠️ COD is not available for PIN ' + clean + ' — please pay online instead.', 'error');
-      return;
-    }
-  }
-  // LOGIN GATE: orders can only be placed by signed-in customers.
-  if (!getCurrentUser()) { requireLoginForCheckout(function(){ initiateCOD(); }, 'cod'); return; }
-  const formData = validateCheckoutForm();
-  if (!formData) return;
-
-  const { paidSubtotal, vitaOff } = getOrderTotal();
-  const orderId = generateOrderId();
-  const netSub = paidSubtotal;
-  const codCharge = calcShipping(netSub, 'cod');
-  const codTotal = Math.max(0, netSub + codCharge - vitaOff);
-
-  codOrderInFlight = true;
-  // Disable button immediately to prevent double-tap
-  const btn = document.getElementById('codBtn');
-  if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; btn.innerHTML = '<span>⏳</span> <span>Placing your order...</span>'; }
-
-  try {
-    await finalizeOrder(orderId, formData, codTotal, 'cod', codCharge);
-    // On success finalizeOrder navigates to the thank-you page.
-  } catch(err) {
-    showToast('❌ Order failed: ' + err.message, 'error');
-  } finally {
-    codOrderInFlight = false;
-    // MUST be `finally`, not `catch`. finalizeOrder RETURNS (it does not
-    // throw) when the order fails to save, so a catch-only reset left the
-    // button stuck on "Placing your order..." until a page refresh — and
-    // the same stale state greeted the customer if they navigated back to
-    // checkout after a successful order. Resetting unconditionally is
-    // safe: on success the page has already moved to the thank-you view.
-    if (btn) {
-      btn.disabled = false;
-      btn.style.opacity = '1';
-      btn.innerHTML = '<span style="font-size:1.2rem">💵</span><div style="text-align:left"><div>Confirm COD Order</div><div id="codBtnNote" style="font-size:.65rem;opacity:.8;font-weight:500;margin-top:1px">Free COD on your order</div></div>';
-      try { updateCodBtnNote(); } catch(e) {}
-    }
-  }
-}
-
-async function confirmCODOrder(orderId, codTotal, codCharge) {
-  const overlay = document.getElementById('codOverlay');
-  if (overlay) overlay.innerHTML = `<div style="background:var(--sub-1);border-radius:20px;padding:32px 28px;text-align:center;max-width:340px;width:90%">
-    <div style="font-size:2.5rem;margin-bottom:12px">⏳</div>
-    <div style="font-weight:700;color:var(--f-mineral-d)">Placing your order...</div>
-  </div>`;
-
-  const pd = window._pendingPayment;
-  if (!pd) { if(overlay) overlay.remove(); showToast('Session expired', 'error'); return; }
-
-  try {
-    await finalizeOrder(orderId, pd.formData, codTotal, 'cod', codCharge);
-    if (overlay) overlay.remove();
-    // finalizeOrder calls showPage('thankyou')
-  } catch(err) {
-    if (overlay) overlay.remove();
-    showPaymentError('COD order failed: ' + err.message, orderId, pd.formData, codTotal, 'cod');
-  }
-}
-
-// ══════════════════════════════════════════════
-// COD PAYMENT FLOW (from modal — kept for compatibility)
-
-
-
-// Helper to update the processing screen status bar
-
-// ── PROCESSING OVERLAY ──
-function showProcessingScreen(orderId, total, method) {
-  document.getElementById('cfProcessing')?.remove();
-  const methodIcons = { cod:'💵', upi:'📱', card:'💳', netbanking:'🏦', emi:'📊', gokwik:'🔴', cashfree:'🔵' };
-  const methodNames = { cod:'Cash on Delivery', upi:'UPI', card:'Card', netbanking:'Net Banking', emi:'EMI', gokwik:'GoKwik', cashfree:'Cashfree' };
-
-  const el = document.createElement('div');
-  el.id = 'cfProcessing';
-  el.style.cssText = 'position:fixed;inset:0;background:rgba(10,20,10,0.92);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:system-ui;text-align:center;padding:32px';
-  el.innerHTML = `
-    <div style="font-size:3.5rem;margin-bottom:20px;animation:cfSpin 1.2s linear infinite">${methodIcons[method] || '💳'}</div>
-    <div style="font-size:1.3rem;font-weight:800;margin-bottom:8px">${method === 'cod' ? 'Placing COD Order' : 'Processing Payment'}</div>
-    <div style="font-size:.85rem;opacity:.7;margin-bottom:4px">₹${total.toLocaleString('en-IN')} via ${methodNames[method] || method}</div>
-    <div style="font-size:.72rem;opacity:.5;margin-bottom:28px">Order: ${orderId}</div>
-    <div style="width:240px;height:5px;background:rgba(255,255,255,.15);border-radius:100px;overflow:hidden">
-      <div id="cfPBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--st-ok-fg),var(--indigo));border-radius:100px;transition:width .4s ease"></div>
-    </div>
-    <div id="cfPStatus" style="font-size:.72rem;opacity:.5;margin-top:12px">${method === 'cod' ? 'Validating delivery, stock, and order details...' : 'Connecting to payment gateway...'}</div>
-    <div style="font-size:.65rem;opacity:.35;margin-top:24px">${method === 'cod' ? '🔒 Secure COD order · No payment is being processed' : '🔒 256-bit SSL · Payment provider secured · PCI DSS'}</div>
-    <style>@keyframes cfSpin{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}</style>
-  `;
-  document.body.appendChild(el);
-}
-
-async function animateProcessing() {
-  const steps = [
-    [15, 'Connecting to GoKwik...'],
-    [35, 'Authenticating...'],
-    [55, 'Verifying order details...'],
-    [75, 'Processing payment...'],
-    [90, 'Confirming transaction...'],
-    [100, '✅ Payment successful!'],
-  ];
-  for (const [pct, msg] of steps) {
-    await new Promise(r => setTimeout(r, 480));
-    const bar = document.getElementById('cfPBar');
-    const status = document.getElementById('cfPStatus');
-    if (bar) bar.style.width = pct + '%';
-    if (status) status.textContent = msg;
-  }
-  await new Promise(r => setTimeout(r, 500));
-}
-
-function hideProcessingScreen() {
-  document.getElementById('cfProcessing')?.remove();
-}
-
-/* ── Friendly copy for known backend/gateway errors so customers never
-   see internal provider wording like "Merchant Data Not Found". ── */
-const PAY_RESULT_ERROR_MAP = [
-  { re: /merchant data not found/i, text: 'We could not reach our payment provider. Please wait a moment and try again.' },
-  { re: /transactions are not enabled/i, text: 'Online payments are temporarily unavailable with our provider. Please try again shortly, or use Cash on Delivery.' },
-  { re: /payment gateway account/i, text: 'Online payments are temporarily unavailable with our provider. Please try again shortly, or use Cash on Delivery.' },
-  // COD orders mention no money at all (nothing was charged in the first
-  // place); claiming an auto-refund on a COD failure confused customers.
-  { re: /could not verify/i, codText: 'We could not place your order just now. Please check your details and try again in a moment — no money is involved with Cash on Delivery.' },
-  { re: /could not verify/i, text: 'We could not confirm this payment automatically. If money was deducted, it will be auto-refunded within 5-7 days.' },
-];
-function friendlyPaymentError(raw, method) {
-  for (const m of PAY_RESULT_ERROR_MAP) {
-    if (!m.re.test(raw || '')) continue;
-    // COD orders get the money-free variant (codText); prepaid flows use
-    // the refund-safety wording (text). Entries may define only one of
-    // the two — fall through to the next matching rule or the raw text.
-    if (method === 'cod') {
-      if (m.codText) return m.codText;
-      if (m.text) return m.text;
-      return raw;
-    }
-    if (m.text) return m.text;
-    continue;
-  }
-  return raw;
-}
-
-// ── PAYMENT RESULT — success OR failure, centred in place ──
-// Shows a real modal (dimmed backdrop, sticky pay bar hidden, page locked)
-// so the outcome is obvious on phones, not floating at the bottom.
-function closePaymentResult() {
-  document.getElementById('payResultOverlay')?.remove();
-  document.getElementById('payErrorOverlay')?.remove();
-  document.body.classList.remove('oz-pay-result');
-  if (!document.querySelector('.pay-result-overlay, #payErrorOverlay')) {
-    document.body.style.overflow = '';
-  }
-}
-function showPaymentResult(state, opts) {
-  // state: 'ok' | 'fail'
-  closePaymentResult();
-  hideProcessingScreen();
-  closePaymentModal();
-  document.body.classList.add('oz-pay-result'); // hides #ozPayBar + locks scroll
-
-  const ok = state === 'ok';
-  const isCod = opts.method === 'cod';
-  const el = document.createElement('div');
-  el.className = 'pay-result-overlay';
-  el.id = 'payResultOverlay';
-  el.onclick = function (e) { if (e.target === el) closePaymentResult(); };
-
-  const refHtml = opts.orderId ? `<div class="pay-result-ref">Order Ref: <strong>${opts.orderId}</strong></div>` : '';
-  const amountHtml = opts.total ? `<span style="font-weight:800;font-variant-numeric:tabular-nums">₹${Number(opts.total).toLocaleString('en-IN')}</span>` : '';
-
-  const iconHtml = ok
-    ? `<div class="pay-result-icon ok"><svg width="44" height="44" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24" fill="none" stroke="#2f5d3a" stroke-width="2"/><path d="M14.1 27.2l7.1 7.2 16.7-16.8" fill="none" stroke="#2f5d3a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`
-    : `<div class="pay-result-icon fail">✕</div>`;
-
-  const title = ok
-    ? (isCod ? 'COD Order Confirmed' : 'Payment Successful')
-    : (isCod ? 'COD Order Not Placed' : 'Payment Failed');
-  const msg = ok
-    ? (opts.msg || (isCod ? 'Your Cash on Delivery order is confirmed.' : 'Your payment went through and your order is confirmed.'))
-    : friendlyPaymentError(opts.msg || (isCod ? 'We could not place your COD order.' : 'Your payment could not be completed.'), opts.method);
-
-  const noteHtml = ok
-    ? (opts.note ? `<div class="pay-result-note">${opts.note}</div>` : '')
-    : `<div class="pay-result-note">${isCod ? 'No payment was processed. Your cart is safe.' : (opts.refundNote || 'No money has been deducted from your account.')}</div>`;
-
-  const supportWaNumber = (typeof window.getCustomerWhatsAppNumber === 'function')
-    ? window.getCustomerWhatsAppNumber()
-    : '919898582650';
-  const actionsHtml = ok
-    ? `<button class="pay-result-btn pay-result-primary ok" onclick="closePaymentResult(); showPage('thankyou');">Continue to Order Confirmation →</button>
-       <button class="pay-result-btn pay-result-secondary" onclick="closePaymentResult(); showPage('home');">Back to Home</button>`
-    : `${isCod
-       ? `<button class="pay-result-btn pay-result-primary fail" onclick="closePaymentResult(); initiateCOD();">🔄 Retry COD Order</button>`
-       : `<button class="pay-result-btn pay-result-primary fail" onclick="closePaymentResult(); initiatePayment();">🔄 Retry Payment</button>`}
-       <button class="pay-result-btn pay-result-wa" onclick="window.open('https://wa.me/${supportWaNumber}?text=${encodeURIComponent((isCod ? 'COD order failed' : 'Payment failed') + ' for order ' + (opts.orderId || '') + (opts.total ? ' amount ₹' + opts.total : '') + ', please help')}', '_blank')">💬 WhatsApp Support</button>
-       <button class="pay-result-btn pay-result-secondary" onclick="closePaymentResult(); showPage('cart');">← Back to Cart</button>
-       <button class="pay-result-btn pay-result-secondary" onclick="closePaymentResult(); showPage('home');">Cancel & Continue Shopping</button>`;
-
-  el.innerHTML = `<div class="pay-result-box">
-    ${iconHtml}
-    <div class="pay-result-title">${title}</div>
-    ${amountHtml && ok ? `<div style="font-size:1.05rem;color:var(--t-hi);margin-bottom:12px">${amountHtml} paid</div>` : ''}
-    ${refHtml}
-    <p class="pay-result-msg">${msg}</p>
-    ${noteHtml}
-    <div class="pay-result-actions">${actionsHtml}</div>
-  </div>`;
-
-  document.body.appendChild(el);
-  // Focus first button for accessibility after the pop animation.
-  const firstBtn = el.querySelector('button');
-  if (firstBtn) setTimeout(() => firstBtn.focus(), 320);
-}
-
-// ── Legacy helper used across the checkout paths — routes through the
-// centred modal above so failures are never buried at the page bottom. ──
-function showPaymentError(msg, orderId, formData, total, method) {
-  showPaymentResult('fail', { orderId: orderId, total: total, msg: msg || '', method: method });
-}
-
-// ── FINALIZE ORDER AFTER SUCCESSFUL PAYMENT ──
 const PAY_METHOD_LABEL = {
   cod: 'Cash on delivery',
   gokwik: 'Paid online (GoKwik)',
@@ -6287,749 +5427,63 @@ function showForgotPassword() {
 // ACCOUNT DASHBOARD
 // ═══════════════════════════════════════════════════════
 
-function loadAccountPage() {
-  syncAccountSession();
+// One authenticated read can feed concurrent account views. No private TTL cache.
+let _accountOrdersPending = null;
+function readAccountOrders() {
+  const token = localStorage.getItem('asc_jwt') || '';
   const user = getCurrentUser();
-  if (!user) { openAuth('login'); return; }
-  document.getElementById('accName')?.textContent != null && (document.getElementById('accName').textContent = user.name);
-  document.getElementById('accEmail')?.textContent != null && (document.getElementById('accEmail').textContent = user.email);
-  const parts = (user.name || 'Member').split(' ');
-  const av=document.getElementById('accAvatar'); if(av) av.textContent = (parts[0][0] + (parts[1]?parts[1][0]:'')).toUpperCase();
-  loadOrdersList();
-  loadInvoicesList();
-  prefillProfile(user);
-  // Refresh the top Account Hub identity and live summary on every account entry.
-  try { if (typeof refreshAccountWelcome === 'function') refreshAccountWelcome(); } catch(e) {}
-
-  // AUTO-REFRESH: the courier sync flips fulfillment (Shipped → Delivered)
-  // server-side every 10 minutes. Without this loop the customer would have
-  // to leave and return to see their order move, and the "Earns VitaPoints
-  // once delivered" line would never update. Re-pull every 60 s while the
-  // account page is visible — harmless repeat calls (authenticated, cheap).
-  clearInterval(window._ordersRefreshTimer);
-  window._ordersRefreshTimer = setInterval(() => {
-    if (document.hidden) return;
-    loadOrdersList();
-    loadInvoicesList();
-  }, 60 * 1000);
+  if (!token || !user) return Promise.reject(new Error('Sign in required'));
+  if (_accountOrdersPending?.token === token) return _accountOrdersPending.task;
+  const task = (async()=>{
+    const response = await fetchWithTimeout(API_BASE + '/api/orders/my', {
+      headers:{Authorization:'Bearer ' + token},cache:'no-store'
+    },8000);
+    if (!response.ok) throw new Error('Order history unavailable');
+    const payload = await response.json();
+    if (!accountSessionMatches(token)) throw new Error('Session changed');
+    const rows = payload.data || payload;
+    if (!Array.isArray(rows)) throw new Error('Invalid order history');
+    return rows.filter(o=>(o.customer_email||'').toLowerCase().trim() === user.email.toLowerCase().trim());
+  })();
+  _accountOrdersPending = {token,task};
+  task.finally(()=>{if(_accountOrdersPending?.task === task) _accountOrdersPending=null;}).catch(()=>{});
+  return task;
 }
-
-// ══════════════════════════════════════════════════════════════
-// RETURNS & REFUNDS (My Account)
-// The returns panel is also usable on pages where invoice-template.js is not
-// loaded. Keep a local global fallback so a missing optional template helper
-// cannot leave the customer-facing panel on an infinite loading state.
-var _esc = (typeof window !== 'undefined' && typeof window._esc === 'function')
-  ? window._esc
-  : function(v) {
-      return String(v == null ? '' : v)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    };
-if (typeof window !== 'undefined') window._esc = _esc;
-
-//
-// Every rule that matters — 7-day window, ownership, item validity —
-// is enforced server-side in returns-routes.js and SQL. This is the
-// display layer; it never decides eligibility, it only renders what
-// /api/returns/eligible reports.
-// ══════════════════════════════════════════════════════════════
-let RETURN_REASONS = [];
-
-function _retJwt() { return localStorage.getItem('asc_jwt') || ''; }
-
-async function renderReturnsPanel() {
-  const el = document.getElementById('returnsPanelBody');
-  if (!el) return;
-  if (!_retJwt()) {
-    el.innerHTML = '<div class="ret-empty">Please sign in to request a return.</div>';
-    return;
-  }
-  el.innerHTML = '<div class="ret-empty">Loading your orders…</div>';
-
-  try {
-    const h = { 'Authorization': 'Bearer ' + _retJwt() };
-    // Never leave the customer on an infinite spinner. The eligible-orders
-    // request is the critical path; the request-history call is best effort,
-    // because a temporary failure there must not hide returnable products.
-    const results = await Promise.allSettled([
-      fetchWithTimeout(API_BASE + '/api/returns/eligible', { headers: h }, 15000),
-      fetchWithTimeout(API_BASE + '/api/returns/my', { headers: h }, 15000),
-    ]);
-    const eligibleResult = results[0];
-    const historyResult = results[1];
-    if (eligibleResult.status !== 'fulfilled') {
-      throw new Error('The returns service took too long to respond. Please try again.');
-    }
-    const eR = eligibleResult.value;
-    const eD = await eR.json().catch(() => ({}));
-    if (!eR.ok) throw new Error(eD.error || 'Could not load your orders');
-
-    let mD = {};
-    if (historyResult.status === 'fulfilled' && historyResult.value.ok) {
-      mD = await historyResult.value.json().catch(() => ({}));
-    } else {
-      console.warn('[renderReturnsPanel] request history unavailable; showing eligible orders');
-    }
-    if (!accountSessionMatches(h.Authorization.slice(7))) return;
-    RETURN_REASONS = eD.reasons || [];
-
-    const existing = (mD && mD.returns) || [];
-    const orders   = (eD && eD.orders)  || [];
-
-    let html = '';
-
-    if (existing.length) {
-      html += '<h4 style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--t-low);margin:2px 0 11px;font-weight:800">Your requests</h4>';
-      html += existing.map(function(r){
-        const items = (r.items || []).map(function(i){ return _esc(i.name || ('Item ' + i.id)) + ' × ' + i.qty; }).join(', ');
-        // data-return-id lets cancelReturn grey this exact card out
-        // immediately, and flash it back if the server refuses.
-        return '<div class="ret-card" data-return-id="' + _esc(r.id) + '">'
-          + '<div class="ret-head"><div><div class="ret-oid">' + _esc(r.order_id) + '</div>'
-          + '<div class="ret-meta">' + new Date(r.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})
-          + ' · ' + _esc(r.reason) + '</div></div>'
-          + '<span class="ret-badge rb-' + _esc(r.status) + '">' + _esc(String(r.status).replace('_',' ')) + '</span></div>'
-          + '<div class="ret-items"><div class="ret-item" style="padding:0">' + _esc(items) + '</div>'
-          + (r.points_reversed ? '<div class="ret-meta" style="margin-top:7px">💎 ' + r.points_reversed.toLocaleString('en-IN') + ' VitaPoints reversed</div>' : '')
-          + (r.refund_amount ? '<div class="ret-meta">Refund ₹' + Number(r.refund_amount).toLocaleString('en-IN') + (r.refund_ref ? ' · ref ' + _esc(r.refund_ref) : '') + '</div>' : '')
-          + (r.admin_note ? '<div class="ret-meta">Note: ' + _esc(r.admin_note) + '</div>' : '')
-          + '</div>'
-          + (r.status === 'requested'
-              ? '<div class="ret-actions"><button class="btn-outline" onclick="cancelReturn(\'' + r.id + '\')">Cancel request</button></div>'
-              : '')
-          + '</div>';
-      }).join('');
-    }
-
-    const eligible = orders.filter(function(o){ return o.eligible; });
-    html += '<h4 style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--t-low);margin:20px 0 11px;font-weight:800">Eligible for return</h4>';
-
-    if (!eligible.length) {
-      html += '<div class="ret-empty">' + (orders.length
-                ? 'None of your orders are open for return right now.'
-                : 'You have no orders yet.') + '<br>'
-            + '<span style="font-size:.78rem">Returns are open for <b>7 days</b> after delivery.</span></div>';
-    } else {
-      html += eligible.map(function(o){
-        // items can arrive as a JSON string from an older backend build,
-        // and as null on an order whose line items were never stored.
-        // Both used to fall through as "no checkboxes", which produced a
-        // form that could not possibly be submitted (see below).
-        var rawItems = o.items;
-        if (typeof rawItems === 'string') {
-          try { rawItems = JSON.parse(rawItems); } catch (e) { rawItems = []; }
-        }
-        if (!Array.isArray(rawItems)) rawItems = [];
-
-        // An order with ONE item has only one possible answer, and making
-        // the customer find an invisible box to give it was the whole
-        // failure. Pre-selected — they still choose a reason and press
-        // Submit, so nothing is sent without an explicit action.
-        const single = rawItems.length === 1;
-
-        const items = rawItems.map(function(i, n){
-          return '<label class="ret-item">'
-            + '<input type="checkbox"' + (single ? ' checked' : '')
-            + ' data-oid="' + _esc(o.order_id) + '" data-id="' + _esc(i.id) + '" data-max="' + (i.qty||1) + '">'
-            + '<span>' + _esc(i.name || ('Item ' + i.id)) + '</span>'
-            + '<span class="rq">qty ' + (i.qty || 1) + '</span></label>';
-        }).join('');
-
-        // Say a choice is needed BEFORE the button is pressed, rather
-        // than only in an error afterwards.
-        const pickHint = '<div class="ret-pick-hint">'
-          + (single ? 'Item to return' : 'Select the item(s) to return')
-          + '</div>';
-
-        // AN ORDER WITH NO ITEMS MUST NOT SHOW A SUBMIT BUTTON.
-        // Previously the item list rendered empty while the reason box
-        // and "Submit return request" rendered anyway — so there was
-        // nothing to tick, and every submit answered "Select at least
-        // one item to return". The customer could try forever and never
-        // succeed, with no way to tell why. Say what is wrong and give
-        // them the route that does work.
-        if (!rawItems.length) {
-          return '<div class="ret-card" id="retcard-' + _esc(o.order_id) + '">'
-            + '<div class="ret-head"><div><div class="ret-oid">' + _esc(o.order_id) + '</div>'
-            + '<div class="ret-meta">₹' + Number(o.total||0).toLocaleString('en-IN')
-            + ' · ' + new Date(o.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) + '</div></div>'
-            + '<span class="ret-days">' + o.days_left + ' day' + (o.days_left === 1 ? '' : 's') + ' left</span></div>'
-            + '<div class="ret-empty" style="margin:12px 0 0">'
-            + 'We could not load the items for this order, so a return cannot be started here.<br>'
-            + '<span style="font-size:.78rem">This order is still within its return window — '
-            + 'message us on WhatsApp with order <b>' + _esc(o.order_id) + '</b> and we will raise it for you.</span>'
-            + '</div></div>';
-        }
-        return '<div class="ret-card" id="retcard-' + _esc(o.order_id) + '">'
-          + '<div class="ret-head"><div><div class="ret-oid">' + _esc(o.order_id) + '</div>'
-          + '<div class="ret-meta">₹' + Number(o.total||0).toLocaleString('en-IN')
-          + ' · ' + new Date(o.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) + '</div></div>'
-          + '<span class="ret-days">' + o.days_left + ' day' + (o.days_left === 1 ? '' : 's') + ' left</span></div>'
-          + '<div class="ret-items">' + pickHint + items + '</div>'
-          + '<div class="ret-form">'
-          + '<label>Reason for return</label>'
-          + '<select id="retreason-' + _esc(o.order_id) + '">'
-          + '<option value="">Select a reason…</option>'
-          + RETURN_REASONS.map(function(r){ return '<option>' + _esc(r) + '</option>'; }).join('')
-          + '</select>'
-          + '<label>Anything else we should know? (optional)</label>'
-          + '<textarea id="retnote-' + _esc(o.order_id) + '" placeholder="Tell us what went wrong…"></textarea>'
-          + '</div>'
-          + '<div class="ret-actions"><button class="btn-primary" onclick="submitReturn(\'' + _esc(o.order_id) + '\', this)">Submit return request</button></div>'
-          + '<p class="ret-meta" style="margin-top:9px">Approved returns reverse the VitaPoints earned on this order.</p>'
-          + '</div>';
-      }).join('');
-    }
-
-    // Everything that is NOT open for return, with the server's reason
-    // against it. This panel used to render nothing but "No orders are
-    // currently eligible", which is the same message whether the window
-    // has closed, the order was cancelled, a request is already open, or
-    // — as was happening for every customer — the window was being
-    // measured from the wrong date. A customer who cannot raise a refund
-    // request should at least be told which of those it is.
-    const blocked = orders.filter(function(o){ return !o.eligible; });
-    if (blocked.length) {
-      html += '<h4 style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--t-low);margin:22px 0 11px;font-weight:800">Not open for return</h4>';
-      html += blocked.map(function(o){
-        return '<div class="ret-card ret-card-muted">'
-          + '<div class="ret-head"><div><div class="ret-oid">' + _esc(o.order_id) + '</div>'
-          + '<div class="ret-meta">\u20b9' + Number(o.total||0).toLocaleString('en-IN')
-          + ' \u00b7 ' + new Date(o.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})
-          + (o.fulfillment ? ' \u00b7 ' + _esc(o.fulfillment) : '') + '</div></div></div>'
-          + '<div class="ret-meta" style="margin-top:8px">' + _esc(o.reason || 'Not eligible for return') + '</div>'
-          + '</div>';
-      }).join('');
-    }
-
-    html += '<p class="ret-meta" style="margin-top:18px">Something look wrong? '
-          + '<a href="mailto:ozylixcare@gmail.com">Email us</a> with your order number '
-          + 'and we will raise the request for you.</p>';
-
-    el.innerHTML = html;
-  } catch (err) {
-    console.error('[renderReturnsPanel]', err);
-    el.innerHTML = '<div class="ret-empty">Could not load returns: ' + _esc(err.message) + '</div>';
+function loadActiveAccountPanel() {
+  const panel = document.querySelector('#page-account .account-panel.active');
+  switch(panel?.id || 'panel-orders') {
+    case 'panel-orders': return loadOrdersList();
+    case 'panel-invoices': return loadInvoicesList();
+    case 'panel-returns': return renderReturnsPanel();
+    case 'panel-vita': return renderVitaPanel();
   }
 }
 
-// _esc() is defined once, in invoice-template.js, which loads in <head>
-// before any of this runs. The byte-identical copy that used to sit here
-// shadowed it for no reason.
-
-async function submitReturn(orderId, btn) {
-  const boxes = Array.from(document.querySelectorAll('input[type=checkbox][data-oid="' + orderId + '"]:checked'));
-  const reason = (document.getElementById('retreason-' + orderId) || {}).value || '';
-  const note   = (document.getElementById('retnote-' + orderId) || {}).value || '';
-
-  if (!boxes.length) {
-    // A toast alone told the customer a rule existed but not where to
-    // satisfy it — which, when the control was invisible, made the
-    // button look broken. Point at the actual rows and flash them.
-    showToast('Tick the item you want to return', 'error');
-    var card = document.getElementById('retcard-' + orderId);
-    var list = card && card.querySelector('.ret-items');
-    if (list) {
-      list.classList.remove('rollback-flash');
-      void list.offsetWidth;
-      list.classList.add('rollback-flash');
-      setTimeout(function(){ list.classList.remove('rollback-flash'); }, 1600);
-      list.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    return;
-  }
-  if (!reason)       { showToast('Please choose a reason for the return', 'error'); return; }
-
-  const jwt = _retJwt();
-  if (!jwt) { showToast('Your session has expired. Please sign in again.', 'error'); return; }
-  const orig = btn.textContent;
-  btn.disabled = true; btn.textContent = 'Submitting…';
-  try {
-    const resp = await fetchWithTimeout(API_BASE + '/api/returns', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
-      body: JSON.stringify({
-        order_id: orderId, reason: reason, comments: note,
-        items: boxes.map(function(b){ return { id: b.dataset.id, qty: Number(b.dataset.max) || 1 }; }),
-      }),
-    }, 20000);
-    const d = await resp.json().catch(function(){ return {}; });
-    if (!resp.ok) {
-      const message = d.error || d.message || (resp.status === 401 || resp.status === 403
-        ? 'Your session has expired. Please sign in again.'
-        : 'The returns service could not accept this request (HTTP ' + resp.status + '). Please try again or email support.');
-      throw new Error(message);
-    }
-    showToast('↩️ Return request submitted');
-    renderReturnsPanel();
-  } catch (err) {
-    const message = err && (err.name === 'AbortError' || err.name === 'TimeoutError')
-      ? 'The request timed out. Check your connection and try again.'
-      : (err && err.message ? err.message : 'Could not submit your return request. Please try again.');
-    console.error('[submitReturn] request failed', { orderId: orderId, error: err });
-    showToast('❌ ' + message, 'error');
-    btn.disabled = false; btn.textContent = orig;
-  }
-}
-
-async function cancelReturn(id) {
-  // Optimistic: this is the customer's own pending request, so it
-  // essentially always succeeds. Grey the card out and say so
-  // immediately rather than leaving the button looking inert.
-  const card = document.querySelector('[data-return-id="' + id + '"]');
-  if (card) { card.style.opacity = '0.45'; card.style.pointerEvents = 'none'; }
-
-  try {
-    const resp = await fetch(API_BASE + '/api/returns/' + id + '/cancel', {
-      method: 'POST', headers: { 'Authorization': 'Bearer ' + _retJwt() },
-      signal: AbortSignal.timeout(15000),
-    });
-    const d = await resp.json().catch(() => ({}));
-    if (!resp.ok) throw new Error(d.error || 'Could not cancel');
-    showToast('Return request cancelled');
-    renderReturnsPanel();
-  } catch (err) {
-    // Put the card back and make the undo visible, so nobody walks away
-    // thinking a request was cancelled when it is still open.
-    if (card) {
-      card.style.opacity = '';
-      card.style.pointerEvents = '';
-      card.classList.add('rollback-flash');
-      setTimeout(() => card.classList.remove('rollback-flash'), 1600);
-    }
-    showToast('↩️ Still open — ' + (err.message || 'could not cancel'), 'error');
-  }
-}
-
-function switchAccountPanel(panel) {
-  if (!getCurrentUser()) { openAuth('login'); return; }
-  if (!document.getElementById('panel-' + panel)) return;
-  document.querySelectorAll('.account-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.account-nav-item').forEach(b => b.classList.remove('active'));
-  const el = document.getElementById('panel-' + panel);
-  if (el) el.classList.add('active');
-  const navItems = document.querySelectorAll('.account-nav-item');
-  const labels = ['orders','tracking','invoices','vita','returns','profile'];
-  if (panel === 'returns') { try { renderReturnsPanel(); } catch(e) { console.error('[renderReturnsPanel]', e); } }
-  if (panel === 'vita') { try { renderVitaPanel(); } catch(e) { console.error('[renderVitaPanel]', e); } }
-  if (panel === 'orders') { try { refreshAccountWelcome(); } catch(e) { console.error('[refreshAccountWelcome]', e); } }
-  try { refreshAccountWelcome(); } catch(e) {}
-  const idx = labels.indexOf(panel);
-  if (idx >= 0 && navItems[idx]) navItems[idx].classList.add('active');
-  navItems.forEach(b => b.setAttribute('aria-current', b.classList.contains('active') ? 'page' : 'false'));
-  document.querySelector('#panel-' + panel + ' .account-panel-title')?.setAttribute('tabindex', '-1');
-  document.querySelector('#panel-' + panel + ' .account-panel-title')?.focus({preventScroll:true});
-}
-
-function _renderOrderCards(orders, container) {
-  if (orders.length === 0) {
-    container.innerHTML = `<div class="no-orders"><div class="no-orders-ico">📦</div><h3 style="margin-bottom:8px">No orders yet</h3><p style="color:var(--gray);margin-bottom:20px">Your order history will appear here after your first purchase.</p><button class="btn-primary" onclick="showPage('shop')">Start Shopping →</button></div>`;
-    return;
-  }
-  container.innerHTML = orders.map(o => {
-    const orderId = o.orderId || o.id || '';
-    const date    = o.date || (o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '');
-    const status  = o.status || o.fulfillment || 'Processing';
-    const total   = o.total || 0;
-    let items = o.items || [];
-    if (typeof items === 'string') { try { items = JSON.parse(items); } catch(e) { items = []; } }
-    const statusCls = status.toLowerCase().includes('dispatch')||status.toLowerCase().includes('confirm') ? 'confirmed'
-      : status.toLowerCase().includes('ship') ? 'shipped'
-      : status.toLowerCase().includes('deliver') ? 'delivered' : 'pending';
-
-    // VitaPoints for this order, straight from the columns the server writes
-    // when it awards/redeems against the ledger. Nothing is recomputed here —
-    // if the order was returned, the points were reversed server-side, so the
-    // card says so rather than still claiming they were earned.
-    const isReturned  = /return/i.test(status);
-    const isCancelled = /cancel/i.test(status);
-    const earned   = Number(o.vita_points_earned || 0);
-    const redeemed = Number(o.vita_points_redeemed || 0);
-    let vitaLine = '';
-    {
-      const bits = [];
-      if (earned > 0) {
-        bits.push(isReturned
-          ? `<span style="color:var(--clay-lo,#b4553f)">−${earned.toLocaleString('en-IN')} VitaPoints reversed</span>`
-          : `<span style="color:var(--fern-lo,#2E7D32)">+${earned.toLocaleString('en-IN')} VitaPoints</span>`);
-      } else if (!isCancelled && !isReturned) {
-        // A cash-on-delivery order earns nothing until the courier hands it
-        // over and the cash is collected — a refused parcel was never a sale.
-        // With no line at all, an order that SPENT points looked like it gave
-        // nothing back, which is what this reads as on the account page.
-        // No number is shown: the rate is tier-based and decided server-side
-        // by vita_earn_on_order, so quoting one here would be a guess.
-        bits.push('<span style="color:var(--gray,#777)">Earns VitaPoints once delivered</span>');
-      }
-      if (redeemed > 0) bits.push(`<span style="color:var(--gray,#777)">${redeemed.toLocaleString('en-IN')} used</span>`);
-      if (bits.length) {
-        vitaLine = `<div style="font-size:.76rem;margin-top:6px;display:flex;gap:10px;flex-wrap:wrap">🌿 ${bits.join(' · ')}</div>`;
-      }
-    }
-    const payStatus = o.payment_status ? `<div style="font-size:.72rem;color:var(--gray,#888);margin-top:4px">${o.payment_status}</div>` : '';
-    // 2026-08: show WHICH payment method was used (COD vs Online) and every
-    // discount that applied, so My Orders matches the invoice and the
-    // VitaPoints ledger — same database row, same numbers.
-    const PAY_METHOD_LABEL = {
-      cod: '💵 COD', cashfree: '🔒 Online (Cashfree)', gokwik: '🔒 Online (GoKwik)',
-      online: '🔒 Online', UPI: '🔒 UPI',
-    };
-    const payMethod = o.payment_method ? `<div style="font-size:.72rem;font-weight:600;color:var(--t-mid,#444);margin-top:3px">${PAY_METHOD_LABEL[String(o.payment_method).toLowerCase()] || '🔒 ' + o.payment_method}</div>` : '';
-    const discBits = [];
-    if (Number(o.tier_discount || 0) > 0) discBits.push(`Pack/tier −₹${Number(o.tier_discount).toLocaleString('en-IN')}`);
-    if (Number(o.mix_match_discount || 0) > 0) discBits.push(`Mix&Match −₹${Number(o.mix_match_discount).toLocaleString('en-IN')}`);
-    if (Number(o.coupon_discount || 0) > 0) discBits.push(`Promo ${o.coupon_code ? '(' + o.coupon_code + ')' : ''} −₹${Number(o.coupon_discount).toLocaleString('en-IN')}`);
-    if (Number(o.vita_points_discount || 0) > 0) discBits.push(`VitaPoints −₹${Number(o.vita_points_discount).toLocaleString('en-IN')}`);
-    const discLine = discBits.length ? `<div style="font-size:.72rem;color:var(--success,#2E7D32);margin-top:3px">🏷️ ${discBits.join(' · ')}</div>` : '';
-    // REVIEW COLLECTION: delivered orders get a direct "Write a Review"
-    // button — this is where reviews come from in the real world. It opens
-    // the product page straight onto the review form, so the customer is
-    // one tap from the stars. Only shown when the courier has confirmed
-    // delivery (fulfillment === 'Delivered'), never before.
-    const delivered = String(status).toLowerCase() === 'delivered';
-    const productId = (() => { try { const it = items[0]; return Number(it && (it.product_id || it.id || 0)) || 0; } catch(_) { return 0; } })();
-    const deliveredReviewCta = delivered && productId
-      ? `<button class="order-track-btn" style="background:var(--fern-lo,#2E7D32);color:#fff" onclick="openProductReview(${productId})">⭐ Write a Review</button>`
-      : '';
-
-    return `<div class="order-card">
-      <div class="order-header">
-        <div>
-          <div class="order-id">${orderId}</div>
-          <div class="order-date">${date}</div>
-        </div>
-        <span class="order-status ${statusCls}">${status}</span>
-      </div>
-      <div class="order-items">${items.map(i => `${i.name||i.item_name||''} × ${i.qty||i.units||1}`).join(', ') || 'Order confirmed'}</div>
-      ${vitaLine}
-      ${payMethod}${discLine}
-      <div class="order-footer">
-        <div class="order-total">₹${parseFloat(total).toLocaleString('en-IN')}${payStatus}</div>
-        <div style="display:flex;gap:8px">
-          <button class="invoice-btn" onclick="downloadInvoice('${orderId}')">🧾 Updated Invoice</button>
-          <button class="order-track-btn" onclick="openTracking('${orderId}')">🚚 Track</button>${deliveredReviewCta}
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-async function loadOrdersList() {
-  const container = document.getElementById('ordersList');
-  if (!container) return;
-  const user = getCurrentUser();
-  if (!user) { container.innerHTML = '<p style="color:var(--gray);text-align:center;padding:30px">Please log in to view your orders.</p>'; return; }
-
-  // Show loading state
-  container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--gray)"><div style="font-size:1.5rem;margin-bottom:8px">⏳</div>Loading your orders…</div>';
-
-  const jwt = localStorage.getItem('asc_jwt') || '';
-  let backendOrders = [];
-  let backendLoaded = false;
-
-  // 1. Try backend first (cross-device — source of truth)
-  if (jwt) {
-    try {
-      const r = await fetchWithTimeout(API_BASE + '/api/orders/my', {
-        headers: { 'Authorization': 'Bearer ' + jwt }
-      }, 8000);
-      if (r.ok) {
-        const data = await r.json();
-        backendOrders = (data.data || data || []).filter(o => {
-          // Security: double-check email matches logged-in user
-          return (o.customer_email || '').toLowerCase().trim() === user.email.toLowerCase().trim();
-        });
-        backendLoaded = true;
-      }
-    } catch(e) { console.warn('[Orders] Backend fetch failed:', e.message); }
-  }
-
-  if (!accountSessionMatches(jwt)) return;
-  const merged = backendOrders.sort((a,b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-  // Keep the exact same order objects available to every invoice action,
-  // including the Orders panel. Previously only the Invoices panel populated
-  // __INVOICE_ORDERS, so Print/Invoice from My Account could fall back to an
-  // incomplete local row and appear to use a different template.
-  window.__INVOICE_ORDERS = merged;
-  _renderOrderCards(merged, container);
-
-  if (!backendLoaded) {
-    container.innerHTML = '<div class="no-orders" role="status"><h3>Order history is unavailable</h3><p>Please retry to load your verified orders.</p><button class="btn-outline" onclick="loadOrdersList()">Retry</button></div>';
-  }
-}
-
-async function loadInvoicesList() {
-  const container = document.getElementById('invoicesList');
-  if (!container) return;
-  const user = getCurrentUser();
-  if (!user) return;
-
-  const jwt = localStorage.getItem('asc_jwt') || '';
-  let orders = [];
-  let invoicesLoaded = false;
-
-  // Fetch from backend
-  if (jwt) {
-    try {
-      const r = await fetchWithTimeout(API_BASE + '/api/orders/my', {
-        headers: { 'Authorization': 'Bearer ' + jwt }
-      }, 8000);
-      if (r.ok) {
-        const data = await r.json();
-        invoicesLoaded = true;
-        orders = (data.data || data || []).filter(o =>
-          (o.customer_email || '').toLowerCase().trim() === user.email.toLowerCase().trim()
-        );
-      }
-    } catch(e) {}
-  }
-
-  if (!accountSessionMatches(jwt)) return;
-  if (!invoicesLoaded) { container.innerHTML = '<div class="no-orders" role="status">Invoices are unavailable. <button class="btn-outline" onclick="loadInvoicesList()">Retry</button></div>'; return; }
-  if (!orders.length) {
-    container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--gray)">No invoices yet. They'll appear here after you place an order.</div>`;
-    return;
-  }
-
-  const sorted = orders.sort((a,b) => new Date(b.created_at||b.date||0) - new Date(a.created_at||a.date||0));
-  window.__INVOICE_ORDERS = sorted;   // so downloadInvoice() can find backend-sourced orders
-  container.innerHTML = `
-    <div style="background:var(--sub-1);border-radius:var(--radius);border:1px solid rgba(0,0,0,0.08);overflow:hidden">
-      <table style="width:100%;border-collapse:collapse">
-        <thead><tr style="background:var(--off-white);font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--gray)">
-          <th style="padding:12px 18px;text-align:left">Order ID</th>
-          <th style="padding:12px 18px;text-align:left">Date</th>
-          <th style="padding:12px 18px;text-align:left">Amount</th>
-          <th style="padding:12px 18px;text-align:left">Status</th>
-          <th style="padding:12px 18px;text-align:left">Invoice</th>
-        </tr></thead>
-        <tbody>${sorted.map(o => {
-          const oid  = o.id || o.orderId || '';
-          const date = o.date || (o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '');
-          const paid = (o.payment_status||'').toLowerCase().includes('paid') || (o.payment_status||'').toLowerCase().includes('cod') ? o.payment_status : 'Paid';
-          const paidColor = paid.toLowerCase().includes('cod') ? 'var(--st-warn-fg)' : 'var(--st-ok-fg)';
-          const paidBg    = paid.toLowerCase().includes('cod') ? 'var(--st-warn-bg)' : 'var(--st-ok-bg)';
-          return `<tr style="border-top:1px solid var(--light-gray);font-size:0.84rem">
-            <td style="padding:14px 18px;font-weight:700;color:var(--green)">${oid}</td>
-            <td style="padding:14px 18px;color:var(--gray)">${date}</td>
-            <td style="padding:14px 18px;font-weight:600">₹${parseFloat(o.total||0).toLocaleString('en-IN')}</td>
-            <td style="padding:14px 18px"><span style="background:${paidBg};color:${paidColor};padding:3px 10px;border-radius:100px;font-size:0.72rem;font-weight:700">${paid}</span></td>
-            <td style="padding:14px 18px;white-space:nowrap"><button class="invoice-btn" onclick="downloadInvoice('${oid}')">⬇ Updated Invoice</button> <button class="invoice-btn" onclick="printInvoice('${oid}')">🖨️ Print</button></td>
-          </tr>`;
-        }).join('')}</tbody>
-      </table>
-    </div>
-  `;
-}
-
-function openTracking(orderId) {
-  switchAccountPanel('tracking');
-  setTimeout(() => {
-    const inp = document.getElementById('trackInput');
-    if (inp) { inp.value = orderId; doTrackOrder(); }
-  }, 100);
-}
-
-async function doTrackOrder() {
-  const inp = document.getElementById('trackInput');
-  const res = document.getElementById('trackResult');
-  if (!inp || !res) return;
-  const requested = inp.value.trim();
-  if (!requested) { showToast('Please enter an Order ID', 'error'); return; }
-  const normaliseId = value => String(value || '').trim().toUpperCase();
-  const matchesId = value => {
-    const a = normaliseId(value);
-    const b = normaliseId(requested);
-    return a === b || a.replace(/^AVC-/, '') === b.replace(/^AVC-/, '');
-  };
-
-  res.style.display = 'block';
-  res.innerHTML = '<div style="padding:14px;color:var(--gray)">Loading order status…</div>';
-  let order = Array.isArray(window.__INVOICE_ORDERS)
-    ? window.__INVOICE_ORDERS.find(o => matchesId(o.id || o.orderId))
-    : null;
-  const user = getCurrentUser();
-  const jwt = localStorage.getItem('asc_jwt') || localStorage.getItem('asc_token') || '';
-
-  // The authenticated endpoint is the source of truth; it returns only the
-  // current customer’s orders, so tracking works across devices and sessions.
-  if (!order && jwt) {
-    try {
-      const r = await fetchWithTimeout(API_BASE + '/api/orders/my', {
-        headers: { 'Authorization': 'Bearer ' + jwt, 'Accept': 'application/json' }
-      }, 8000);
-      if (r.ok) {
-        const data = await r.json();
-        const backendOrders = (data.data || data || []).filter(o =>
-          !user?.email || (o.customer_email || '').toLowerCase().trim() === user.email.toLowerCase().trim()
-        );
-        order = backendOrders.find(o => matchesId(o.id || o.orderId));
-      }
-    } catch (e) { console.warn('[Tracking] backend lookup failed:', e && e.message); }
-  }
-
-  if (!accountSessionMatches(jwt)) return;
-  if (!order) {
-    res.innerHTML = '<div style="background:var(--st-danger-bg);border:1px solid var(--st-danger-bg);border-radius:var(--radius);padding:14px;font-size:0.84rem;color:var(--red)">We could not match that ID to an order on your account. Check the order number or enter the Shiprocket AWB number instead.</div>';
-    return;
-  }
-
-  const foundId = order.id || order.orderId || requested;
-  const address = order.address || order.shipping_address || [order.city, order.state, order.pincode || order.postal_code].filter(Boolean).join(', ');
-  const status = order.fulfillment || order.status || order.order_status || 'Processing';
-  const awb = String(order.awb_code || order.awb_number || order.awb || order.tracking_number || order.tracking_id || '').trim();
-  const shiprocketUrl = awb ? 'https://shiprocket.co/tracking/' + encodeURIComponent(awb) : '';
-  res.innerHTML = `
-    <div style="background:var(--green-wash);border-radius:var(--radius);padding:18px">
-      <div style="font-weight:700;margin-bottom:8px;color:var(--green)">📦 Order Found: ${esc(foundId)}</div>
-      <div style="font-size:0.84rem;color:var(--gray);margin-bottom:12px">${esc(address)}</div>
-      <div style="font-size:0.84rem;font-weight:700;color:var(--text)">Status: ${esc(status)}</div>
-      <div style="margin-top:14px">
-        ${shiprocketUrl
-          ? `<a href="${esc(shiprocketUrl)}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:0.82rem;padding:10px 20px">Track shipment ${esc(awb)} on Shiprocket ↗</a>`
-          : '<p style="font-size:0.8rem;color:var(--gray);margin:12px 0 0">Carrier tracking will appear here once your shipment has an AWB number.</p>'}
-      </div>
-    </div>
-  `;
-}
-
-// The A4 GST tax invoice lives in invoice-template.js, loaded in <head>
-// and shared with the admin panel so both print the same document.
-// OZYLIX_LEGAL, IN_STATE_CODES, normaliseOrderForInvoice() and
-// buildInvoiceHTML() all come from there.
-
-// Download a printable A4 PDF tax invoice from the backend. The server
-// authenticates the request and streams application/pdf; HTML is never used
-// as a download fallback because browsers otherwise save the invoice source
-// as an .html file.
-function invoiceAuthHeaders() {
-  var jwt = localStorage.getItem('asc_jwt') || localStorage.getItem('asc_token') || '';
-  return jwt ? { 'Authorization': 'Bearer ' + jwt } : {};
-}
-
-function fetchInvoicePDF(orderId) {
-  return fetchWithTimeout(API_BASE + '/api/orders/' + encodeURIComponent(orderId) + '/pdf', {
-    headers: invoiceAuthHeaders()
-  }, 15000).then(function(r) {
-    var type = (r.headers.get('content-type') || '').toLowerCase();
-    if (!r.ok) {
-      return r.text().then(function(text) {
-        var message = 'Invoice service returned ' + r.status;
-        try { var body = JSON.parse(text); if (body && body.error) message = body.error; } catch (e) {}
-        throw new Error(message);
-      });
-    }
-    if (type.indexOf('application/pdf') === -1) {
-      throw new Error('Invoice service did not return a PDF');
-    }
-    return r.blob();
+function runAccountFeature(name, args) {
+  if (window.OzylixAccountPage) return window.OzylixAccountPage[name](...args);
+  return ensureOzylixModules().then(modules=>modules.load('account')).then(()=>window.OzylixAccountPage[name](...args)).catch(error=>{
+    showToast('Account could not load. Please try again.','error');
   });
 }
-
-function findInvoiceOrder(orderId) {
-  if (!getCurrentUser()) return null;
-  var o = null;
-  if (Array.isArray(window.__INVOICE_ORDERS)) {
-    o = window.__INVOICE_ORDERS.find(function(x) {
-      return String(x.id || x.orderId || x.order_id) === String(orderId);
-    });
-  }
-  return o;
-}
-
-function downloadInvoice(orderId) {
-  // Visible invoice controls download the authenticated PDF endpoint; do not
-  // create an HTML attachment that opens as source in some mobile browsers.
-  return downloadInvoicePDF(orderId);
-}
-
-function downloadInvoicePDF(orderId) {
-  fetchInvoicePDF(orderId).then(function(blob) {
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'Ozylix-Tax-Invoice-' + orderId + '.pdf';
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function() {
-      URL.revokeObjectURL(url);
-      if (a.parentNode) a.parentNode.removeChild(a);
-    }, 4000);
-    showToast('🧾 Updated PDF invoice downloaded');
-  }).catch(function(e) {
-    console.error('[downloadInvoicePDF]', e);
-    showToast('Could not download the PDF invoice: ' + (e.message || 'please try again'), 'error');
-  });
-}
-
-// Print is intentionally a print-ready document, not a file download. The
-// browser print dialog can print to a physical printer or Save as PDF, while
-// Download always uses the server-generated PDF above.
-function printInvoice(orderId) {
-  try {
-    var o = findInvoiceOrder(orderId);
-    if (!o) { showToast('Invoice not found for ' + orderId, 'error'); return; }
-    var w = window.open('', '_blank', 'width=960,height=800,scrollbars=yes');
-    if (!w) { showToast('Please allow pop-ups to print the invoice', 'error'); return; }
-    w.document.open();
-    w.document.write(buildInvoiceHTML(o));
-    w.document.close();
-    w.focus();
-    setTimeout(function() { try { w.print(); } catch (e) {} }, 800);
-  } catch (e) {
-    console.error('[printInvoice]', e);
-    showToast('Could not open invoice for printing', 'error');
-  }
-}
-
-function prefillProfile(user) {
-  const parts = user.name?.split(' ') || ['',''];
-  const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
-  setVal('profileFirst', parts[0]);
-  setVal('profileLast', parts.slice(1).join(' '));
-  setVal('profileEmail', user.email);
-  setVal('profilePhone', user.phone);
-  {
-    setVal('profileAddr1', user.address?.addr1);
-    setVal('profileAddr2', user.address?.addr2);
-    setVal('profileCity', user.address?.city);
-    setVal('profileState', user.address?.state);
-    setVal('profilePin', user.address?.pin);
-  }
-}
-
-function saveProfile() {
-  const user = getCurrentUser();
-  if (!user) return;
-  const getVal = id => document.getElementById(id)?.value?.trim() || '';
-  user.name = (getVal('profileFirst') + ' ' + getVal('profileLast')).trim();
-  user.phone = getVal('profilePhone');
-  user.address = {
-    addr1: getVal('profileAddr1'),
-    addr2: getVal('profileAddr2'),
-    city: getVal('profileCity'),
-    state: getVal('profileState'),
-    pin: getVal('profilePin'),
-  };
-  // Profile remains local to this signed-in account on this device.
-  localStorage.setItem('asc_user', JSON.stringify(user));
-  const an=document.getElementById('accName'); if(an) an.textContent = user.name;
-  updateAccountNavBtn();
-  showToast('✅ Profile & address saved!');
-}
-
-// ═══════════════════════════════════════════════════════
-// CHECKOUT: PROMO CODES + SAVED ADDRESS AUTO-FILL
-// ═══════════════════════════════════════════════════════
-
-// ALL real codes are fetched live from backend (Supabase coupons table).
-// No local test codes — admin creates all promo codes in the dashboard.
-// Note: activePromoCode declared globally above (near appliedDiscount)
+function loadAccountPage(...args) { return runAccountFeature('loadAccountPage', args); }
+function _retJwt(...args) { return runAccountFeature('_retJwt', args); }
+function renderReturnsPanel(...args) { return runAccountFeature('renderReturnsPanel', args); }
+function submitReturn(...args) { return runAccountFeature('submitReturn', args); }
+function cancelReturn(...args) { return runAccountFeature('cancelReturn', args); }
+function switchAccountPanel(...args) { return runAccountFeature('switchAccountPanel', args); }
+function _renderOrderCards(...args) { return runAccountFeature('_renderOrderCards', args); }
+function loadOrdersList(...args) { return runAccountFeature('loadOrdersList', args); }
+function loadInvoicesList(...args) { return runAccountFeature('loadInvoicesList', args); }
+function openTracking(...args) { return runAccountFeature('openTracking', args); }
+function doTrackOrder(...args) { return runAccountFeature('doTrackOrder', args); }
+function invoiceAuthHeaders(...args) { return runAccountFeature('invoiceAuthHeaders', args); }
+function fetchInvoicePDF(...args) { return runAccountFeature('fetchInvoicePDF', args); }
+function findInvoiceOrder(...args) { return runAccountFeature('findInvoiceOrder', args); }
+function downloadInvoice(...args) { return runAccountFeature('downloadInvoice', args); }
+function downloadInvoicePDF(...args) { return runAccountFeature('downloadInvoicePDF', args); }
+function printInvoice(...args) { return runAccountFeature('printInvoice', args); }
+function prefillProfile(...args) { return runAccountFeature('prefillProfile', args); }
+function saveProfile(...args) { return runAccountFeature('saveProfile', args); }
 
 async function applyPromoCode() {
   const input  = document.getElementById('promoCodeInput');
@@ -8694,6 +7148,7 @@ function refreshProductSelections() {
 var accountSessionToken = null;
 function accountSessionMatches(token) { return !!getCurrentUser() && token === localStorage.getItem('asc_jwt'); }
 function resetAccountSession() {
+  _accountOrdersPending = null;
   clearInterval(window._ordersRefreshTimer);
   window.__INVOICE_ORDERS = null;
   window.__appBackendOrderCount = 0;
@@ -8714,3 +7169,4 @@ window.addEventListener('storage', e => {
   }
 });
 syncAccountSession();
+
