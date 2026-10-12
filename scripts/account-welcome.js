@@ -19,13 +19,15 @@
   net.setAttribute('role', 'status');
   net.setAttribute('aria-live', 'polite');
   document.body.appendChild(net);
-  var netTimer;
-  function netMsg(text, ok) {
+  var netTimer, netKind = '';
+  function netMsg(text, ok, kind) {
+    if (kind === 'slow' && navigator.onLine === false) return;
+    netKind = kind || 'connection';
     net.textContent = text;
     net.classList.toggle('ok', !!ok);
     net.classList.add('show');
     clearTimeout(netTimer);
-    if (ok) netTimer = setTimeout(function () { net.classList.remove('show'); }, 2600);
+    if (ok || kind === 'slow') netTimer = setTimeout(function () { net.classList.remove('show'); }, ok ? 2600 : 8000);
   }
   window.addEventListener('offline', function () { netMsg('No internet connection', false); });
   window.addEventListener('online',  function () { netMsg('Back online', true); });
@@ -144,20 +146,37 @@
      --------------------------------------------------------------- */
   if (typeof window.fetch === 'function' && typeof API_BASE !== 'undefined') {
     var _f = window.fetch;
+    var pendingSlow = new Set();
     window.fetch = function (input, init) {
-      var url = (typeof input === 'string') ? input : (input && input.url) || '';
-      var isOurs = url.indexOf(API_BASE) === 0;
-      var slow;
-      if (isOurs && !/visitors\//.test(url)) {
-        slow = setTimeout(function () { netMsg('Still loading — hang on', false); }, 7000);
+      var url, base, method = String((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+      try {
+        url = new URL(typeof input === 'string' || input instanceof URL ? input : input.url, location.href);
+        base = new URL(API_BASE || '/', location.href);
+      } catch (_) {}
+      // Background reads, analytics, media and third-party calls must never
+      // present a global loading warning over an already rendered page.
+      var customerAction = url && base && url.origin === base.origin &&
+        /^(POST|PUT|PATCH|DELETE)$/.test(method) &&
+        /^\/api\/(auth|checkout|payments|orders|returns|reviews|coupons|vitapoints)(\/|$)/.test(url.pathname);
+      var slow, ticket = {};
+      if (customerAction) {
+        slow = setTimeout(function () {
+          pendingSlow.add(ticket);
+          if (netKind !== 'slow' || !net.classList.contains('show')) netMsg('Still loading — hang on', false, 'slow');
+        }, 7000);
       }
-      return _f.apply(this, arguments).then(function (r) {
-        if (slow) { clearTimeout(slow); net.classList.remove('show'); }
-        return r;
-      }, function (e) {
-        if (slow) { clearTimeout(slow); net.classList.remove('show'); }
-        throw e;
-      });
+      function finish() {
+        clearTimeout(slow);
+        pendingSlow.delete(ticket);
+        if (!pendingSlow.size && netKind === 'slow') {
+          clearTimeout(netTimer);
+          net.classList.remove('show');
+        }
+      }
+      try {
+        return _f.apply(this, arguments).then(function (r) { finish(); return r; },
+          function (e) { finish(); throw e; });
+      } catch (e) { finish(); throw e; }
     };
   }
 
