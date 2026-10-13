@@ -1,0 +1,95 @@
+/* Consistent, responsive backoffice surfaces. All themes retain their own colours. */
+#app .page { --dw-ink:var(--os-ink,var(--text,#252a24)); --dw-muted:var(--os-muted,var(--text2,#62685e)); --dw-line:var(--os-line,var(--border,#e5e4d8)); --dw-surface:var(--os-surface,var(--surface,#fff)); --dw-soft:var(--os-surface-2,var(--surface2,#f8f6ee)); --dw-accent:var(--os-green,var(--green,#52633c)); min-width:0; }
+#app .aw-page { container-type:inline-size; }
+#app .page .page-hdr { flex-wrap:wrap; align-items:center; gap:16px; }
+#app .page .page-title { font-size:clamp(25px,2.8vw,38px)!important; letter-spacing:-.04em; line-height:1.25; }
+#app .page .page-sub { line-height:1.65; max-width:680px; }
+#app .page .page-actions { flex-wrap:wrap; min-width:0; gap:8px; }
+.aw-toolbar { display:flex; align-items:center; flex-wrap:wrap; gap:14px; border:1px solid var(--dw-line); background:var(--dw-surface); border-radius:18px; padding:15px 18px; margin:0 0 22px; box-shadow:0 4px 20px #26332005; }
+.aw-toolbar > div:first-child { flex:1 1 220px; }
+.aw-toolbar strong { font-size:13px; letter-spacing:-.02em; color:var(--dw-ink); }
+.aw-toolbar p { margin:5px 0 0; font-size:11px; line-height:1.6; color:var(--dw-muted); }
+.aw-tools { display:flex; flex-wrap:wrap; align-items:center; gap:7px; }
+#app :is(.aw-toolbar button,.aw-toolbar select,.aw-controls button,.aw-controls select) { font:600 11px inherit; font-family:inherit; font-size:11px; border:1px solid var(--dw-line); color:var(--dw-ink); background:var(--dw-soft); border-radius:10px; min-height:40px; padding:8px 10px; cursor:pointer; }
+#app .aw-toolbar button[aria-pressed=true] { background:var(--dw-ink); color:var(--dw-surface); }
+#app .aw-toolbar button:disabled { opacity:.5; cursor:default; }
+#app .aw-group { display:grid!important; grid-template-columns:repeat(12,minmax(0,1fr))!important; align-items:stretch; gap:18px!important; min-width:0; margin-block:16px; }
+#app .aw-group > .aw-card { grid-column:span var(--aw-span,6); min-width:0!important; max-width:100%!important; width:auto!important; height:auto!important; margin:0!important; border-radius:20px!important; position:relative; overflow:visible; border:1px solid var(--dw-line)!important; box-shadow:0 2px 3px #25321807,0 14px 30px #25321808; }
+#app .aw-card[hidden],#app .aw-group[hidden] { display:none!important; }
+#app .aw-group:is([style*="display: none"],[style*="display:none"]) { display:none!important; }
+#app .aw-card:has(.dw-chart-wrap) { padding:0!important; overflow:hidden; }
+#app .aw-card:has(.dw-chart-wrap) > .card-hdr { padding:18px 20px 12px!important; margin:0!important; min-height:58px; border:0; }
+#app .aw-card .card-title { font-size:13px!important; font-weight:700; line-height:1.55; letter-spacing:-.02em; }
+.aw-controls { display:none; gap:6px; align-items:center; flex-wrap:wrap; padding:10px; background:var(--dw-soft); border-bottom:1px dashed var(--dw-line); border-radius:16px 16px 0 0; margin-bottom:14px; }
+.aw-editing .aw-controls { display:flex; }
+.aw-controls label { display:flex; gap:5px; align-items:center; font-size:10px; color:var(--dw-muted); }
+#app .aw-card:not(:has(canvas)) .aw-controls label:last-child { display:none; }
+#app .aw-controls button { min-width:36px; padding:5px; font-size:15px; }
+#app .aw-controls select { padding:6px; max-width:90px; }
+.aw-handle { cursor:grab!important; touch-action:none; user-select:none; }
+.aw-handle:active { cursor:grabbing!important; }
+#app .aw-controls button:disabled { opacity:.35; cursor:default; }
+#app :is(.aw-dragging) { opacity:.4; }
+#app .aw-card.aw-drop { outline:3px dashed var(--dw-accent); outline-offset:3px; }
+#app .aw-resize { display:none; position:absolute; bottom:5px; right:5px; z-index:4; border:1px solid var(--dw-line); border-radius:10px; background:var(--dw-soft); color:var(--dw-ink); width:36px; height:36px; font-size:18px; cursor:nwse-resize; touch-action:none; }
+#app :is(.aw-editing,.dw-editing) .aw-resize { display:block; }
+#app .aw-resizing { outline:2px solid var(--dw-accent); }
+#app .aw-page .dw-chart-wrap { height:var(--aw-chart-height,260px); position:relative; width:100%; min-width:0; padding:0 14px; }
+#app .aw-page .dw-chart-wrap canvas { width:100%!important; height:100%!important; min-height:0!important; display:block; cursor:crosshair; touch-action:pan-y; }
+#app #page-dashboard .dw-chart-wrap:not(.dw-spark) { height:var(--aw-chart-height,242px); }
+#app #page-dashboard [data-widget=revenue] .dw-chart-wrap { height:var(--aw-chart-height,290px); }
+#app .aw-data-note { margin:0 18px 16px; color:var(--dw-muted); font-size:10px; line-height:1.6; }
+#app .aw-page .dw-chart-data table { min-width:0!important; width:100%; font-size:11px; }
+#app .aw-page .dw-chart-data :is(th,td) { white-space:normal; padding:7px 9px; }
+#app .aw-page .dw-chart-data summary { min-height:36px; }
+#app .aw-page .filter-bar { flex-wrap:wrap!important; align-items:center; gap:9px!important; padding:14px!important; border:1px solid var(--dw-line); border-radius:15px!important; background:var(--dw-soft); }
+#app .aw-page .filter-bar > div { flex-wrap:wrap; max-width:100%; }
+#app .aw-page :is(input,select,textarea) { max-width:100%; min-width:0; }
+#app .aw-page :is(.filter-input,.filter-select) { min-height:40px; border-radius:10px; }
+#app .aw-page .table-wrap { max-width:100%; border:1px solid var(--dw-line); border-radius:16px; overflow:auto; overscroll-behavior-inline:contain; scrollbar-width:thin; }
+#app .aw-page .table-wrap > table { min-width:100%; width:max-content; }
+#app .aw-page .table-wrap thead th { position:sticky; top:0; z-index:1; background:var(--dw-soft); font-size:10px; letter-spacing:.045em; padding:13px; }
+#app .aw-page .table-wrap td { padding:13px; line-height:1.6; }
+#app .aw-page .table-wrap td :is(.btn,.btn-sm) { min-height:34px; }
+#app .aw-page :is(.grid-2,.grid-3,.grid-4,.oz-kpi-grid) { min-width:0; }
+#app .aw-page :is(.grid-2,.grid-3,.grid-4,.oz-kpi-grid) > * { min-width:0; max-width:100%; }
+#app .aw-page .kpi { min-width:0; border-radius:17px!important; min-height:122px; padding:18px!important; }
+#app .aw-page .kpi-val { font-size:clamp(22px,2.3vw,32px)!important; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+#app .aw-page :is(.tab-bar,.oz-filter-bar) { max-width:100%; overflow-x:auto; }
+#app .aw-compact .aw-group { gap:12px!important; }
+#app .aw-compact .aw-card:not(:has(.dw-chart-wrap)) { padding:14px!important; }
+#app .aw-compact .table-wrap :is(td,th) { padding:9px 11px; }
+#app .aw-compact .dw-chart-wrap { height:var(--aw-chart-height,215px); }
+#app :is(.aw-toolbar,.aw-controls,.aw-page) :is(button,select,summary,[tabindex]):focus-visible,#app .aw-resize:focus-visible { outline:2px solid var(--dw-accent); outline-offset:3px; }
+@container (max-width:950px) {
+  #app .aw-group > .aw-card { grid-column:span 6; }
+  #app .aw-group > .aw-card:is([data-aw-width=wide],[data-aw-width=full]) { grid-column:span 12; }
+  #app .aw-page .grid-4 { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+}
+@container (max-width:600px) {
+  #app .aw-group { grid-template-columns:minmax(0,1fr)!important; gap:14px!important; }
+  #app .aw-group > .aw-card { grid-column:1 / -1!important; }
+  #app .aw-page :is(.grid-2,.grid-3) { grid-template-columns:minmax(0,1fr)!important; }
+  #app .aw-page .page-hdr { align-items:flex-start; }
+  .aw-toolbar { padding:12px; }
+  .aw-tools { width:100%; }
+  .aw-tools > * { flex:1 1 auto; }
+  #app .aw-toolbar :is(button,select),#app .aw-controls :is(button,select) { min-height:44px; }
+  #app .aw-controls button { min-width:44px; }
+  #app .aw-resize { width:44px; height:44px; }
+  #app .aw-page :is(.filter-input,.filter-select) { font-size:16px; min-height:44px; flex:1 1 135px; max-width:100%!important; }
+  #app .aw-page .filter-bar .filter-input:not([type=date]) { flex-basis:100%; }
+  #app .aw-page .table-wrap td :is(.btn,.btn-sm) { min-height:40px; }
+  #app .aw-page .kpi { padding:14px!important; }
+}
+@supports not (container-type:inline-size) {
+  @media(max-width:1100px) { #app .aw-group > .aw-card { grid-column:span 6; } }
+  @media(max-width:650px) { #app .aw-group > .aw-card { grid-column:1 / -1!important; } }
+}
+@media(max-width:600px) {
+  #app .page .page-title { font-size:26px!important; }
+  #app :is(.modal,.prod-drawer) :is(input,select,textarea) { font-size:16px; }
+  #app .aw-page .page-actions { width:100%; }
+  #app .aw-page .page-actions > * { flex:1 1 auto; }
+}
+@media(prefers-reduced-motion:reduce) { #app .aw-card { transition:none!important; } }

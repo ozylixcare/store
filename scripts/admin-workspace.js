@@ -213,18 +213,21 @@
   const money = value => '₹'+new Intl.NumberFormat('en-IN',{maximumFractionDigits:0}).format(value);
   const format = (value,unit) => unit === 'money' ? money(value) : new Intl.NumberFormat('en-IN',{maximumFractionDigits:1}).format(value);
   const short = value => value >= 100000 ? (value/100000).toFixed(1)+'L' : value >= 1000 ? (value/1000).toFixed(1)+'k' : Math.round(value).toString();
-  function theme() {
-    const style = getComputedStyle(page);
+  function theme(owner = page) {
+    const style = getComputedStyle(owner);
     return {ink:style.getPropertyValue('--dw-ink').trim(),muted:style.getPropertyValue('--dw-muted').trim(),line:style.getPropertyValue('--dw-line').trim(),surface:style.getPropertyValue('--dw-surface').trim()};
   }
   function register(id, kind, labels, series, options = {}) {
-    const canvas = document.getElementById(id); if (!canvas || !grid.contains(canvas)) return;
+    const canvas = document.getElementById(id); if (!canvas || !canvas.closest('#app .page')) return;
     let model = models.get(id);
+    if (model && model.canvas !== canvas) {
+      resizeObserver?.unobserve(model.wrap); models.delete(id); model = null;
+    }
     if (!model) {
       const wrap = document.createElement('div'); wrap.className = 'dw-chart-wrap'+(kind === 'spark' ? ' dw-spark' : '');
       canvas.before(wrap); wrap.appendChild(canvas); canvas.removeAttribute('style');
       const tip = document.createElement('div'); tip.className = 'dw-chart-tip'; tip.hidden = true; wrap.appendChild(tip);
-      model = {canvas,wrap,tip,hidden:new Set(),hits:[],selected:-1,kind}; models.set(id,model);
+      model = {canvas,wrap,tip,owner:canvas.closest('.page'),hidden:new Set(),hits:[],selected:-1,kind}; models.set(id,model);
       canvas.tabIndex = 0;
       canvas.addEventListener('pointermove',event => inspect(model,event));
       canvas.addEventListener('click',event => inspect(model,event));
@@ -249,7 +252,7 @@
     model.tip.hidden = true;
     model.hidden = new Set([...model.hidden].filter(i => i < (kind === 'donut' ? labels.length : series.length)));
     canvas.setAttribute('role','img');
-    canvas.setAttribute('aria-label',(canvas.closest('.dw-widget').getAttribute('aria-label') || 'Chart')+'. Use arrow keys to inspect values, or open View chart data.');
+    canvas.setAttribute('aria-label',(canvas.closest('.dw-widget,.aw-card,.card')?.getAttribute('aria-label') || canvas.closest('.card')?.querySelector('.card-title')?.textContent || 'Chart')+'. Use arrow keys to inspect values, or open View chart data.');
     renderLegend(model); renderTable(model); draw(model);
   }
   function renderLegend(model) {
@@ -288,14 +291,14 @@
   const resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(scheduleDraw) : null;
   function setupCanvas(model) {
     const width = model.canvas.clientWidth, height = model.canvas.clientHeight;
-    if (width < 10 || height < 10 || !page.classList.contains('active')) return null;
+    if (width < 10 || height < 10 || !model.owner.classList.contains('active')) return null;
     const ratio = Math.min(devicePixelRatio || 1,2), ctx = model.canvas.getContext('2d');
     model.canvas.width = Math.round(width*ratio); model.canvas.height = Math.round(height*ratio); ctx.setTransform(ratio,0,0,ratio,0,0);
     return {ctx,width,height};
   }
   function draw(model) {
     const setup = setupCanvas(model); if (!setup) return;
-    const {ctx,width:w,height:h} = setup, colors = theme(); model.hits = [];
+    const {ctx,width:w,height:h} = setup, colors = theme(model.owner); model.hits = [];
     ctx.clearRect(0,0,w,h); ctx.font = '11px sans-serif';
     const values = model.series[0]?.values || [], total = values.reduce((a,b) => a+b,0);
     if (!model.labels.length || !model.series.length || (model.kind === 'donut' && !total)) {
@@ -326,7 +329,7 @@
         points.forEach((point,index) => {
           const x = point.x-barW/2, height = point.value/max*plotH;
           if (height > 0) {
-            if (settings.depth && barW>5) {
+            if ((model.owner === page ? settings.depth : !model.owner.classList.contains('aw-flat')) && barW>5) {
               const d = Math.min(5,barW*.22); ctx.fillStyle = series.color+'75';
               ctx.beginPath(); ctx.moveTo(x+barW,point.y); ctx.lineTo(x+barW+d,point.y-d); ctx.lineTo(x+barW+d,pad.top+plotH-d); ctx.lineTo(x+barW,pad.top+plotH); ctx.closePath(); ctx.fill();
               ctx.fillStyle = series.color+'b0'; ctx.beginPath(); ctx.moveTo(x,point.y); ctx.lineTo(x+d,point.y-d); ctx.lineTo(x+barW+d,point.y-d); ctx.lineTo(x+barW,point.y); ctx.closePath(); ctx.fill();
@@ -370,7 +373,7 @@
       if (!value || model.hidden.has(index) || !total) return;
       const end = angle+value/total*Math.PI*2, color = model.options.colors?.[index] || palette[index%palette.length];
       ctx.lineWidth = r-inner; ctx.strokeStyle = color;
-      if (settings.depth) { ctx.shadowColor = color+'40'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 5; }
+      if (model.owner === page ? settings.depth : !model.owner.classList.contains('aw-flat')) { ctx.shadowColor = color+'40'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 5; }
       ctx.beginPath(); ctx.arc(cx,cy,(r+inner)/2,angle+.012,end-.012); ctx.stroke(); ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
       model.hits.push({index,x:cx+Math.cos((angle+end)/2)*r,y:cy+Math.sin((angle+end)/2)*r,cx,cy,r,inner,start:angle,end}); angle = end;
     });
@@ -387,7 +390,9 @@
       if (!model.hidden.has(0) && value) {
         const color = palette[index%palette.length], width = Math.max(1,value/max*trackW);
         const gradient = ctx.createLinearGradient(left,0,left+width,0); gradient.addColorStop(0,color); gradient.addColorStop(1,color+'90');
+        if (model.owner === page ? settings.depth : !model.owner.classList.contains('aw-flat')) { ctx.shadowColor = color+'40'; ctx.shadowBlur = 5; ctx.shadowOffsetY = 3; }
         ctx.fillStyle = gradient; ctx.beginPath(); ctx.roundRect(left,top,width,barH,Math.min(3,width/2)); ctx.fill();
+        ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
       }
       addHit(model,index,left+trackW/2,top,left,y,trackW,row);
     });
@@ -596,6 +601,8 @@
   if (typeof originalAdvanced === 'function') window.renderAdvancedWidgets = function (orders,products) {
     return originalAdvanced.call(this,currentRange(orders || []),products || []);
   };
+  // Shared renderer for the other admin workspaces. Existing dashboard hooks stay scoped.
+  window.OzylixAdminCharts = {register, redraw:scheduleDraw};
   applyOrder(settings.order); applyAppearance();
   widgets.forEach(({card}) => resizeObserver?.observe(card));
   window.addEventListener('resize',() => { scheduleDraw(); nativeRenders.forEach(render => render()); },{passive:true});
