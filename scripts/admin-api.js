@@ -1229,23 +1229,25 @@ if (typeof _mktOrigShowPage === 'function') {
         ? h.channels : {};
       var outbox = h.outbox && typeof h.outbox === 'object' ? h.outbox : {};
       var integrations = h.integrations && typeof h.integrations === 'object' ? h.integrations : {};
-      var cls = h.status === 'healthy' ? 'ok' : h.status === 'degraded' || h.status === 'stale' ? 'warn' : 'warn';
+      var hasEngineStatus = Object.prototype.hasOwnProperty.call(h, 'minutes_since_tick');
+      var cls = hasEngineStatus && h.status === 'healthy' ? 'ok' : 'warn';
       var chan = Object.keys(channels).map(function (k) {
         var c = channels[k] && typeof channels[k] === 'object' ? channels[k] : {};
         return (c.enabled ? '✅ ' : '⚪ ') + esc(k) + (c.note ? ' <span class="mkt-sub">(' + esc(c.note) + ')</span>' : '');
       }).join(' &nbsp;·&nbsp; ') || '⚪ channel status unavailable';
       document.getElementById('beh-health').className = 'mkt-hint ' + cls;
       document.getElementById('beh-health').innerHTML =
-        '<strong>Engine:</strong> ' + esc(h.status) +
-        (h.minutes_since_tick != null ? ' — last tick ' + h.minutes_since_tick + 'm ago' : ' — has never run') +
-        ' · ' + num(h.events_last_hour) + ' events in the last hour' +
-        ' · outbox ' + num(outbox.queued) + ' queued, ' + num(outbox.failed) + ' failed<br>' +
+        '<strong>Engine:</strong> ' + esc(hasEngineStatus ? h.status : 'status unavailable') +
+        (h.minutes_since_tick != null ? ' — last tick ' + h.minutes_since_tick + 'm ago'
+          : h.status === 'never_run' ? ' — has never run' : ' — tick status unavailable') +
+        ' · ' + (h.events_last_hour != null ? num(h.events_last_hour) : '—') + ' events in the last hour' +
+        ' · outbox ' + (outbox.queued != null ? num(outbox.queued) : '—') + ' queued, ' + (outbox.failed != null ? num(outbox.failed) : '—') + ' failed<br>' +
         '<strong>Channels:</strong> ' + chan +
         '<br><strong>Server-side events:</strong> ' +
-        (integrations.meta_capi ? '✅' : '⚪') + ' Meta CAPI &nbsp;·&nbsp; ' +
-        (integrations.ga4_mp ? '✅' : '⚪') + ' GA4 Measurement Protocol' +
+        (integrations.meta_capi ? '✅' : '⚪') + ' Meta CAPI' + (typeof integrations.meta_capi === 'boolean' ? '' : ' (status unavailable)') + ' &nbsp;·&nbsp; ' +
+        (integrations.ga4_mp ? '✅' : '⚪') + ' GA4 Measurement Protocol' + (typeof integrations.ga4_mp === 'boolean' ? '' : ' (status unavailable)') +
         (h.last_tick_error ? '<br><strong>Last error:</strong> ' + esc(h.last_tick_error) : '') +
-        (!h.status ? '<br><strong>Health response incomplete:</strong> service may be waking up or needs the behaviour-engine migration.' : '');
+        (!hasEngineStatus ? '<br><strong>Health response incomplete:</strong> engine status was not reported by the server.' : '');
     })['catch'](function (e) { fail('beh-health', e); });
 
     api('/live').then(function (d) {

@@ -20,6 +20,7 @@ const root = path.resolve(__dirname, '..');
     const context = await browser.newContext({viewport:{width:1440,height:1050}});
     let mutations = 0;
     let realityError = null;
+    let health = {status:'healthy'};
     // Old-server fixture reproduces the screenshot, including null age.
     let reality = {store_connected:true,store:{mode:'pg',readonly_enforced_by:'database role'},totals:{store_orders:0,beacon_orders:0,store_revenue:0,beacon_revenue:0,revenue_delta:0,beacon_coverage_pct:null},sync:{states:[],last_successful_sync:null,minutes_since_sync:null,sending_paused:true,consent_staleness:{minutes:null,limit:180}},engine:{recent:[]},series:[],recent_store_only_orders:[]};
     const reads = [];
@@ -38,7 +39,7 @@ const root = path.resolve(__dirname, '..');
             data = reality;
           }
           else if (path === '/overview') data = {live:{active_visitors:12,high_intent_visitors:3},traffic:{sessions:100,product_views:60},funnel:{sessions:100,carts_created:20,checkouts_started:10,orders:5,conversion_rate:.05},revenue:{total:2500,recovered:500},recovery:{abandoned_value:1000,recovered_value:500}};
-          else if (path === '/health') data = {status:'healthy'};
+          else if (path === '/health') data = health;
           else if (path === '/live') data = {visitors:[]};
           else if (path === '/products') data = {products:[]};
           else if (path === '/segments') data = {segments:[]};
@@ -100,6 +101,21 @@ const root = path.resolve(__dirname, '..');
     await page.locator('#page-customerbehaviour [data-tab="behaviour"]').click();
     await page.waitForFunction(()=>document.getElementById('beh-kpi-sessions').textContent==='100');
     assert.equal(await page.locator('#beh-kpi-cvr').textContent(),'5.0%');
+    await page.waitForFunction(()=>document.getElementById('beh-health').textContent.includes('status unavailable'));
+    assert.doesNotMatch(await page.locator('#beh-health').textContent(),/has never run|0 events|0 queued/);
+    assert.match(await page.locator('#beh-health').textContent(),/Meta CAPI \(status unavailable\)/);
+    assert.equal(await page.locator('#beh-health').evaluate(el=>el.classList.contains('warn')),true);
+    health = {status:'healthy',minutes_since_tick:2,events_last_hour:7,outbox:{queued:3,failed:1},channels:{email:{enabled:true},whatsapp:{enabled:false}},integrations:{meta_capi:true,ga4_mp:false}};
+    await page.evaluate(()=>mktLoadBehaviour());
+    await page.waitForFunction(()=>document.getElementById('beh-health').textContent.includes('last tick 2m ago'));
+    assert.match(await page.locator('#beh-health').textContent(),/7 events.*3 queued, 1 failed/);
+    assert.match(await page.locator('#beh-health').textContent(),/✅ email.*⚪ whatsapp/);
+    assert.match(await page.locator('#beh-health').textContent(),/✅ Meta CAPI.*⚪ GA4/);
+    assert.equal(await page.locator('#beh-health').evaluate(el=>el.classList.contains('ok')),true);
+    health = {...health,status:'never_run',minutes_since_tick:null};
+    await page.evaluate(()=>mktLoadBehaviour());
+    await page.waitForFunction(()=>document.getElementById('beh-health').textContent.includes('has never run'));
+    assert.equal(await page.locator('#beh-health').evaluate(el=>el.classList.contains('warn')),true);
     // Legacy entry points navigate across workspaces and each selection survives.
     await page.evaluate(()=>mktShowTab('strategy'));
     await page.locator('#page-marketing.active').waitFor();
@@ -136,6 +152,6 @@ const root = path.resolve(__dirname, '..');
     await page.waitForTimeout(200);
     assert.equal(mutations,0,'tab navigation makes no backend writes');
     assert.deepEqual(newErrors,[]);
-    console.log('PASS: separate workspaces, all 14 tabs, behaviour data rendering, unknown/verified/failed Reality states, cross-page links, independent selections, mobile navigation, permission visibility and no backend writes');
+    console.log('PASS: separate workspaces, all 14 tabs, complete/incomplete/never-run engine health, unknown/verified/failed Reality states, cross-page links, independent selections, mobile navigation, permission visibility and no backend writes');
   } finally { await browser.close(); if(server) await new Promise(resolve=>server.close(resolve)); }
 })().catch(error=>{console.error(error);process.exitCode=1;});
