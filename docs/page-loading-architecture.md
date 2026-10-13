@@ -7,18 +7,21 @@ one promise; failures are retryable. There is no arbitrary script URL input.
 | Feature | Code loaded when | Data behavior |
 | --- | --- | --- |
 | Catalogue | Shared store boot | Existing concurrent request sharing; unchanged snapshots do not rebuild cards; refresh pauses when hidden |
-| Product reviews | First product review request | Three cards first; expanded pages request ten; public pages are cached for 30 seconds in memory, bounded to 60 entries |
-| Ratings | Shared public review response | Full count, average and histogram come from server summaries, never from the visible card slice |
+| Product reviews | Shared store helpers; first product visit requests reviews | Restored on 13 October: load the complete public list in batches of 100, show three cards first, then page ten locally without further reads |
+| Ratings | Shared public review response / complete product review list | Storefront totals use server summaries; product statistics use the complete loaded list, never only the visible cards |
 | Blog | Blog page or article action | Article data and rendering are in `blog-page.js`; the shared shell retains only entry points |
 | Checkout | Checkout entry, payment action or payment return | `payment-flow.js` owns orchestration; Cashfree SDK loads only for Cashfree; backend validates price, stock, identity and payment |
 | Account Hub | Account entry or invoice action | `account-page.js` owns account views; selected panels request their own data; simultaneous order, invoice and summary readers share a single authenticated request |
 
 ## Invalidation and ownership
 
-- A saved review invalidates that product's public review pages and refreshes
-  its first three cards. Home review/ratings promises are also cleared.
-- Review responses have a per-product version so old page responses cannot
-  replace the currently selected page. A reduced total clamps to a valid page.
+- A saved review forces a fresh complete read and confirms the saved row before
+  clearing the draft. It expands the first review page; home review/ratings
+  promises are also cleared. A purchase is not required for signed-in customers.
+- Review responses have a per-product version so an older read cannot replace
+  a newer confirmed save. Displayed pages clamp to the available review list.
+- The homepage shared review feed requests up to 100 rows while retaining the
+  server's full count and average. Only actual purchases receive the badge.
 - Account order requests share only while in flight. There is no persistent
   private response cache. A token change resets account state and an outgoing
   session's response is rejected before rendering.
@@ -38,6 +41,7 @@ Focused checks:
 
 ```sh
 node tools/test-page-data-loading.cjs
+node tools/test-review-save.cjs
 node tools/test-shopping-consistency.cjs
 node tools/test-checkout-login-return.cjs
 node tools/test-checkout-recovery.cjs
