@@ -220,7 +220,7 @@ async function renderReturnsPanel() {
     }
 
     html += '<p class="ret-meta" style="margin-top:18px">Something look wrong? '
-          + '<a href="mailto:ozylixcare@gmail.com">Email us</a> with your order number '
+          + '<a href="mailto:hi@gmail.com">Email us</a> with your order number '
           + 'and we will raise the request for you.</p>';
 
     el.innerHTML = html;
