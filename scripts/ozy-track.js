@@ -8,8 +8,10 @@
   function track(name) {
     if (!allowed.has(name) || disabled() || !session) return;
     // Explicit projection: no email, identity, URL query, product, order or cart data.
-    const event={anonymous_id:session,session_id:session,event_name:name,page:pageType(),device_hint:matchMedia('(max-width:700px)').matches?'mobile':'desktop'};
-    fetch('/telemetry/api/track',{method:'POST',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify({events:[event]}),keepalive:true}).catch(function(){});
+    const event={event_name:name,page:pageType()};
+    // The ingest API requires visit IDs on the envelope, before it reads events.
+    const body={anon_id:session,session_id:session,device_hint:matchMedia('(max-width:700px)').matches?'mobile':'desktop',events:[event]};
+    fetch('/telemetry/api/track',{method:'POST',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:true}).catch(function(){});
   }
   function wrap(name,event) { const original=window[name];if(typeof original!=='function'||original._anonymousMarketing)return;const wrapped=function(){const result=original.apply(this,arguments);track(event);return result;};wrapped._anonymousMarketing=true;window[name]=wrapped; }
   window.ozyTrack={track:track,identify:function(){return false;}};
