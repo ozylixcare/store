@@ -108,7 +108,7 @@ const FAQS = [
   { q:"How should I store the products?", a:"Store all Ozylix products in a cool, dry place below 30°C. Keep away from direct sunlight and moisture. After opening effervescent tablet tubes, seal tightly and use within 30 days.", cat:"Products" },
   { q:"Are these suitable for vegetarians/vegans?", a:"All Ozylix supplements are 100% vegetarian. The spirulina products are also vegan. Glutathione and B1+Biotin are vegetarian but check if vegan-strict, as some capsule shells may vary.", cat:"Products" },
   { q:"How do I apply a discount code?", a:"Enter one active code in the Apply Coupon field and press Apply. A coupon cannot be stacked with Mix & Match when Mix & Match unlocks, and the server checks expiry, usage limits, minimum order value, and the maximum permitted saving again before payment.", cat:"Offers" },
-  { q:"Do you offer bulk/wholesale pricing?", a:"Yes. For bulk orders or wholesale partnerships, contact ozylixcare@gmail.com or call +91 9898 582 650. Bulk pricing and quantities are quoted separately and are not automatically combined with consumer coupons or Mix & Match.", cat:"Orders" },
+  { q:"Do you offer bulk/wholesale pricing?", a:"Yes. For bulk orders or wholesale partnerships, contact hi@ozylix.com or call +91 9898 582 650. Bulk pricing and quantities are quoted separately and are not automatically combined with consumer coupons or Mix & Match.", cat:"Orders" },
 ];
 
 // ── APP STATE ──
@@ -542,7 +542,7 @@ function openProduct(id, routeOptions) {
 // REVIEW COLLECTION: called from the "Write a Review" button on delivered
 // order cards in My Account. Opens the product page and jumps straight to
 // the review form — the customer is already logged in (required for the
-// page) and purchase-verified server-side, so it is a two-tap review.
+// page); the server checks the account and labels actual purchases separately.
 function openProductReview(productId) {
   openProduct(productId);
   // The review list may still be loading from Supabase; scroll after the
@@ -1213,16 +1213,15 @@ function rvScrollToList() {
   if (w && w.scrollIntoView) { try { w.scrollIntoView({ block: 'start' }); } catch (e) { w.scrollIntoView(); } }
 }
 
-function rvExpand(pid)   { const v = rvViewState(pid); v.expanded = true;  v.page = 0; return loadProductReviews(pid); }
-function rvCollapse(pid) { const v = rvViewState(pid); v.expanded = false; v.page = 0; const request = loadProductReviews(pid); rvScrollToList(); return request; }
+function rvExpand(pid)   { const v = rvViewState(pid); v.expanded = true;  v.page = 0; renderProductReviewList(pid); }
+function rvCollapse(pid) { const v = rvViewState(pid); v.expanded = false; v.page = 0; renderProductReviewList(pid); rvScrollToList(); }
 function rvGoPage(pid, delta) {
   const v = rvViewState(pid);
-  const total = REVIEW_META[pid]?.total || 0;
+  const total = (REVIEWS[pid] || []).length;
   const last  = Math.max(0, Math.ceil(total / RV_PAGE_SIZE) - 1);
   v.page = Math.min(last, Math.max(0, v.page + delta));
-  const request = loadProductReviews(pid);
+  renderProductReviewList(pid);
   rvScrollToList();
-  return request;
 }
 
 function renderProductReviewList(pid) {
@@ -1237,7 +1236,7 @@ function renderProductReviewList(pid) {
     return;
   }
 
-  const v = rvViewState(pid), total = REVIEW_META[pid]?.total ?? rvs.length;
+  const v = rvViewState(pid), total = rvs.length;
   const btn = 'display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 20px;' +
               'border-radius:var(--r-pill);font-weight:700;font-size:.82rem;background:var(--paper);' +
               'box-shadow:var(--neo-1);color:var(--indigo);touch-action:manipulation;min-height:44px';
@@ -1258,7 +1257,7 @@ function renderProductReviewList(pid) {
   const end   = Math.min(start + RV_PAGE_SIZE, total);
   const dim   = 'opacity:.4;pointer-events:none';
 
-  let html = rvs.map(rvCardHTML).join('');
+  let html = rvs.slice(start, end).map(rvCardHTML).join('');
   html += `<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin-top:16px">
       <div style="width:100%;text-align:center;font-size:.78rem;color:var(--t-low);margin-bottom:2px">
         Showing ${start + 1}–${end} of ${total} reviews${pages > 1 ? ` &middot; page ${page + 1} of ${pages}` : ''}
@@ -1272,27 +1271,26 @@ function renderProductReviewList(pid) {
 
 function refreshProductReviewUI(pid) {
   const rows = REVIEWS[pid] || [];
-  const meta = REVIEW_META[pid] || {total:0,average:null,histogram:{}};
-  const avg = meta.average, total = meta.total;
-  PRODUCT_RATINGS[pid] = { avg, count: total };
+  const avg = rows.length ? rows.reduce((sum, r) => sum + Number(r.rating), 0) / rows.length : null;
+  PRODUCT_RATINGS[pid] = { avg, count: rows.length };
   if (!currentProduct || currentProduct.id !== pid) return;
   renderProductReviewList(pid);
   const root = document.getElementById('productDetail');
   if (!root) return;
   const label = root.querySelector('.prod-rating-row .review-ct');
-  if (label) label.textContent = '(' + total + ' reviews)';
+  if (label) label.textContent = '(' + rows.length + ' reviews)';
   const row = root.querySelector('.prod-rating-row');
   if (row) row.innerHTML = (avg === null ? '<span>No ratings yet</span>' : stars(avg)) +
-    ' <span class="review-ct">(' + total + ' reviews)</span> <span class="write-rv" onclick="openProductReviews(true)">Write a Review</span>';
+    ' <span class="review-ct">(' + rows.length + ' reviews)</span> <span class="write-rv" onclick="openProductReviews(true)">Write a Review</span>';
   const tab = root.querySelector('[onclick*="rvs"]');
-  if (tab) tab.textContent = 'Reviews (' + total + ')';
+  if (tab) tab.textContent = 'Reviews (' + rows.length + ')';
   const summary = root.querySelector('.rv-summary');
   if (summary) {
     summary.querySelector('.rv-big-num').textContent = avg === null ? '—' : avg.toFixed(1);
     const count = summary.querySelector('.rating-big > div:last-child');
-    if (count) count.textContent = total + ' reviews';
+    if (count) count.textContent = rows.length + ' reviews';
     summary.querySelectorAll('.rv-bar-row').forEach((bar, index) => {
-      const pct = total ? (meta.histogram[5 - index] || 0) / total * 100 : 0;
+      const pct = rows.length ? rows.filter(r => Math.round(r.rating) === 5 - index).length / rows.length * 100 : 0;
       bar.querySelector('.rv-bar-fill').style.width = pct + '%';
       bar.lastElementChild.textContent = Math.round(pct) + '%';
     });
@@ -1428,9 +1426,8 @@ function buildProductPage(p) {
   // none, avg must NOT silently fall back to the hardcoded p.rating — that's
   // exactly how "4.8★ (567 reviews)" type mismatches happened elsewhere.
   // Only show a computed average when real reviews exist.
-  const reviewMeta = REVIEW_META[p.id] || {total:0,average:null,histogram:{}};
-  const reviewTotal = reviewMeta.total;
-  const avg = reviewMeta.average;
+  const hasRealReviews = REVIEWS_LOADED[p.id] && rvs.length > 0;
+  const avg = hasRealReviews ? rvs.reduce((s,r)=>s+r.rating,0)/rvs.length : null;
   const related = PRODUCTS.filter(r=>isStoreProductActive(r)&&r.category===p.category&&r.id!==p.id).slice(0,4);
   const rg=document.getElementById('relatedGrid'); if(rg) rg.innerHTML = related.map(r=>renderProductCard(r)).join('');
 
@@ -1453,7 +1450,7 @@ function buildProductPage(p) {
     <div>
       <div class="prod-brand">${p.brand}</div>
       <h1 class="prod-title">${p.name}</h1>
-      <div class="prod-rating-row">${avg !== null ? stars(avg) : '<span class="review-ct" style="color:var(--gray)">No ratings yet</span>'} <span class="review-ct">(${REVIEWS_LOADED[p.id] ? reviewTotal + ' reviews' : 'loading reviews…'})</span> <span class="write-rv" onclick="openProductReviews(true)">Write a Review</span></div>
+      <div class="prod-rating-row">${avg !== null ? stars(avg) : '<span class="review-ct" style="color:var(--gray)">No ratings yet</span>'} <span class="review-ct">(${REVIEWS_LOADED[p.id] ? rvs.length + ' reviews' : 'loading reviews…'})</span> <span class="write-rv" onclick="openProductReviews(true)">Write a Review</span></div>
       <div class="prod-price-block">
         <span class="prod-sale" id="dynSalePrice">&#x20B9;${displayRate.toLocaleString('en-IN')}</span>
         <span class="prod-orig" id="dynOrigPrice">&#x20B9;${displayMRP.toLocaleString('en-IN')}</span>
@@ -1480,7 +1477,7 @@ function buildProductPage(p) {
       <div class="tabs">
         <button class="tab active" onclick="switchTab(this,'desc')">Description</button>
         <button class="tab" onclick="switchTab(this,'ingr')">Ingredients</button>
-        <button class="tab" onclick="switchTab(this,'rvs')">Reviews (${reviewTotal})</button>
+        <button class="tab" onclick="switchTab(this,'rvs')">Reviews (${rvs.length})</button>
         ${tiers ? `<button class="tab" onclick="switchTab(this,'pricing')">&#x1F4CB; Pricing</button>` : ''}
       </div>
       <div class="tab-content active" id="tab-desc">
@@ -1496,26 +1493,23 @@ function buildProductPage(p) {
       </div>
       <div class="tab-content" id="tab-rvs">
         <div class="rv-summary">
-          <div class="rating-big"><div class="rv-big-num">${avg !== null ? avg.toFixed(1) : '—'}</div><div class="rv-big-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</div><div style="font-size:.72rem;color:var(--gray)">${reviewTotal} reviews</div></div>
-          <div style="flex:1">${[5,4,3,2,1].map(s=>{const c=reviewMeta.histogram[s]||0;const pct=reviewTotal?(c/reviewTotal)*100:0;return`<div class="rv-bar-row"><span style="width:14px">${s}&#x2605;</span><div class="rv-bar-track"><div class="rv-bar-fill" style="width:${pct}%"></div></div><span>${Math.round(pct)}%</span></div>`;}).join('')}</div>
+          <div class="rating-big"><div class="rv-big-num">${avg !== null ? avg.toFixed(1) : '—'}</div><div class="rv-big-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</div><div style="font-size:.72rem;color:var(--gray)">${rvs.length} reviews</div></div>
+          <div style="flex:1">${[5,4,3,2,1].map(s=>{const c=rvs.filter(r=>Math.round(r.rating)===s).length;const pct=rvs.length?(c/rvs.length)*100:0;return`<div class="rv-bar-row"><span style="width:14px">${s}&#x2605;</span><div class="rv-bar-track"><div class="rv-bar-fill" style="width:${pct}%"></div></div><span>${Math.round(pct)}%</span></div>`;}).join('')}</div>
         </div>
         <div class="rv-form" id="rvFormWrap">
           <h3>Write a Review</h3>
           ${getCurrentUser() ? `
           <div class="star-picker" id="starPicker">${[1,2,3,4,5].map(s=>`<span role="button" tabindex="0" aria-label="${s} out of 5 stars" aria-pressed="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setRating(${s})}" onclick="setRating(${s})" onmouseenter="previewRating(${s})" onmouseleave="clearRatingPreview()" data-s="${s}">&#x2605;</span>`).join('')}</div>
           <div style="font-size:.8rem;color:var(--gray);margin:6px 0 10px">Posting as <strong>${esc(getCurrentUser().name || 'You')}</strong></div>
-          <!-- The server only accepts a review from someone who has bought
-               this product (reviews-routes.js checks the order history), and
-               it preserves each submission. Purchase rules used to
-               be invisible until the POST came back 403, which is why people
-               filled the form in and were told "no" afterwards. -->
+          <!-- Reviews are open to signed-in customers. The server determines
+               the verified-purchase badge independently from order history. -->
           <div style="font-size:.78rem;color:var(--t-low);margin:0 0 12px;padding:9px 12px;border-radius:var(--r-sm);background:var(--paper);box-shadow:var(--neo-in)">
-            Purchased this product? Share your experience. Each submission appears as a separate review, newest first.
+            Share your experience. A purchase is not required. Each submission appears as a separate review, newest first.
           </div>
           <textarea class="form-input" placeholder="Share your experience with this product..." id="rvText" maxlength="1000" aria-label="Your product review" oninput="this.classList.remove('field-error')"></textarea>
           <button class="btn-primary" style="width:100%;justify-content:center" onclick="submitReview()">Submit Review &#x1F331;</button>
           ` : `
-          <p style="font-size:.85rem;color:var(--gray);margin-bottom:14px">Sign in with the account you ordered on to write a review — reviews are open to customers who have bought this product.</p>
+          <p style="font-size:.85rem;color:var(--gray);margin-bottom:14px">Sign in to share your experience. A purchase is not required.</p>
           <button class="btn-primary" style="width:100%;justify-content:center" onclick="openAuth('login')">Sign In to Write a Review</button>
           `}
         </div>
@@ -1886,8 +1880,6 @@ async function submitReview() {
     if (Number(r.product_id) !== Number(product.id)) throw new Error('The server returned a different product. Your draft has been kept.');
     // Read the same server feed used after reload. Never add a temporary
     // review to the page that the public endpoint cannot return.
-    rvViewState(product.id).expanded = false;
-    rvViewState(product.id).page = 0;
     const rows = await loadProductReviews(product.id, { force: true });
     const pending = r.status === 'pending';
     if (!pending && (!Array.isArray(rows) || !rows.some(row => String(row.id) === String(r.id)))) {
@@ -1902,7 +1894,7 @@ async function submitReview() {
       // An edit keeps the review count unchanged. Show the saved review
       // immediately, even when the reader was on a later review page.
       const view = rvViewState(product.id);
-      view.expanded = false;
+      view.expanded = true;
       view.page = 0;
       refreshProductReviewUI(product.id);
       if (!pending) {
@@ -2415,7 +2407,7 @@ async function loadReviewsBatch() {
   if (_reviewsBatchDone) return _reviewsBatchDone;
   REVIEWS_BATCH_ERROR = false;
   const task = (async () => {
-    const response = await fetch(API_BASE + '/api/public-reviews?limit=9', {
+    const response = await fetch(API_BASE + '/api/public-reviews?limit=100', {
       headers: { Accept: 'application/json' }, credentials: 'omit', cache: 'no-store',
       signal: AbortSignal.timeout(15000),
     });
@@ -3459,7 +3451,7 @@ async function sendOrderEmail({ orderId, formData, srItems, sub, totalDisc, prom
       ${method !== 'demo' ? `<a href="${trackUrl}" style="display:block;background:var(--f-mineral-d);color:var(--t-hi);text-align:center;padding:13px;border-radius:100px;font-weight:700;text-decoration:none;font-size:14px;margin:16px 0">📦 Track Your Order on Shiprocket</a>` : ''}
 
       <p style="font-size:12px;color:var(--t-low);text-align:center;margin-top:20px">
-        For queries: <a href="mailto:ozylixcare@gmail.com" style="color:var(--f-mineral-d)">ozylixcare@gmail.com</a> | +91 98985 82650<br>
+        For queries: <a href="mailto:hi@ozylix.com" style="color:var(--f-mineral-d)">hi@ozylix.com</a> | +91 98985 82650<br>
         Ozylix · Near Rajshivalay Cinema, Anand – 388001, Gujarat
       </p>
     </div>
@@ -3482,7 +3474,7 @@ async function sendOrderEmail({ orderId, formData, srItems, sub, totalDisc, prom
     order_date:    new Date().toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'}),
     items_text:    itemsText,
     email_body:    emailHtml,
-    company_email: 'ozylixcare@gmail.com',
+    company_email: 'hi@ozylix.com',
     phone:         formData.phone,
     address:       `${formData.addr1}, ${formData.city}, ${formData.state} - ${formData.pin}`,
     tracking_url:  trackUrl,
@@ -3600,7 +3592,7 @@ function generateInvoice({ orderId, formData, srItems, sub, disc, promoDisc, shi
       Amin Auto Road, Near Rajshivalay Cinema<br>
       Anand – 388001, Gujarat, India<br>
       📞 +91 98985 82650<br>
-      ✉ ozylixcare@gmail.com<br>
+      ✉ hi@ozylix.com<br>
       🌐 ozylix.in
     </div>
   </div>
@@ -3678,7 +3670,7 @@ function generateInvoice({ orderId, formData, srItems, sub, disc, promoDisc, shi
     • All prices are inclusive of 5% GST &nbsp;|&nbsp; HSN Code: 30049099 (Nutraceuticals)<br>
     • Returns accepted within 7 days for sealed/unused products<br>
     • This is a computer-generated invoice and does not require a physical signature<br>
-    • For queries: ozylixcare@gmail.com &nbsp;|&nbsp; +91 98985 82650
+    • For queries: hi@ozylix.com &nbsp;|&nbsp; +91 98985 82650
   </div>
 
   <!-- FOOTER -->

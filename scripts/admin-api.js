@@ -1230,7 +1230,7 @@ if (typeof _mktOrigShowPage === 'function') {
       var outbox = h.outbox && typeof h.outbox === 'object' ? h.outbox : {};
       var integrations = h.integrations && typeof h.integrations === 'object' ? h.integrations : {};
       var hasEngineStatus = Object.prototype.hasOwnProperty.call(h, 'minutes_since_tick');
-      var cls = hasEngineStatus && h.status === 'healthy' ? 'ok' : 'warn';
+      var cls = hasEngineStatus && h.status === 'healthy' ? 'ok' : h.status === 'running' ? '' : 'warn';
       var chan = Object.keys(channels).map(function (k) {
         var c = channels[k] && typeof channels[k] === 'object' ? channels[k] : {};
         return (c.enabled ? '✅ ' : '⚪ ') + esc(k) + (c.note ? ' <span class="mkt-sub">(' + esc(c.note) + ')</span>' : '');
@@ -1935,8 +1935,11 @@ if (typeof _mktOrigShowPage === 'function') {
       }).join('');
 
       var engine = (d.engine.recent || []).map(function (r) {
+        var unfinished = r.ok == null && !r.finished_at;
+        var unfinishedLabel = Date.now() - Date.parse(r.started_at) > 25 * 60000 ? 'completion not recorded' : 'running';
         return '<tr><td>' + esc(r.job) + '</td><td>' + ago(r.started_at) + '</td><td colspan="2">' +
-          (r.ok ? '<span class="mkt-pill approved">ok</span>'
+          (unfinished ? '<span class="mkt-pill pending_approval">' + unfinishedLabel + '</span>'
+                : r.ok ? '<span class="mkt-pill approved">ok</span>'
                 : '<span class="mkt-pill pause">failed</span>' +
                   (r.error ? '<br><span class="mkt-skip">' + esc(r.error).slice(0, 120) + '</span>' : '')) +
           '</td></tr>';

@@ -1053,7 +1053,8 @@ if (document.readyState === 'loading') {
 }
 
 // Review cards are fetched on demand; totals remain independent of each page.
-const REVIEW_META = {};
+const REVIEW_REQUEST_VERSION = {};
+const REVIEW_REQUEST_PENDING = {};
 let _featureLoaderPending = null;
 function ensureOzylixModules() {
   if (window.OzylixModules) return Promise.resolve(window.OzylixModules);
@@ -1069,17 +1070,44 @@ function ensureOzylixModules() {
   return _featureLoaderPending;
 }
 async function loadProductReviews(productId, options = {}) {
-  try {
-    const modules = await ensureOzylixModules();
-    await modules.load('reviews');
-    return await window.OzylixReviewData.load(productId, options);
-  } catch(error) {
-    if (currentProduct?.id === productId) {
-      const wrap = document.getElementById('rvListWrap');
-      if (wrap) wrap.innerHTML = '<p role="status">Reviews could not load. <button type="button" onclick="loadProductReviews(' + Number(productId) + ')">Retry</button></p>';
+  if (!options.force && REVIEW_REQUEST_PENDING[productId]) return REVIEW_REQUEST_PENDING[productId];
+  const version = (REVIEW_REQUEST_VERSION[productId] || 0) + 1;
+  REVIEW_REQUEST_VERSION[productId] = version;
+  const task = (async () => {
+    try {
+      let offset = 0, all = [], payload;
+      do {
+        const response = await fetch(`${API_BASE}/api/public-reviews?product_id=${encodeURIComponent(productId)}&limit=100&offset=${offset}${options.force ? "&fresh=1" : ""}`, {
+          headers: { Accept: 'application/json' }, credentials: 'omit', cache: 'no-store',
+          signal: AbortSignal.timeout(20000),
+        });
+        payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || 'Reviews are temporarily unavailable');
+        if (!Array.isArray(payload.reviews)) throw new Error('The server returned an invalid review list');
+        if (REVIEW_REQUEST_VERSION[productId] !== version) return;
+        if (payload.has_more && !payload.reviews.length) throw new Error('Incomplete review list');
+        all.push(...payload.reviews); offset += payload.reviews.length;
+      } while (payload.has_more);
+      REVIEWS[productId] = all.map(r => ({
+        id: r.id, user: r.user_name, rating: Number(r.rating), text: r.review_text,
+        date: r.created_at, updatedAt: r.updated_at, verified: r.verified === true
+      }));
+      REVIEWS_LOADED[productId] = true;
+      if (typeof refreshProductReviewUI === 'function') refreshProductReviewUI(productId);
+      return REVIEWS[productId];
+    } catch (e) {
+      if (REVIEW_REQUEST_VERSION[productId] !== version) return;
+      if (currentProduct?.id === productId && !REVIEWS_LOADED[productId]) {
+        const wrap = document.getElementById('rvListWrap');
+        if (wrap) wrap.innerHTML = '<p>Reviews could not load. <button type="button" onclick="loadProductReviews(' + Number(productId) + ')">Retry</button></p>';
+      }
+      if (options.force) throw e;
+    } finally {
+      if (REVIEW_REQUEST_VERSION[productId] === version) delete REVIEW_REQUEST_PENDING[productId];
     }
-    if (options.force) throw error;
-  }
+  })();
+  REVIEW_REQUEST_PENDING[productId] = task;
+  return task;
 }
 
 const STORE = {
