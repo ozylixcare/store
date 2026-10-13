@@ -42,7 +42,7 @@ const OZYLIX_LEGAL = {
   stateName:  'Gujarat',
   stateCode:  '24',
   phone:      '+91 98985 82650',
-  email:      'hi@gmail.com',
+  email:      'hi@ozylix.com',
   site:       'ozylix.com',
   hsnDefault: '2106',                  // food/nutraceutical preparations
   gstRate:    5                        // % — inclusive pricing
