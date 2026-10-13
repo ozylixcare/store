@@ -541,7 +541,7 @@ function setShopPageSchema() {
         '@id': 'https://www.ozylix.com/shop',
         'url': 'https://www.ozylix.com/shop',
         'name': 'Buy Supplements Online in India | Ozylix',
-        'description': 'Shop glutathione, spirulina, moringa, effervescent and ayurvedic supplements from Ozylix. FSSAI approved, lab tested, free pan-India delivery.',
+        'description': 'Shop glutathione, spirulina, moringa, effervescent and ayurvedic supplements from Ozylix. FSSAI approved, lab tested, delivery across serviceable Indian PIN codes, with charges confirmed at checkout.',
         'breadcrumb': {'@id': 'https://www.ozylix.com/shop#breadcrumb'},
         'mainEntity': {'@id': 'https://www.ozylix.com/shop#itemlist'}
       },
