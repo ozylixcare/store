@@ -47,7 +47,9 @@
 #app .aw-page :is(input,select,textarea) { max-width:100%; min-width:0; }
 #app .aw-page :is(.filter-input,.filter-select) { min-height:40px; border-radius:10px; }
 #app .aw-page .table-wrap { max-width:100%; border:1px solid var(--dw-line); border-radius:16px; overflow:auto; overscroll-behavior-inline:contain; scrollbar-width:thin; }
-#app .aw-page .table-wrap > table { min-width:100%; width:max-content; }
+/* Fill the wrapper on wide screens. Legacy page minimums still provide a
+   readable, horizontally scrollable table on narrow screens. */
+#app .aw-page .table-wrap > table { min-width:100%; width:100%!important; }
 #app .aw-page .table-wrap thead th { position:sticky; top:0; z-index:1; background:var(--dw-soft); font-size:10px; letter-spacing:.045em; padding:13px; }
 #app .aw-page .table-wrap td { padding:13px; line-height:1.6; }
 #app .aw-page .table-wrap td :is(.btn,.btn-sm) { min-height:34px; }
