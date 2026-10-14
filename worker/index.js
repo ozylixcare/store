@@ -117,6 +117,7 @@ async function serveAdmin(request, env, url) {
 
 import { isApiRequest, handleApiRequest, publicMedia } from './api-proxy.js';
 import { isPrivateAsset, isAdminAsset } from './private-assets.js';
+import { withPageSeo } from './seo.js';
 
 import { isCdnRequest, handleCdnRequest } from './image-cdn.js';
 
@@ -324,12 +325,12 @@ export default {
       // page is indexable. index.html reads location.pathname on boot and opens
       // the matching page or product.
       const shell = await env.ASSETS.fetch(new URL('/', url));
-      return publicHeaders(new Response(shell.body, { status: shell.status, headers: shell.headers }));
+      return withPageSeo(publicHeaders(new Response(shell.body, { status: shell.status, headers: shell.headers })), request);
     }
 
     // Real asset, or nothing — in which case not_found_handling serves 404.html
     // with a genuine 404 status.
-    return publicHeaders(await env.ASSETS.fetch(request));
+    return withPageSeo(publicHeaders(await env.ASSETS.fetch(request)), request);
   },
 };
 
