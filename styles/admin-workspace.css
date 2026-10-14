@@ -89,7 +89,9 @@
 .dw-flow-track { height:5px; border-radius:4px; background:var(--dw-line); margin-top:7px; overflow:hidden; }
 .dw-flow-track i { display:block; height:100%; background:var(--dw-accent); border-radius:inherit; }
 .dw-flow-note { font-size:10px; color:var(--dw-muted); line-height:1.65; padding:10px 0 0; min-height:36px; }
-.dw-status { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+/* Anchor live messages instead of positioning them after the long dashboard.
+   Their default static position escaped the scroll pane and grew the document. */
+.dw-status { position:absolute; top:0; left:0; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 #page-dashboard.dw-compact .dw-grid { gap:12px !important; }
 #page-dashboard.dw-compact .dw-widget > .card-hdr { padding:14px 16px 10px !important; min-height:48px; }
 #page-dashboard.dw-compact .dw-chart-wrap { height:200px; }
