@@ -74,7 +74,7 @@
   function enhance(state) {
     // Preserve section boundaries, tab containers, IDs, form values and existing listeners.
     // Move only cards within their original section; never flatten a form or a data grid.
-    const cards = [...state.page.querySelectorAll('.card,.oz-section-card')].filter(card => !card.parentElement.closest('.card,.oz-section-card,.aw-card') && !card.classList.contains('aw-card'));
+    const cards = [...state.page.querySelectorAll('.card,.oz-section-card')].filter(card => !card.parentElement.closest('.card,.oz-section-card,.aw-card') && !card.classList.contains('aw-card') && !card.classList.contains('cs-custom'));
     const parents = [...new Set(cards.map(card => card.parentElement))];
     parents.forEach(parent => {
       const children = [...parent.children]; let run = [];

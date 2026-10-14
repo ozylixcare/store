@@ -1,0 +1,56 @@
+/* Free card dimensions stay bounded by the available screen, not by preset slots. */
+#app .page .cs-flex,#app #page-dashboard .dw-grid.cs-flex { display:flex!important; flex-wrap:wrap!important; align-items:flex-start!important; gap:18px!important; scroll-margin-block-start:90px; }
+#app .cs-flex:is([style*="display:none"],[style*="display: none"]) { display:none!important; }
+#app .page .cs-flex > .cs-card,#app #page-dashboard .dw-grid.cs-flex > .cs-card { --cs-span:var(--aw-span,var(--dw-span,var(--cs-default-span,6))); flex:0 0 min(100%,var(--cs-free-width,calc((100% + 18px) / 12 * var(--cs-span) - 18px)))!important; width:min(100%,var(--cs-free-width,calc((100% + 18px) / 12 * var(--cs-span) - 18px)))!important; max-width:100%!important; min-width:0!important; }
+#app .page .cs-card { position:relative; }
+#app .page .cs-card.cs-sized,#app #page-dashboard .dw-widget.cs-sized { height:var(--cs-free-height)!important; min-height:0!important; overflow:auto!important; }
+#app .page .cs-card[style*="--cs-free-width"] { overflow:auto!important; }
+#app .page .cs-card.cs-hidden { display:none!important; }
+#app .page .cs-card.cs-tinted { border-top:4px solid var(--cs-accent)!important; }
+#app .page .cs-card.cs-resizing { outline:2px solid var(--dw-accent); }
+#app .cs-card.cs-drop { outline:3px dashed var(--dw-accent); outline-offset:3px; }
+#app .cs-handle { cursor:grab; touch-action:none; }
+#app .page .cs-card.cs-sized .dw-chart-wrap:not(.dw-spark),#app #page-dashboard .dw-widget.cs-sized .dw-chart-wrap:not(.dw-spark) { height:var(--cs-chart-height,200px)!important; flex-shrink:0; }
+#app .cs-controls { display:none; flex-wrap:wrap; gap:6px; padding:8px; border-bottom:1px dashed var(--dw-line); }
+#app :is(.aw-editing,.dw-editing) .cs-controls { display:flex; }
+#app :is(.cs-controls,.dw-controls,.aw-controls) :is(.cs-edit,.cs-hide),#app .cs-controls button { border:1px solid var(--dw-line); background:var(--dw-soft); color:var(--dw-ink); border-radius:9px; padding:8px 10px; font:600 11px inherit; font-family:inherit; font-size:11px; min-height:36px; cursor:pointer; }
+#app .cs-custom-grid { margin:24px 0; }
+#app .cs-custom { padding:0!important; border-radius:20px!important; overflow:hidden; }
+#app .cs-custom .card-hdr { margin:0!important; padding:18px!important; }
+#app .cs-custom .dw-chart-wrap { width:100%; height:260px; padding:0 14px; position:relative; }
+#app .cs-custom .dw-chart-wrap canvas { width:100%!important; height:100%!important; display:block; }
+#app .cs-value { font-size:clamp(26px,3vw,44px); font-weight:700; letter-spacing:-.04em; padding:12px 20px; overflow-wrap:anywhere; }
+#app .cs-note { margin:0; padding:18px 20px; white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.65; font-size:14px; }
+#app .cs-source { margin:12px 20px 18px; font-size:10px; line-height:1.5; color:var(--dw-muted); }
+#app .cs-overlay { position:fixed; inset:0; z-index:15000; background:#14231b80; backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:16px; }
+#app .cs-dialog { width:min(680px,100%); max-height:calc(100dvh - 32px); display:flex; flex-direction:column; background:var(--os-surface,var(--surface,#fff)); color:var(--os-ink,var(--text,#252a24)); border:1px solid var(--os-line,var(--border)); border-radius:22px; box-shadow:0 24px 80px #0004; overflow:hidden; }
+#app .cs-dialog > header { padding:18px 22px; display:flex; justify-content:space-between; align-items:center; gap:12px; border-bottom:1px solid var(--os-line,var(--border)); }
+#app .cs-dialog h2 { font-size:20px; margin:0; line-height:1.4; }
+#app .cs-dialog-body { padding:20px 22px; overflow:auto; overscroll-behavior:contain; }
+#app .cs-dialog :is(button,input,textarea,select) { color:inherit; border:1px solid var(--os-line,var(--border)); background:var(--os-surface-2,var(--surface2,#f8f6ee)); border-radius:10px; font-family:inherit; font-size:13px; padding:10px 12px; min-height:42px; max-width:100%; }
+#app .cs-dialog button { cursor:pointer; }
+#app .cs-dialog .cs-primary { color:var(--os-surface,#fff)!important; background:var(--os-ink,#252a24)!important; border-color:var(--os-ink,#252a24); }
+#app .cs-field { display:flex; flex-direction:column; gap:7px; margin-bottom:16px; font-size:12px; font-weight:600; }
+#app .cs-field[hidden] { display:none; }
+#app .cs-field input,#app .cs-field select,#app .cs-field textarea { width:100%; min-width:0; }
+#app .cs-field textarea { min-height:120px; resize:vertical; }
+#app .cs-field-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+#app .cs-hint { font-size:12px; color:var(--os-muted,var(--text2)); line-height:1.7; margin:0 0 18px; }
+#app .cs-form-actions { display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-end; margin-top:20px; }
+#app .cs-card-list { display:flex; flex-direction:column; gap:9px; }
+#app .cs-manage-row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; border:1px solid var(--os-line,var(--border)); border-radius:12px; padding:10px; }
+#app .cs-manage-row label { display:flex; align-items:center; gap:10px; flex:1 1 220px; font-size:12px; line-height:1.5; cursor:pointer; }
+#app .cs-manage-row input[type=checkbox] { accent-color:var(--os-green,var(--green)); width:20px; height:20px; min-height:20px; flex-shrink:0; }
+#app .cs-manage-row button { min-height:36px; padding:6px 9px; font-size:11px; }
+#app .cs-dialog :is(button,input,select,textarea):focus-visible,#app .cs-dialog:focus-visible { outline:2px solid var(--os-green,var(--green)); outline-offset:3px; }
+@media(max-width:1100px) { #app .page .cs-flex > .cs-card:not([style*="--cs-free-width"]),#app #page-dashboard .dw-grid.cs-flex > .cs-card:not([style*="--cs-free-width"]) { --cs-span:6; } }
+@media(max-width:650px) {
+  #app .page .cs-flex > .cs-card:not([style*="--cs-free-width"]),#app #page-dashboard .dw-grid.cs-flex > .cs-card:not([style*="--cs-free-width"]) { --cs-span:12; }
+  #app .cs-overlay { padding:8px; }
+  #app .cs-dialog { max-height:calc(100dvh - 16px); border-radius:16px; }
+  #app .cs-dialog > header { padding:14px; }
+  #app .cs-dialog-body { padding:16px 14px; }
+  #app .cs-dialog :is(button,input,textarea,select) { font-size:16px; min-height:44px; }
+  #app .cs-manage-row button { font-size:12px; }
+  #app :is(.cs-controls,.dw-controls,.aw-controls) :is(.cs-edit,.cs-hide),#app .cs-controls button { min-height:44px; }
+}
