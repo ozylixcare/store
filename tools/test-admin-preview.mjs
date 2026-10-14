@@ -3,7 +3,7 @@ import storefront, { ADMIN_ENTRY } from '../worker/index.js';
 
 const assets = new Map([
   ['/', 'Storefront preview'],
-  ['/tools/store-preview.html', 'Device preview'],
+  ['/admin-device-preview.html', 'Device preview'],
   ['/admin.html', 'Admin panel'],
 ]);
 const env = { ASSETS: { fetch: async request => {
@@ -23,7 +23,7 @@ const admin = await storefront.fetch(new Request('https://back.ozylix.com'+[...A
 assert.equal(await admin.text(),'Admin panel');
 assert.equal(admin.headers.get('X-Frame-Options'),'DENY');
 assert.ok(admin.headers.get('Content-Security-Policy').includes("frame-ancestors 'none'"));
-for (const url of ['https://back.ozylix.com/tools/store-preview.html','https://www.ozylix.com/tools/store-preview.html','https://www.ozylix.com/store-preview','https://back.ozylix.com/admin.html?storePreview=1']) {
+for (const url of ['https://back.ozylix.com/tools/store-preview.html','https://www.ozylix.com/tools/store-preview.html','https://back.ozylix.com/admin-device-preview.html','https://www.ozylix.com/admin-device-preview.html','https://back.ozylix.com/admin-device-preview','https://www.ozylix.com/admin-device-preview','https://www.ozylix.com/store-preview','https://back.ozylix.com/admin.html?storePreview=1']) {
   const response = await storefront.fetch(new Request(url),env,{});
   assert.equal(response.status,url.includes('/admin.html') ? 302 : 404,url);
 }
