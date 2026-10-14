@@ -1,6 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="UTF-8">
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-K5B42TC9');</script>
+<!-- End Google Tag Manager -->
+<!-- Meta Pixel Code -->
+<script>
+window.META_PIXEL_ID = '5548440758714716';
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '5548440758714716');
+fbq('track', 'PageView');
+</script>
+<!-- End Meta Pixel Code -->
 <style>
 /* Permission-safe customer reminders. No browser permission is requested until the customer presses Allow. */
 #ozylxConsentBar{position:fixed;left:18px;right:18px;bottom:18px;z-index:10050;display:none;max-width:760px;margin:auto;background:var(--dark,#20303a);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.22);padding:14px 16px;font-size:.82rem;line-height:1.5}
@@ -13,8 +36,8 @@
 @media(max-width:600px){#ozylxConsentBar{left:10px;right:10px;bottom:10px}}
 
 </style>
-  <meta charset="UTF-8">
-  <!-- ── FORCE HTTPS — must stay the first script in the document ──────
+  
+  <!-- ── FORCE HTTPS — client-side redirect backstop ──────
        Symptom this fixes, from the Render log:
 
            Error: CORS: not allowed → http://www.ozylix.com
@@ -38,8 +61,7 @@
        This is a client-side backstop. The real fix is Settings → Pages →
        Enforce HTTPS, which redirects before a byte of this file is sent. -->
     <script src="/scripts/security.js?v=20260930-2"></script>
-  <script defer src="/scripts/tracking.js?v=20261008-ga4-dual-1"></script>
-  <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1031030359902418&amp;ev=PageView&amp;noscript=1" alt=""></noscript>
+  <script defer src="/scripts/tracking.js?v=20261014-gtm-meta-1"></script>
   <script defer src="/scripts/seo-core.min.js?v=20261013-launch-instagram"></script>
 
   <!-- Shared A4 GST tax invoice. Same file is loaded by admin.html, so the
@@ -69,21 +91,9 @@
        A script guard is defeatable by a sandboxed iframe; a header is not. -->
   
 
-  <!-- Google Analytics: one gtag.js loader, two GA4 destinations.
-       scripts/tracking.js configures G-1SPY139WS1 and G-VC8L1WF561.
-       Shared ecommerce events are sent to both properties. -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-VC8L1WF561" fetchpriority="low"></script>
-<!-- End Google Analytics -->
+  
 
-<!-- Meta Pixel — "Ozylix Pixel", ad account 1404487341165010.
-     The guard stays: initialising on an empty ID would send every pageview
-     to a pixel that does not exist. Every event this site fires is already
-     wired further down (ViewContent, AddToCart, InitiateCheckout, Purchase,
-     Search) and starts working the moment this ID is set — there is no
-     second copy of the base code to add, and adding one would double-count
-     every PageView. -->
 
-<!-- End Meta Pixel -->
   
   <!-- viewport-fit=cover is required for env(safe-area-inset-*) to resolve to
        anything other than 0 on notched iPhones — without it the bottom nav
@@ -412,6 +422,14 @@
 <!-- Promotional Media Config -->
 
 <body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K5B42TC9"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+<!-- Meta Pixel Code (noscript) -->
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=5548440758714716&amp;ev=PageView&amp;noscript=1" alt=""></noscript>
+<!-- End Meta Pixel Code (noscript) -->
 <a class="skip-link" href="#page-home">Skip to content</a>
 
 

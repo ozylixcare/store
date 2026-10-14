@@ -1,50 +1,16 @@
 /**
  * TRACKING.js — Ozylix
- * ─────────────────────────────────────────────────────────────────
- * Extracted from index.html inline scripts (19 Aug 2026, Manus SEO pass).
- * GA4 (G-1SPY139WS1 + G-VC8L1WF561) + Meta Pixel (1031030359902418) + Google Identity
- * Services (bot-gated). The heavy fbevents.js bundle still loads after the
- * LCP window so it never fights banner/product images on first paint.
+ * GTM and the Meta base pixel are initialized once in each public HTML head.
+ * Keep the shared dataLayer and shopping/SPA helpers; Google destinations are
+ * configured by GTM rather than hard-coded GA4 measurement IDs.
  */
 (function () {
-  // ── GA4 ──
   window.dataLayer = window.dataLayer || [];
-  function gtag() { dataLayer.push(arguments); }
-  gtag('js', new Date());
-  gtag('config', 'G-1SPY139WS1');
-  gtag('config', 'G-VC8L1WF561');
+  function gtag() { window.dataLayer.push(arguments); }
   var _gtag = function () {
     var args = Array.prototype.slice.call(arguments);
-    if (typeof gtag === 'function') gtag.apply(null, args);
+    gtag.apply(null, args);
   };
-
-  // ── META PIXEL ──
-  window.META_PIXEL_ID = '1031030359902418';
-  if (window.META_PIXEL_ID) {
-    !function (f, b, e, v, n, t, s) {
-      if (f.fbq) return;
-      n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
-      if (!f._fbq) f._fbq = n;
-      n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = [];
-      var __loadFb = function () {
-        if (f._fbLoaded) return; f._fbLoaded = !0;
-        t = b.createElement(e); t.async = !0; t.src = v;
-        s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s);
-        t.onload = function () { fbq('init', window.META_PIXEL_ID); fbq('track', 'PageView'); };
-      };
-      if (window.requestIdleCallback) { requestIdleCallback(__loadFb, { timeout: 2500 }); }
-      else { window.addEventListener('load', function () { setTimeout(__loadFb, 1500); }); }
-    }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-    if (window.META_PIXEL_ID && !window._fbq) { fbq('init', window.META_PIXEL_ID); fbq('track', 'PageView'); }
-    // The <noscript> pixel that used to be written here has been removed. It was
-    // emitted BY JavaScript, so it only ever existed on pages where scripts run —
-    // exactly the pages where a browser ignores <noscript> and never requests the
-    // image. It tracked nobody. What it did do was call document.write() during
-    // parsing, which stalls the HTML parser and forced this file to stay
-    // render-blocking (a deferred script's document.write() blanks the document).
-    // With it gone, tracking.js loads with defer. The real no-JS pixel belongs in
-    // a literal <noscript> block in index.html, not here.
-  }
 
   // ── GOOGLE IDENTITY SERVICES (bot-gated) ──
   var ua = navigator.userAgent || '';
