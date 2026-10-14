@@ -45,7 +45,28 @@
     const next = Math.max(60,height-top-footer-12)+'px';
     if (card.style.getPropertyValue('--cs-chart-height') !== next) card.style.setProperty('--cs-chart-height',next);
   }
-  const resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(entries => { entries.forEach(entry => chartHeight(entry.target)); charts.redraw(); }) : null;
+  function pack(page) {
+    page.querySelectorAll('.cs-flex').forEach(parent => {
+      const auto=stateFor(page).settings.layout==='auto';
+      parent.classList.toggle('cs-masonry',auto && !parent.classList.contains('cs-metrics'));
+      const display=auto ? 'grid' : 'flex';
+      if (parent.style.display!=='none' && (parent.style.getPropertyValue('display')!==display || parent.style.getPropertyPriority('display')!=='important')) parent.style.setProperty('display',display,'important');
+      if (!auto || !parent.getClientRects().length) return;
+      const cards=[...parent.children].filter(card => card.matches(selector) && visible(card));
+      const metrics=parent.classList.contains('cs-metrics'), width=parent.clientWidth;
+      const normal=cards.filter(card => !card.classList.contains('cs-editor-wide') && !card.classList.contains('cs-table-card'));
+      const available=metrics && width<=620 ? 2 : width<=620 ? 1 : Math.max(1,Math.floor((width+12)/((metrics ? 190 : 300)+12)));
+      const columns=Math.max(1,Math.min(metrics ? 5 : 4,metrics ? cards.length : normal.length || 1,available));
+      parent.style.setProperty('--cs-columns',columns);
+      parent.style.setProperty('--cs-feature-span',Math.min(2,columns));
+      const spans=cards.map(card => String(Math.ceil((card.getBoundingClientRect().height+12)/4)));
+      cards.forEach((card,index) => {
+        const span=spans[index];
+        if (card.style.getPropertyValue('--cs-row-span')!==span) card.style.setProperty('--cs-row-span',span);
+      });
+    });
+  }
+  const resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(entries => { entries.forEach(entry => chartHeight(entry.target)); const page=root.querySelector('.page.active'); if (page) pack(page); charts.redraw(); }) : null;
   function apply(card) {
     const state = stateFor(card.closest('.page')), id = idFor(card), meta = object(state.settings.cards[id]);
     card.classList.add('cs-card');
@@ -57,6 +78,7 @@
     const auto=state.settings.layout === 'auto';
     state.page.classList.toggle('cs-auto',auto);
     card.classList.toggle('cs-metric',card.matches('.kpi,.oz-kpi-card,.mkt-kpi'));
+    card.classList.toggle('cs-table-card',!!card.querySelector('.table-wrap,.oz-table-scroll') || card.matches('[data-widget="platform"]'));
     const width = auto ? null : dimension(meta.width), height = auto ? null : dimension(meta.height);
     if (width) card.style.setProperty('--cs-free-width',width+'px'); else card.style.removeProperty('--cs-free-width');
     if (height) card.style.setProperty('--cs-free-height',height+'px'); else { card.style.removeProperty('--cs-free-height'); card.style.removeProperty('--cs-chart-height'); }
@@ -65,10 +87,12 @@
     const parent = card.parentElement, children = [...parent.children];
     if (children.every(node => node.matches(selector))) {
       parent.classList.add('cs-flex');
+      parent.classList.toggle('cs-metrics',children.every(node => node.matches('.kpi,.oz-kpi-card,.mkt-kpi')));
       // Several legacy ID selectors force grid display. Percentage card widths
       // are relative to one grid cell there, collapsing KPIs into narrow strips.
       // This container owns card layout; its actual display must match its widths.
-      if (parent.style.display !== 'none' && parent.style.getPropertyValue('display') !== 'flex') parent.style.setProperty('display','flex','important');
+      const display=auto ? 'grid' : 'flex';
+      if (parent.style.display !== 'none' && (parent.style.getPropertyValue('display') !== display || parent.style.getPropertyPriority('display')!=='important')) parent.style.setProperty('display',display,'important');
       const count = children.filter(node => !node.classList.contains('cs-hidden')).length;
       parent.style.setProperty('--cs-default-span',12/Math.max(1,Math.min(count,children.every(node => node.matches('.kpi,.oz-kpi-card,.mkt-kpi')) ? 5 : 4)));
     }
@@ -236,18 +260,21 @@
     const auto=state.settings.layout === 'auto';
     state.page.classList.toggle('cs-auto',auto);
     let fit=container.querySelector('[data-cs-layout]');
-    if (!fit) { fit=document.createElement('button'); fit.type='button'; fit.className='dw-button'; fit.dataset.csLayout='true'; fit.textContent='Auto fit'; fit.title='Automatically fit readable cards to this screen. Turn off to use your saved custom sizes.'; fit.addEventListener('click',() => { endResize(false); state.settings.layout=state.settings.layout === 'auto' ? 'custom' : 'auto'; save(state); schedule(); }); container.prepend(fit); }
+    if (!fit) { fit=document.createElement('button'); fit.type='button'; fit.className='dw-button'; fit.dataset.csLayout='true'; fit.textContent='Auto fit'; fit.title='Fit cards to the available screen and fill gaps between different card heights.'; fit.addEventListener('click',() => { endResize(false); state.settings.layout='auto'; toolbar(state); cardsOn(state.page).forEach(apply); pack(state.page); save(state); schedule(); }); container.prepend(fit); }
     fit.setAttribute('aria-pressed',String(auto));
+    let custom=container.querySelector('[data-cs-custom-layout]');
+    if (!custom) { custom=document.createElement('button'); custom.type='button'; custom.className='dw-button'; custom.dataset.csCustomLayout='true'; custom.textContent='Custom sizes'; custom.title='Use your saved card widths and heights.'; custom.addEventListener('click',() => { endResize(false); state.settings.layout='custom'; toolbar(state); cardsOn(state.page).forEach(apply); pack(state.page); save(state); schedule(); }); fit.after(custom); }
+    custom.setAttribute('aria-pressed',String(!auto));
     if (container.querySelector('[data-cs-manage]')) return;
     const manage = document.createElement('button'); manage.type='button'; manage.className='dw-button'; manage.dataset.csManage='true'; manage.textContent='Manage cards'; manage.addEventListener('click',() => openManager(state,manage));
     const add = document.createElement('button'); add.type='button'; add.className='dw-button'; add.dataset.csAdd='true'; add.textContent='Add card'; add.addEventListener('click',() => openAdd(state,add)); container.append(manage,add);
     const reset = state.page.querySelector('#dwReset,[data-aw-action="reset"]'); reset?.addEventListener('click',() => { cardsOn(state.page).forEach(card => { const id=idFor(card), label=labelNode(card); if (label && state.originals.has(id)) label.textContent=state.originals.get(id); }); state.settings.cards={}; state.settings.layout='auto'; save(state); schedule(); });
-    const help = state.page.querySelector('#dwHelp,.aw-toolbar p'); if (help) help.textContent='Drag a corner for any size. Customize sets exact pixels; Manage cards hides or restores cards; Add card creates a personal widget.';
+    const help = state.page.querySelector('#dwHelp,.aw-toolbar p'); if (help) help.textContent='Auto fit closes gaps and adapts to this screen. Custom sizes restores your dimensions. Arrange to move or resize cards; Manage cards hides or restores them.';
   }
   function sync() {
     frame=0; const page=root.querySelector('.page.active'); if (!page) return;
     if (drag && drag.card.closest('.page') !== page) endResize(false);
-    const state=stateFor(page); toolbar(state); createCustom(state); const cards=cardsOn(page); cards.forEach(apply); refreshCustom(state);
+    const state=stateFor(page); toolbar(state); createCustom(state); const cards=cardsOn(page); cards.forEach(apply); refreshCustom(state); pack(page);
     const arrange=page.querySelector('[data-aw-action="arrange"]'); if (arrange && cards.length) arrange.disabled=false;
     charts.redraw();
   }

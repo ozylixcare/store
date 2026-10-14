@@ -43,7 +43,7 @@ const products = [{id:'1',name:'QA Product',category:'Vitamins',stock:30},{id:'2
       sessionStorage.setItem('ozylix_role','owner');
     });
     const page = await context.newPage(), errors = [];
-    page.on('pageerror',error => { if (/admin-(card-studio|(panel-)?workspace)/.test(error.stack)) errors.push(error.message); });
+    page.on('pageerror',error => { if (/admin-(card-studio|(panel-)?workspace)/.test(error.stack) || /ResizeObserver loop/.test(error.message)) errors.push(error.message); });
     await page.goto(base+'/admin.html'); await page.locator('#app').waitFor({state:'visible'});
     await page.waitForTimeout(1100);
     await page.emulateMedia({reducedMotion:'reduce'});
@@ -53,7 +53,7 @@ const products = [{id:'1',name:'QA Product',category:'Vitamins',stock:30},{id:'2
     await page.setViewportSize({width:1896,height:1024}); await page.waitForTimeout(250);
     const desktopKPIs=await page.locator('#kpiCards > .kpi').evaluateAll(cards => cards.map(card => ({width:card.clientWidth,height:card.clientHeight,valueHeight:card.querySelector('.kpi-val').clientHeight,font:parseFloat(getComputedStyle(card.querySelector('.kpi-val')).fontSize),display:getComputedStyle(card.parentElement).display})));
     assert.equal(desktopKPIs.length,4);
-    desktopKPIs.forEach(kpi => { assert.equal(kpi.display,'flex','KPI width math uses the correct layout'); assert.ok(kpi.width>250,'totals are not thin vertical strips'); assert.ok(kpi.height<240,'KPI text does not produce a giant blank row'); assert.ok(kpi.valueHeight<kpi.font*2.7,'numbers stay readable'); });
+    desktopKPIs.forEach(kpi => { assert.equal(kpi.display,'grid','KPI width math uses the correct layout'); assert.ok(kpi.width>250,'totals are not thin vertical strips'); assert.ok(kpi.height<240,'KPI text does not produce a giant blank row'); assert.ok(kpi.valueHeight<kpi.font*2.7,'numbers stay readable'); });
     const revenue=dash.locator('[data-widget="revenue"]');
     await dash.getByRole('button',{name:'Manage cards',exact:true}).click();
     await page.getByRole('dialog').getByRole('button',{name:'Customize Paid revenue trend',exact:true}).click();
@@ -64,8 +64,18 @@ const products = [{id:'1',name:'QA Product',category:'Vitamins',stock:30},{id:'2
     assert.ok((await revenue.boundingBox()).width>327,'automatic fit recovers useful chart width');
     assert.ok((await revenue.boundingBox()).height<600,'automatic fit ignores old oversized heights');
     await dash.getByRole('button',{name:'Auto fit',exact:true}).click(); await page.waitForTimeout(120);
+    assert.equal(await dash.getByRole('button',{name:'Auto fit',exact:true}).getAttribute('aria-pressed'),'true','clicking Auto fit again keeps automatic packing enabled');
+    const tall=await revenue.boundingBox(),short=await dash.locator('[data-widget="today-revenue"]').boundingBox(),below=await dash.locator('[data-widget="paid-share"]').boundingBox();
+    assert.ok(below.y<tall.y+tall.height-20,'short cards fill space beside the taller revenue card');
+    assert.ok(below.y-short.y-short.height>=11 && below.y-short.y-short.height<=17,'vertical spacing stays close to 12px instead of inheriting the tallest card height');
+    await revenue.evaluate(card=>card.style.setProperty('--dw-span','12'));
+    await dash.getByRole('button',{name:'Auto fit',exact:true}).click(); await page.waitForTimeout(120);
+    assert.ok(Math.abs((await revenue.boundingBox()).width-tall.width)<2,'automatic packing ignores saved preset widths');
+    await dash.getByRole('button',{name:'Custom sizes',exact:true}).click(); await page.waitForTimeout(120);
     assert.ok(Math.abs((await revenue.boundingBox()).width-327)<2,'custom sizes remain available');
     await dash.getByRole('button',{name:'Auto fit',exact:true}).click();
+    await page.reload(); await page.locator('#app').waitFor({state:'visible'}); await page.locator('#page-dashboard [data-cs-layout]').waitFor(); await page.waitForTimeout(500);
+    assert.equal(await dash.getByRole('button',{name:'Auto fit',exact:true}).getAttribute('aria-pressed'),'true','Auto fit survives a refresh');
     await page.evaluate(()=>showPage('storeeditor')); await page.locator('#page-storeeditor [data-cs-layout]').waitFor();
     await page.evaluate(()=>{storeEdRefreshPreview();}); await page.waitForTimeout(500);
     const outer=page.frameLocator('#storeEdPreview');
@@ -84,12 +94,22 @@ const products = [{id:'1',name:'QA Product',category:'Vitamins',stock:30},{id:'2
     for(const width of widths) {
       await page.setViewportSize({width,height:1024});
       for(const name of pages) {
-        await page.evaluate(name=>showPage(name),name); await page.waitForTimeout(120);
-        const visibleCards=await page.locator('.page.active .cs-card').evaluateAll(cards=>cards.filter(card=>card.getClientRects().length && !card.hidden).map(card=>({id:card.dataset.csId,width:card.clientWidth,right:card.getBoundingClientRect().right,parentWidth:card.parentElement.clientWidth,metric:card.classList.contains('cs-metric'),parentDisplay:getComputedStyle(card.parentElement).display,group:card.parentElement.classList.contains('cs-flex')})));
+        await page.evaluate(name=>showPage(name),name); await page.waitForTimeout(400);
+        // Wait for size notifications after asynchronous data and canvas updates.
+        await page.waitForFunction(()=>[...document.querySelectorAll('.page.active .cs-masonry')].every(group=>{
+          const cards=[...group.children].filter(card=>card.classList.contains('cs-card') && card.getClientRects().length).map(card=>card.getBoundingClientRect());
+          return cards.every((a,i)=>cards.slice(i+1).every(b=>Math.min(a.right,b.right)-Math.max(a.left,b.left)<2 || Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)<2));
+        }),null,{timeout:5000});
+        const visibleCards=await page.locator('.page.active .cs-card').evaluateAll(cards=>{const parents=[...new Set(cards.map(card=>card.parentElement))];return cards.filter(card=>card.getClientRects().length && !card.hidden).map(card=>{const rect=card.getBoundingClientRect();return {id:card.dataset.csId,width:card.clientWidth,right:rect.right,left:rect.left,top:rect.top,bottom:rect.bottom,parent:parents.indexOf(card.parentElement),parentWidth:card.parentElement.clientWidth,metric:card.classList.contains('cs-metric'),parentDisplay:getComputedStyle(card.parentElement).display,group:card.parentElement.classList.contains('cs-flex')};});});
         for (const card of visibleCards) {
           if (card.right>width+1) await page.screenshot({path:path.join(output,'overflow-'+name+'-'+width+'.png')});
           assert.ok(card.right<=width+1,name+' card fits at '+width+': '+JSON.stringify(card));
-          if(card.group){assert.equal(card.parentDisplay,'flex','actual layout matches width rules'); assert.ok(card.width>=Math.min(card.parentWidth,card.metric ? 120 : 270)-2,'readable '+name+' card at '+width+': '+card.id+' width '+card.width);}
+          if(card.group){assert.equal(card.parentDisplay,'grid','actual layout matches width rules for '+name+': '+card.id); assert.ok(card.width>=Math.min(card.parentWidth,card.metric ? 120 : 270)-2,'readable '+name+' card at '+width+': '+card.id+' width '+card.width);}
+        }
+        for(let i=0;i<visibleCards.length;i++) for(let j=i+1;j<visibleCards.length;j++) {
+          const a=visibleCards[i],b=visibleCards[j]; if(!a.group || a.parent!==b.parent) continue;
+          const overlapX=Math.min(a.right,b.right)-Math.max(a.left,b.left),overlapY=Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top);
+          assert.ok(overlapX<2 || overlapY<2,'packed cards do not overlap on '+name+' at '+width+': '+JSON.stringify([a,b]));
         }
         assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'document fits '+name+' at '+width);
         const scrolling=await page.evaluate(()=>({documentHeight:document.scrollingElement.scrollHeight,mainHeight:document.querySelector('.main').clientHeight,mainScrollHeight:document.querySelector('.main').scrollHeight}));
@@ -115,6 +135,6 @@ const products = [{id:'1',name:'QA Product',category:'Vitamins',stock:30},{id:'2
       }
     }
     assert.deepEqual(errors,[]); assert.equal(writes,0,'layout and preview testing does not write business data');
-    console.log('PASS: recording-width KPI collapse regression, readable card widths, compact KPI rows, automatic/custom layout preservation, working preview route and tabs, '+pages.length+' admin pages at '+widths.length+' widths ('+Math.min(...widths)+'–'+Math.max(...widths)+'px), screenshots and zero server writes');
+    console.log('PASS: compact packing beside taller cards, 12px spacing, ignored legacy spans, idempotent Auto fit, saved custom sizes, no overlaps or duplicate scrollbars, readable widths, working preview, '+pages.length+' admin pages at '+widths.length+' widths ('+Math.min(...widths)+'–'+Math.max(...widths)+'px), screenshots and zero server writes');
   } finally { await browser.close(); await new Promise(resolve=>server.close(resolve)); }
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -43,10 +43,14 @@
 #app .cs-manage-row input[type=checkbox] { accent-color:var(--os-green,var(--green)); width:20px; height:20px; min-height:20px; flex-shrink:0; }
 #app .cs-manage-row button { min-height:36px; padding:6px 9px; font-size:11px; }
 #app .cs-dialog :is(button,input,select,textarea):focus-visible,#app .cs-dialog:focus-visible { outline:2px solid var(--os-green,var(--green)); outline-offset:3px; }
-/* Automatic layout uses readable minimums and grows each row to fill its space. */
-#app .page.cs-auto .cs-flex { align-items:stretch!important; }
-#app .page.cs-auto .cs-flex > .cs-card,#app #page-dashboard.cs-auto .dw-grid.cs-flex > .cs-card { flex-grow:1!important; min-width:min(100%,280px)!important; height:auto!important; }
-#app .page.cs-auto .cs-flex > .cs-metric,#app #page-dashboard.cs-auto #kpiCards.cs-flex > .cs-metric { min-width:min(100%,190px)!important; }
+/* Auto fit ignores saved slot widths and packs natural card heights closely. */
+#app .page.cs-auto .cs-flex,#app #page-dashboard.cs-auto .dw-grid.cs-flex { grid-template-columns:repeat(var(--cs-columns,1),minmax(0,1fr))!important; align-items:start!important; gap:12px!important; }
+#app .page.cs-auto .cs-masonry,#app #page-dashboard.cs-auto .dw-grid.cs-masonry { grid-auto-rows:4px!important; grid-auto-flow:row dense!important; row-gap:0!important; }
+#app .page.cs-auto .cs-flex > .cs-card,#app #page-dashboard.cs-auto .dw-grid.cs-flex > .cs-card { width:100%!important; min-width:0!important; height:auto!important; min-height:0!important; margin:0!important; grid-column:auto!important; grid-row:auto!important; align-self:start!important; }
+#app .page.cs-auto .cs-masonry > .cs-card,#app #page-dashboard.cs-auto .dw-grid.cs-masonry > .cs-card { grid-row:span var(--cs-row-span,1)!important; }
+#app .page.cs-auto .cs-flex > :is(.cs-editor-wide,.cs-table-card),#app #page-dashboard.cs-auto .dw-grid.cs-flex > .cs-table-card { grid-column:1 / -1!important; }
+@container (min-width:960px) { #app #page-dashboard.cs-auto .dw-grid.cs-flex > [data-widget="revenue"] { grid-column:span var(--cs-feature-span,1)!important; } }
+#app .page.cs-auto .cs-flex > .cs-metric,#app #page-dashboard.cs-auto #kpiCards.cs-flex > .cs-metric { min-width:0!important; align-self:stretch!important; }
 #app .page.cs-auto .cs-flex > .cs-editor-wide { flex-basis:100%!important; width:100%!important; }
 #app .page.cs-auto .cs-metric { container-type:inline-size; }
 #app .page.cs-auto .cs-card :is(.kpi-val,.oz-kpi-value),#app #page-dashboard.cs-auto .cs-metric .kpi-val { overflow-wrap:break-word!important; word-break:normal!important; font-size:clamp(18px,11cqw,34px)!important; }
@@ -63,7 +67,7 @@
 #app .page :is(.aw-toolbar,.dw-toolbar) > :first-child { min-width:180px; }
 @container (max-width:620px) {
   #app .page.cs-auto .cs-flex > .cs-card { flex-basis:100%!important; width:100%!important; }
-  #app .page.cs-auto .cs-flex > .cs-metric,#app #page-dashboard.cs-auto #kpiCards.cs-flex > .cs-metric { flex-basis:calc((100% - 18px) / 2)!important; width:calc((100% - 18px) / 2)!important; min-width:0!important; }
+  #app .page.cs-auto .cs-flex > .cs-metric,#app #page-dashboard.cs-auto #kpiCards.cs-flex > .cs-metric { width:100%!important; min-width:0!important; }
   #app .page.cs-auto .cs-metric { padding:14px!important; }
   #app .page.cs-auto .cs-metric .kpi-ico { display:none; }
   #app .page.cs-auto .cs-metric :is(.kpi-trend,.kpi-change) { font-size:11px; line-height:1.6; }
