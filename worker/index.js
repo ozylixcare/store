@@ -109,7 +109,7 @@ async function serveAdmin(request, env, url) {
   // Only these preview documents permit same-origin framing. Admin pages
   // retain DENY, and deployment files under /tools remain inaccessible.
   if (path === '/store-preview' || (url.searchParams.get('storePreview') === '1' && (path === '/' || isSpaPath(path)))) {
-    const asset = path === '/store-preview' ? '/tools/store-preview.html' : '/';
+    const asset = path === '/store-preview' ? '/admin-device-preview.html' : '/';
     const page = await env.ASSETS.fetch(new URL(asset,url));
     const response = noIndex(new Response(page.body,{status:page.status,headers:page.headers}));
     const headers = new Headers(response.headers);

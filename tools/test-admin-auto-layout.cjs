@@ -12,7 +12,7 @@ const products = [{id:'1',name:'QA Product',category:'Vitamins',stock:30},{id:'2
   const server = require('node:http').createServer((req,res) => {
     const requestUrl=new URL(req.url,base);
     if(requestUrl.searchParams.get('storePreview')==='1') {res.setHeader('Content-Type','text/html');res.end('<!doctype html><title>Store preview fixture</title><body><h1>Store preview fixture</h1></body>');return;}
-    const pathname=requestUrl.pathname==='/store-preview' ? '/tools/store-preview.html' : requestUrl.pathname;
+    const pathname=requestUrl.pathname==='/store-preview' ? '/admin-device-preview.html' : requestUrl.pathname;
     const file = path.resolve(root,'.'+pathname);
     if (!file.startsWith(root+path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404); return res.end(); }
     res.setHeader('Content-Type',({'.html':'text/html','.css':'text/css','.js':'application/javascript','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp'})[path.extname(file)] || 'application/octet-stream'); fs.createReadStream(file).pipe(res);
