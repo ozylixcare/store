@@ -543,7 +543,7 @@ function storeEdRefreshPreview() {
   try { window.localStorage.setItem(STORE_ED_DRAFT_KEY, JSON.stringify(storeEdDraft)); } catch(_) {}
   // Demo harness rewrites happen in memory only — keep the production URL
   // here and let demo-server.js (or this block) map it when previewing:
-  var previewUrl = location.pathname.indexOf('/demo/') === 0 ? '/demo/store?preview=1&ed=' : '/tools/store-preview.html?ed=';
+  var previewUrl = location.pathname.indexOf('/demo/') === 0 ? '/demo/store?preview=1&ed=' : '/store-preview?ed=';
   iframe.src = previewUrl + Date.now();
 }
 
@@ -696,6 +696,7 @@ function storeEdSwitchTab(tab) {
     saveContentBtn.style.display = 'none';
     const resetBtn2 = document.getElementById('storeEdResetContentBtn');
     if (resetBtn2) resetBtn2.style.display = 'none';
+    storeEdEnsurePreview();
   }
 }
 
@@ -795,7 +796,7 @@ function storeEdEnsurePreview() {
   else {
     const stylePanel = document.getElementById('storeEdStylePanel');
     if (stylePanel) {
-      const slot = stylePanel.querySelector('.card > div');
+      const slot = document.getElementById('storeEdStylePreviewSlot');
       if (slot) slot.appendChild(shared);
     }
     const slot2 = document.getElementById('storeEdContentPreviewSlot');
