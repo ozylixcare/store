@@ -86,6 +86,7 @@
           element = parent; id = parent.id || 'section-'+state.nextGroup++;
         } else {
           element = document.createElement('div'); id = 'section-'+state.nextGroup++;
+          element.style.gridColumn = '1 / -1';
           run[0].before(element); run.forEach(card => element.appendChild(card));
         }
         element.classList.add('aw-group'); element.dataset.awGroup = id;

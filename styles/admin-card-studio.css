@@ -43,6 +43,31 @@
 #app .cs-manage-row input[type=checkbox] { accent-color:var(--os-green,var(--green)); width:20px; height:20px; min-height:20px; flex-shrink:0; }
 #app .cs-manage-row button { min-height:36px; padding:6px 9px; font-size:11px; }
 #app .cs-dialog :is(button,input,select,textarea):focus-visible,#app .cs-dialog:focus-visible { outline:2px solid var(--os-green,var(--green)); outline-offset:3px; }
+/* Automatic layout uses readable minimums and grows each row to fill its space. */
+#app .page.cs-auto .cs-flex { align-items:stretch!important; }
+#app .page.cs-auto .cs-flex > .cs-card,#app #page-dashboard.cs-auto .dw-grid.cs-flex > .cs-card { flex-grow:1!important; min-width:min(100%,280px)!important; height:auto!important; }
+#app .page.cs-auto .cs-flex > .cs-metric,#app #page-dashboard.cs-auto #kpiCards.cs-flex > .cs-metric { min-width:min(100%,190px)!important; }
+#app .page.cs-auto .cs-flex > .cs-editor-wide { flex-basis:100%!important; width:100%!important; }
+#app .page.cs-auto .cs-metric { container-type:inline-size; }
+#app .page.cs-auto .cs-card :is(.kpi-val,.oz-kpi-value),#app #page-dashboard.cs-auto .cs-metric .kpi-val { overflow-wrap:break-word!important; word-break:normal!important; font-size:clamp(18px,11cqw,34px)!important; }
+#app .page.cs-auto .cs-card .dw-chart-wrap:not(.dw-spark) { height:clamp(220px,20vw,280px)!important; flex-shrink:0; }
+#app .page.cs-auto .cs-card > :is(.dw-controls,.aw-controls,.cs-controls) { flex-shrink:0; }
+#app .page.cs-auto .cs-card :is(.card-title,.kpi-label,.oz-kpi-label) { overflow-wrap:break-word; word-break:normal; line-height:1.5; }
+#app .page .cs-card .card-hdr { flex-wrap:wrap; gap:10px; }
+#app #storeEdStylePanel:not([style*="display:none"]):not([style*="display: none"]) { display:block!important; }
+#app #storeEdStylePanel > .aw-group,#app #storeEdStylePanel > div { width:100%; min-width:0; }
+#app #integrationCards { grid-template-columns:minmax(0,1fr)!important; }
+#app #storeEdPreview { max-width:100%; min-width:0; height:760px; }
+#app .page .aw-toolbar,#app .page .dw-toolbar { align-items:flex-start; }
+#app .page :is(.aw-tools,.dw-toolbar-actions) { flex-wrap:wrap; }
+#app .page :is(.aw-toolbar,.dw-toolbar) > :first-child { min-width:180px; }
+@container (max-width:620px) {
+  #app .page.cs-auto .cs-flex > .cs-card { flex-basis:100%!important; width:100%!important; }
+  #app .page.cs-auto .cs-flex > .cs-metric,#app #page-dashboard.cs-auto #kpiCards.cs-flex > .cs-metric { flex-basis:calc((100% - 18px) / 2)!important; width:calc((100% - 18px) / 2)!important; min-width:0!important; }
+  #app .page.cs-auto .cs-metric { padding:14px!important; }
+  #app .page.cs-auto .cs-metric .kpi-ico { display:none; }
+  #app .page.cs-auto .cs-metric :is(.kpi-trend,.kpi-change) { font-size:11px; line-height:1.6; }
+}
 @media(max-width:1100px) { #app .page .cs-flex > .cs-card:not([style*="--cs-free-width"]),#app #page-dashboard .dw-grid.cs-flex > .cs-card:not([style*="--cs-free-width"]) { --cs-span:6; } }
 @media(max-width:650px) {
   #app .page .cs-flex > .cs-card:not([style*="--cs-free-width"]),#app #page-dashboard .dw-grid.cs-flex > .cs-card:not([style*="--cs-free-width"]) { --cs-span:12; }

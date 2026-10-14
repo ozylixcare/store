@@ -186,7 +186,7 @@
   <link rel="stylesheet" href="styles/admin-bento.css?v=20261008-3">
   <link rel="stylesheet" href="styles/admin-workspace.css?v=20261013-2">
   <link rel="stylesheet" href="styles/admin-panel-workspace.css?v=20261013-2">
-  <link rel="stylesheet" href="styles/admin-card-studio.css?v=20261014-1">
+  <link rel="stylesheet" href="styles/admin-card-studio.css?v=20261014-2">
 <link rel="stylesheet" href="styles/liquid-buttons.css?v=20261008-5">
 <style>
 @media(max-width:1100px){#storeEdStylePanel,#storeEdContentPanel{grid-template-columns:minmax(0,1fr)!important}#page-storeeditor .page-actions{flex-wrap:wrap}#page-storeeditor .page-hdr{flex-wrap:wrap}}
@@ -216,13 +216,13 @@
 <script defer src="scripts/admin-core.min.js?v=20261008-3"></script>
 <script defer src="scripts/admin-api.min.js?v=20261013-engine-completion"></script>
 <script defer src="scripts/store-templates.js?v=20261010-device-templates"></script>
-<script defer src="scripts/admin-ui.min.js?v=20261010-device-templates"></script>
+<script defer src="scripts/admin-ui.min.js?v=20261014-2"></script>
 <script defer src="scripts/admin-seo.js?v=20260930-2"></script>
 <script defer src="scripts/admin-audit.min.js?v=20261008-behaviour"></script>
 <script defer src="scripts/admin-bento.js?v=20261008-behaviour"></script>
 <script defer src="scripts/admin-workspace.js?v=20261014-1"></script>
-<script defer src="scripts/admin-panel-workspace.js?v=20261014-1"></script>
-<script defer src="scripts/admin-card-studio.js?v=20261014-1"></script>
+<script defer src="scripts/admin-panel-workspace.js?v=20261014-2"></script>
+<script defer src="scripts/admin-card-studio.js?v=20261014-2"></script>
 
 
 <!-- ══════════════ LOGIN ══════════════ -->
@@ -1990,11 +1990,11 @@
     <div>
       <div class="card" style="margin-bottom:16px;">
         <div class="card-hdr"><span class="card-title">👁️ Live preview</span><button class="btn btn-secondary btn-sm" onclick="storeEdRefreshPreview()">↺ Reload</button></div>
-        <div style="padding:10px;">
-          <iframe id="storeEdPreview" src="about:blank" style="width:100%;height:760px;border:1px solid var(--border);border-radius:10px;background:#fff;"></iframe>
+        <div id="storeEdStylePreviewSlot" style="padding:10px;">
+          <iframe id="storeEdPreview" title="Storefront device preview" src="about:blank" style="width:100%;height:760px;border:1px solid var(--border);border-radius:10px;background:#fff;"></iframe>
           <div style="margin-top:8px;display:flex;gap:14px;flex-wrap:wrap;font-size:0.74rem;color:var(--text3);">
             <span>Preview runs your <strong>unsaved draft</strong> (what visitors will see after you save).</span>
-            <span>Editing pickers on the right updates this preview instantly.</span>
+            <span>Changing the style controls updates this preview instantly.</span>
           </div>
         </div>
       </div>

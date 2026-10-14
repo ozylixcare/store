@@ -17,7 +17,7 @@
     if (!states.has(page)) {
       let saved = {}; try { saved = object(JSON.parse(localStorage.getItem('ozylix_admin_card_studio_'+page.id+'_v1') || '{}')); } catch (_) {}
       const custom = Array.isArray(saved.custom) ? saved.custom.filter(item => item && /^custom-[a-z0-9-]+$/i.test(item.id) && Object.hasOwn(types,item.type)).map(item => ({id:item.id,type:item.type,note:String(item.note || '').slice(0,3000)})) : [];
-      states.set(page,{page,settings:{cards:object(saved.cards),custom},originals:new Map(),customNodes:new Map()});
+      states.set(page,{page,settings:{cards:object(saved.cards),custom,layout:saved.layout === 'custom' ? 'custom' : 'auto'},originals:new Map(),customNodes:new Map()});
     }
     return states.get(page);
   }
@@ -37,7 +37,8 @@
   function metaFor(card) { return object(stateFor(card.closest('.page')).settings.cards[idFor(card)]); }
   function visible(card) { return !card.classList.contains('cs-hidden') && card.getClientRects().length>0; }
   function chartHeight(card) {
-    const height = dimension(metaFor(card).height); if (!height) return;
+    const state=stateFor(card.closest('.page'));
+    const height = state.settings.layout === 'auto' ? null : dimension(metaFor(card).height); if (!height) return;
     const wrap = card.querySelector('.dw-chart-wrap:not(.dw-spark)'); if (!wrap) return;
     const top = wrap.getBoundingClientRect().top-card.getBoundingClientRect().top+card.scrollTop;
     const footer = [...card.querySelectorAll('.dw-legend,.dw-chart-data,.aw-data-note,.cs-source')].reduce((sum,node) => { const style = getComputedStyle(node); return sum+node.getBoundingClientRect().height+(parseFloat(style.marginTop)||0)+(parseFloat(style.marginBottom)||0); },0);
@@ -53,7 +54,10 @@
     const label = labelNode(card), title = clean(meta.title);
     if (title && label && label.textContent !== title) label.textContent = title;
     if (title) card.setAttribute('aria-label',title);
-    const width = dimension(meta.width), height = dimension(meta.height);
+    const auto=state.settings.layout === 'auto';
+    state.page.classList.toggle('cs-auto',auto);
+    card.classList.toggle('cs-metric',card.matches('.kpi,.oz-kpi-card,.mkt-kpi'));
+    const width = auto ? null : dimension(meta.width), height = auto ? null : dimension(meta.height);
     if (width) card.style.setProperty('--cs-free-width',width+'px'); else card.style.removeProperty('--cs-free-width');
     if (height) card.style.setProperty('--cs-free-height',height+'px'); else { card.style.removeProperty('--cs-free-height'); card.style.removeProperty('--cs-chart-height'); }
     card.classList.toggle('cs-sized',!!height); card.classList.toggle('cs-tinted',!!accents[meta.accent]);
@@ -61,9 +65,14 @@
     const parent = card.parentElement, children = [...parent.children];
     if (children.every(node => node.matches(selector))) {
       parent.classList.add('cs-flex');
+      // Several legacy ID selectors force grid display. Percentage card widths
+      // are relative to one grid cell there, collapsing KPIs into narrow strips.
+      // This container owns card layout; its actual display must match its widths.
+      if (parent.style.display !== 'none' && parent.style.getPropertyValue('display') !== 'flex') parent.style.setProperty('display','flex','important');
       const count = children.filter(node => !node.classList.contains('cs-hidden')).length;
-      parent.style.setProperty('--cs-default-span',count<=1 ? 12 : count===2 ? 6 : count===3 ? 4 : 3);
+      parent.style.setProperty('--cs-default-span',12/Math.max(1,Math.min(count,children.every(node => node.matches('.kpi,.oz-kpi-card,.mkt-kpi')) ? 5 : 4)));
     }
+    if (card.querySelector('#storeEdTemplates,#storeEdPreview,#storeEdContentPreviewSlot')) card.classList.add('cs-editor-wide');
     if (!observed.has(card)) { resizeObserver?.observe(card); observed.add(card); }
     chartHeight(card);
     if (!wired.has(card)) {
@@ -123,7 +132,7 @@
     const body = openDialog('Customize card',opener), form = document.createElement('form'), id = idFor(card), meta = metaFor(card);
     const title = field(form,'Card title','text',meta.title || labelFor(card));
     const size = document.createElement('div'); size.className = 'cs-field-grid'; form.appendChild(size);
-    const width = field(size,'Width (px)','number',meta.width), height = field(size,'Height (px)','number',meta.height);
+    const width = field(size,'Width (px)','number',state.settings.layout === 'auto' ? '' : meta.width), height = field(size,'Height (px)','number',state.settings.layout === 'auto' ? '' : meta.height);
     const note = document.createElement('p'); note.className = 'cs-hint'; note.textContent = 'Enter exact sizes or leave blank for Auto. Width fits the available screen; height has no preset maximum. Smaller cards scroll their contents.'; form.appendChild(note);
     const accent = choice(form,'Card accent',{default:'Theme default',sage:'Sage',blue:'Blue',gold:'Gold',rose:'Rose',violet:'Violet'},meta.accent || 'default');
     const style = card.querySelector('canvas[data-chart-kind="bar"],canvas[data-chart-kind="area"],canvas[data-chart-kind="hbar"],canvas[data-chart-kind="line"]') ? choice(form,'Chart style',{default:'Default',bar:'Bars',line:'Line',area:'Area'},meta.chartStyle || 'default') : null;
@@ -135,8 +144,9 @@
     const submit = document.createElement('button'); submit.type = 'submit'; submit.className = 'cs-primary'; submit.textContent = 'Save card'; buttons.append(reset,submit); form.appendChild(buttons); body.appendChild(form);
     form.addEventListener('submit',event => {
       event.preventDefault(); state.settings.cards[id] = {...meta,title:clean(title.value),width:dimension(width.value),height:dimension(height.value),accent:accent.value,chartStyle:style?.value || 'default'};
+      if (dimension(width.value) || dimension(height.value)) state.settings.layout='custom';
       if (text) custom.note = text.value;
-      apply(card); save(state); closeDialog(); schedule(); charts.redraw();
+      toolbar(state); cardsOn(state.page).forEach(apply); save(state); closeDialog(); schedule(); charts.redraw();
     });
   }
   function openManager(state,opener) {
@@ -222,10 +232,16 @@
     });
   }
   function toolbar(state) {
-    const container = state.page.querySelector('.dw-toolbar-actions,.aw-tools'); if (!container || container.querySelector('[data-cs-manage]')) return;
+    const container = state.page.querySelector('.dw-toolbar-actions,.aw-tools'); if (!container) return;
+    const auto=state.settings.layout === 'auto';
+    state.page.classList.toggle('cs-auto',auto);
+    let fit=container.querySelector('[data-cs-layout]');
+    if (!fit) { fit=document.createElement('button'); fit.type='button'; fit.className='dw-button'; fit.dataset.csLayout='true'; fit.textContent='Auto fit'; fit.title='Automatically fit readable cards to this screen. Turn off to use your saved custom sizes.'; fit.addEventListener('click',() => { endResize(false); state.settings.layout=state.settings.layout === 'auto' ? 'custom' : 'auto'; save(state); schedule(); }); container.prepend(fit); }
+    fit.setAttribute('aria-pressed',String(auto));
+    if (container.querySelector('[data-cs-manage]')) return;
     const manage = document.createElement('button'); manage.type='button'; manage.className='dw-button'; manage.dataset.csManage='true'; manage.textContent='Manage cards'; manage.addEventListener('click',() => openManager(state,manage));
     const add = document.createElement('button'); add.type='button'; add.className='dw-button'; add.dataset.csAdd='true'; add.textContent='Add card'; add.addEventListener('click',() => openAdd(state,add)); container.append(manage,add);
-    const reset = state.page.querySelector('#dwReset,[data-aw-action="reset"]'); reset?.addEventListener('click',() => { cardsOn(state.page).forEach(card => { const id=idFor(card), label=labelNode(card); if (label && state.originals.has(id)) label.textContent=state.originals.get(id); }); state.settings.cards={}; save(state); schedule(); });
+    const reset = state.page.querySelector('#dwReset,[data-aw-action="reset"]'); reset?.addEventListener('click',() => { cardsOn(state.page).forEach(card => { const id=idFor(card), label=labelNode(card); if (label && state.originals.has(id)) label.textContent=state.originals.get(id); }); state.settings.cards={}; state.settings.layout='auto'; save(state); schedule(); });
     const help = state.page.querySelector('#dwHelp,.aw-toolbar p'); if (help) help.textContent='Drag a corner for any size. Customize sets exact pixels; Manage cards hides or restores cards; Add card creates a personal widget.';
   }
   function sync() {
@@ -236,7 +252,7 @@
     charts.redraw();
   }
   function schedule() { if (!frame) frame=requestAnimationFrame(sync); }
-  function applySize(card,width,height) { const state=stateFor(card.closest('.page')); state.settings.cards[idFor(card)]={...metaFor(card),width:dimension(width),height:dimension(height)}; apply(card); charts.redraw(); }
+  function applySize(card,width,height) { const state=stateFor(card.closest('.page')), switching=state.settings.layout!=='custom'; state.settings.layout='custom'; state.settings.cards[idFor(card)]={...metaFor(card),width:dimension(width),height:dimension(height)}; toolbar(state); if (switching) cardsOn(state.page).forEach(apply); else apply(card); charts.redraw(); }
   function endResize(commit) {
     if (!drag) return;
     const current=drag; drag=null;
@@ -248,14 +264,14 @@
         state.settings.custom=[...current.card.parentElement.children].map(card => byId.get(card.dataset.csId)).filter(Boolean); save(state);
       }
       current.ghost?.remove(); current.target?.classList.remove('cs-drop');
-    } else if (!commit) { stateFor(current.card.closest('.page')).settings.cards[idFor(current.card)]=current.before; apply(current.card); } else save(stateFor(current.card.closest('.page')));
-    current.card.classList.remove('cs-resizing'); charts.redraw();
+    } else if (!commit) { const state=stateFor(current.card.closest('.page')); state.settings.cards[idFor(current.card)]=current.before; state.settings.layout=current.layout; cardsOn(state.page).forEach(apply); } else save(stateFor(current.card.closest('.page')));
+    current.card.classList.remove('cs-resizing'); toolbar(stateFor(current.card.closest('.page'))); charts.redraw();
   }
   root.addEventListener('pointerdown',event => {
     const handle=event.target.closest('.aw-resize,.cs-handle'); if (!handle || !handle.closest('.aw-editing,.dw-editing') || event.button!==0) return;
     const card=handle.closest('.cs-card'); if (!card) return;
     event.preventDefault(); event.stopImmediatePropagation(); const rect=card.getBoundingClientRect();
-    drag={id:event.pointerId,handle,card,x:event.clientX,y:event.clientY,width:rect.width,height:rect.height,before:{...metaFor(card)},moving:handle.matches('.cs-handle')}; handle.setPointerCapture(event.pointerId); handle.focus(); if (!drag.moving) card.classList.add('cs-resizing');
+    drag={id:event.pointerId,handle,card,x:event.clientX,y:event.clientY,width:rect.width,height:rect.height,before:{...metaFor(card)},layout:stateFor(card.closest('.page')).settings.layout,moving:handle.matches('.cs-handle')}; handle.setPointerCapture(event.pointerId); handle.focus(); if (!drag.moving) card.classList.add('cs-resizing');
   },true);
   root.addEventListener('pointermove',event => {
     if (!drag || event.pointerId!==drag.id) return; event.preventDefault(); event.stopImmediatePropagation();
@@ -280,7 +296,7 @@
     applySize(card,rect.width+(event.key==='ArrowRight' ? step : event.key==='ArrowLeft' ? -step : 0),rect.height+(event.key==='ArrowDown' ? step : event.key==='ArrowUp' ? -step : 0)); save(stateFor(card.closest('.page')));
   },true);
   root.addEventListener('change',event => {
-    if (event.target.matches('.dw-size,[data-aw-width],[data-aw-height]')) { const card=event.target.closest('.cs-card'); if (card) { const state=stateFor(card.closest('.page')), meta={...metaFor(card)}; if (event.target.matches('[data-aw-height]')) delete meta.height; else { delete meta.width; if (event.target.matches('[data-aw-width]')) delete meta.height; } state.settings.cards[idFor(card)]=meta; apply(card); save(state); } }
+    if (event.target.matches('.dw-size,[data-aw-width],[data-aw-height]')) { const card=event.target.closest('.cs-card'); if (card) { const state=stateFor(card.closest('.page')), meta={...metaFor(card)}; state.settings.layout='custom'; if (event.target.matches('[data-aw-height]')) delete meta.height; else { delete meta.width; if (event.target.matches('[data-aw-width]')) delete meta.height; } state.settings.cards[idFor(card)]=meta; apply(card); save(state); } }
     schedule();
   });
   root.addEventListener('click',schedule); root.addEventListener('input',schedule);

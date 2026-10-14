@@ -4,6 +4,7 @@
   var heights={360:780,390:844,768:1024,820:1180,1024:768,1280:900};
   function refresh() {
     var url=new URL(page.value,location.origin);
+    url.searchParams.set('storePreview','1');
     if(design.value!=='published') url.searchParams.set('preview','1');
     if(design.value==='classic'||design.value==='sage-olive') url.searchParams.set('templatePreview',design.value);
     frame.width=device.value; frame.height=heights[device.value]; frame.src=url.pathname+url.search;

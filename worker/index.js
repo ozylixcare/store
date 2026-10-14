@@ -104,6 +104,20 @@ function noIndex(res) {
 async function serveAdmin(request, env, url) {
   const path = url.pathname.length > 1 ? url.pathname.replace(/\/+$/, '') : url.pathname;
 
+  // Device preview uses public storefront HTML on the admin origin so draft
+  // styling and content can be inspected without cross-origin DOM access.
+  // Only these preview documents permit same-origin framing. Admin pages
+  // retain DENY, and deployment files under /tools remain inaccessible.
+  if (path === '/store-preview' || (url.searchParams.get('storePreview') === '1' && (path === '/' || isSpaPath(path)))) {
+    const asset = path === '/store-preview' ? '/tools/store-preview.html' : '/';
+    const page = await env.ASSETS.fetch(new URL(asset,url));
+    const response = noIndex(new Response(page.body,{status:page.status,headers:page.headers}));
+    const headers = new Headers(response.headers);
+    headers.set('X-Frame-Options','SAMEORIGIN');
+    headers.set('Content-Security-Policy',ADMIN_CSP.replace("frame-ancestors 'none'","frame-ancestors 'self'"));
+    return new Response(response.body,{status:response.status,headers});
+  }
+
   if (ADMIN_ENTRY.has(path)) {
     const page = await env.ASSETS.fetch(new URL('/admin.html', url));
     return noIndex(new Response(page.body, { status: 200, headers: page.headers }));
@@ -307,6 +321,7 @@ export default {
 
     if (url.hostname.toLowerCase() === ADMIN_HOST) {
       const adminPath = url.pathname.length > 1 ? url.pathname.replace(/\/+$/, '') : url.pathname;
+      if (url.searchParams.get('storePreview') === '1' && (adminPath === '/' || isSpaPath(adminPath))) return serveAdmin(request,env,url);
       if (ADMIN_LEGACY_PATHS.has(adminPath)) {
         const target = new URL(ADMIN_SECRET_PATH, url);
         return noIndex(Response.redirect(target.toString(), 302));
