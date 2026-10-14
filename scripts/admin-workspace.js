@@ -219,6 +219,7 @@
   }
   function register(id, kind, labels, series, options = {}) {
     const canvas = document.getElementById(id); if (!canvas || !canvas.closest('#app .page')) return;
+    canvas.dataset.chartKind = kind;
     let model = models.get(id);
     if (model && model.canvas !== canvas) {
       resizeObserver?.unobserve(model.wrap); models.delete(id); model = null;
@@ -248,7 +249,7 @@
       }
       resizeObserver?.observe(wrap);
     }
-    Object.assign(model,{kind,labels:labels.map(String),series:series.map((s,i) => ({...s,color:s.color || palette[i%palette.length],values:s.values.map(value => kind === 'forecast' && value == null ? null : finite(value))})),options,selected:-1});
+    Object.assign(model,{kind,originalKind:kind,labels:labels.map(String),series:series.map((s,i) => ({...s,color:s.color || palette[i%palette.length],values:s.values.map(value => kind === 'forecast' && value == null ? null : finite(value))})),options,selected:-1});
     model.tip.hidden = true;
     model.hidden = new Set([...model.hidden].filter(i => i < (kind === 'donut' ? labels.length : series.length)));
     canvas.setAttribute('role','img');
@@ -297,6 +298,7 @@
     return {ctx,width,height};
   }
   function draw(model) {
+    model.kind = window.OzylixCardStudio?.chartKind(model.canvas,model.originalKind || model.kind) || model.originalKind || model.kind;
     const setup = setupCanvas(model); if (!setup) return;
     const {ctx,width:w,height:h} = setup, colors = theme(model.owner); model.hits = [];
     ctx.clearRect(0,0,w,h); ctx.font = '11px sans-serif';
@@ -602,7 +604,7 @@
     return originalAdvanced.call(this,currentRange(orders || []),products || []);
   };
   // Shared renderer for the other admin workspaces. Existing dashboard hooks stay scoped.
-  window.OzylixAdminCharts = {register, redraw:scheduleDraw};
+  window.OzylixAdminCharts = {register, redraw:scheduleDraw, remove(card) { models.forEach((model,id) => { if (card.contains(model.canvas)) { resizeObserver?.unobserve(model.wrap); models.delete(id); } }); }};
   applyOrder(settings.order); applyAppearance();
   widgets.forEach(({card}) => resizeObserver?.observe(card));
   window.addEventListener('resize',() => { scheduleDraw(); nativeRenders.forEach(render => render()); },{passive:true});
