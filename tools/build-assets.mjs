@@ -47,7 +47,8 @@ function targets() {
       if (isGenerated(f)) continue;
       if (!/\.(js|css)$/.test(f)) continue;
       const rel = `${dir}/${f}`;
-      if (fs.statSync(path.join(ROOT, rel)).size < MIN_BYTES) continue;
+      // Keep rebuilding existing minified siblings even after a source shrinks.
+      if (fs.statSync(path.join(ROOT, rel)).size < MIN_BYTES && !fs.existsSync(path.join(ROOT, minPath(rel)))) continue;
       out.push(rel);
     }
   }

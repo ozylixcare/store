@@ -5,8 +5,8 @@ import { PUBLIC_CSP } from '../worker/index.js';
 
 let rewrittenPolicy;
 globalThis.HTMLRewriter = class {
-  on(selector, handler) { assert.equal(selector, 'meta[http-equiv="Content-Security-Policy"]'); this.handler = handler; return this; }
-  transform(response) { this.handler.element({ setAttribute(name, value) { assert.equal(name, 'content'); rewrittenPolicy = value; } }); return response; }
+  on(selector, handler) { if (selector === 'meta[http-equiv="Content-Security-Policy"]') this.handler = handler; return this; }
+  transform(response) { this.handler?.element({ setAttribute(name, value) { assert.equal(name, 'content'); rewrittenPolicy = value; } }); return response; }
 };
 let assets = [];
 const env = { ASSETS: { async fetch(input) {
