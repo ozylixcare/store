@@ -1,12 +1,13 @@
 /**
  * TRACKING.js — Ozylix
  * GTM and the Meta base pixel are initialized once in each public HTML head.
- * Keep the shared dataLayer and shopping/SPA helpers; Google destinations are
- * configured by GTM rather than hard-coded GA4 measurement IDs.
+ * Retain GA4 G-VC8L1WF561 and the shared shopping/SPA helpers.
  */
 (function () {
   window.dataLayer = window.dataLayer || [];
   function gtag() { window.dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-VC8L1WF561');
   var _gtag = function () {
     var args = Array.prototype.slice.call(arguments);
     gtag.apply(null, args);
