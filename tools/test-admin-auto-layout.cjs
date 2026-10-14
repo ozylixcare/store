@@ -92,9 +92,18 @@ const products = [{id:'1',name:'QA Product',category:'Vitamins',stock:30},{id:'2
           if(card.group){assert.equal(card.parentDisplay,'flex','actual layout matches width rules'); assert.ok(card.width>=Math.min(card.parentWidth,card.metric ? 120 : 270)-2,'readable '+name+' card at '+width+': '+card.id+' width '+card.width);}
         }
         assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'document fits '+name+' at '+width);
+        const scrolling=await page.evaluate(()=>({documentHeight:document.scrollingElement.scrollHeight,mainHeight:document.querySelector('.main').clientHeight,mainScrollHeight:document.querySelector('.main').scrollHeight}));
+        if(width>900) assert.ok(scrolling.documentHeight<=1025,'one desktop scroll pane, no outer scrollbar on '+name+' at '+width);
+        else assert.ok(scrolling.mainScrollHeight<=scrolling.mainHeight+1,'mobile page scrolls in the document, without a nested pane on '+name+' at '+width);
         if(name==='dashboard') {
           const geometry=await page.locator('#kpiCards .kpi').evaluateAll(cards=>cards.map(card=>({height:card.clientHeight,width:card.clientWidth})));
           geometry.forEach(card=>assert.ok(card.height<300,'dashboard totals do not create enormous gaps at '+width));
+          await page.evaluate(()=>{document.querySelector('.main').scrollTop=0;window.scrollTo(0,0);});
+          await page.mouse.move(width-40,400); await page.mouse.wheel(0,500); await page.waitForTimeout(120);
+          const movement=await page.evaluate(()=>({outer:scrollY,inner:document.querySelector('.main').scrollTop}));
+          if(width>900) {assert.ok(movement.inner>0,'wheel scrolls dashboard');assert.equal(movement.outer,0,'outer page stays still');}
+          else {assert.ok(movement.outer>0,'touch layout keeps normal document scrolling');assert.equal(movement.inner,0,'mobile has no second scroll pane');}
+          await page.evaluate(()=>{document.querySelector('.main').scrollTop=0;window.scrollTo(0,0);});
         }
         if(name==='storeeditor') {
           const preview=await page.locator('#storeEdPreview').boundingBox();
