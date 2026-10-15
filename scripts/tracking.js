@@ -1,12 +1,14 @@
 /**
  * TRACKING.js — Ozylix
  * GTM and the Meta base pixel are initialized once in each public HTML head.
- * Retain GA4 G-VC8L1WF561 and the shared shopping/SPA helpers.
+ * Send GA4 events to the connected property and the retained secondary property.
+ * Both destinations share one loader and the shopping/SPA helpers.
  */
 (function () {
   window.dataLayer = window.dataLayer || [];
   function gtag() { window.dataLayer.push(arguments); }
   gtag('js', new Date());
+  gtag('config', 'G-1SPY139WS1');
   gtag('config', 'G-VC8L1WF561');
   var _gtag = function () {
     var args = Array.prototype.slice.call(arguments);
