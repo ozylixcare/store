@@ -177,18 +177,18 @@ html body .footer :is(p,a,.footer-desc,.footer-tagline) { color:var(--t-mid); }
 @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
 /* The legacy inline critical rules use !important for the hero. Keep the
    refreshed geometry authoritative without changing those legacy rules. */
-html body #page-home #shaderHero { min-height:490px!important; padding:65px 6%!important; }
-html body #page-home #shaderHero .shader-hero-inner { text-align:left!important; }
-html body #page-home #shaderHero .sh-line-1 { font-size:12px!important; }
-html body #page-home #shaderHero .sh-line-2 { font-size:clamp(48px,5.8vw,80px)!important; line-height:1.05!important; font-weight:400!important; }
-html body #page-home #shaderHero .sh-line-3 { font-size:clamp(32px,4.3vw,59px)!important; line-height:1.1!important; font-weight:400!important; }
+html body #page-home #shaderHero.shader-hero { min-height:490px!important; padding:65px 6%!important; }
+html body #page-home #shaderHero.shader-hero .shader-hero-inner { text-align:left!important; }
+html body #page-home #shaderHero.shader-hero .sh-line-1 { font-size:12px!important; }
+html body #page-home #shaderHero.shader-hero .sh-line-2 { font-size:clamp(48px,5.8vw,80px)!important; line-height:1.05!important; font-weight:400!important; }
+html body #page-home #shaderHero.shader-hero .sh-line-3 { font-size:clamp(32px,4.3vw,59px)!important; line-height:1.1!important; font-weight:400!important; }
 html body .ann-bar .ann-inner > span,html body .app-ann-ticker,html body .app-ann-ticker span { color:#f6eaed!important; }
 html body .vita-micro :is(.vm-copy,.vm-copy span,.vm-copy b,.vm-arrow) { color:var(--ink)!important; }
-@media(min-width:1500px) { html body #page-home #shaderHero { min-height:550px!important; } }
-@media(min-width:701px) and (max-width:1024px) { html body #page-home #shaderHero { min-height:430px!important; padding:45px 5%!important; } }
+@media(min-width:1500px) { html body #page-home #shaderHero.shader-hero { min-height:550px!important; } }
+@media(min-width:701px) and (max-width:1024px) { html body #page-home #shaderHero.shader-hero { min-height:430px!important; padding:45px 5%!important; } }
 @media(max-width:700px) {
-  html body #page-home #shaderHero { min-height:520px!important; padding:30px 25px 245px!important; }
-  html body #page-home #shaderHero .sh-line-1 { font-size:10px!important; }
-  html body #page-home #shaderHero .sh-line-2 { font-size:49px!important; }
-  html body #page-home #shaderHero .sh-line-3 { font-size:36px!important; }
+  html body #page-home #shaderHero.shader-hero { min-height:520px!important; padding:30px 25px 245px!important; }
+  html body #page-home #shaderHero.shader-hero .sh-line-1 { font-size:10px!important; }
+  html body #page-home #shaderHero.shader-hero .sh-line-2 { font-size:49px!important; }
+  html body #page-home #shaderHero.shader-hero .sh-line-3 { font-size:36px!important; }
 }
