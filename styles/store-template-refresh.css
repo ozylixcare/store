@@ -1,4 +1,4 @@
-/* One storefront presentation. Existing markup, media, controls and services stay in place. */
+
 html body {
   --ui-bg:#faf8f6; --ui-surface:#fff; --ui-soft:#f1e6e2; --ui-line:#e5dadd;
   --ui-ink:#30262b; --ui-muted:#74636b; --ui-accent:var(--indigo,#a52e43);
@@ -22,22 +22,22 @@ html body .nav-actions { gap:10px; }
 html body :is(.nav-icon-btn,.app-topbar-btn) { border:0; background:transparent!important; box-shadow:none!important; }
 html body .nav-icon-btn { width:38px; height:38px; }
 html body :is(.nav-icon-btn,.app-topbar-btn):hover { background:var(--ui-soft)!important; }
-/* A single button system, including dynamically rendered purchase controls. */
-html body :is(.btn-primary,.nav-cta,.shader-btn-primary,.add-cart-btn,.buy-now-btn,.checkout-btn,.btn-buynow,.promo-card-cta,.b-add-btn,.upsell-add,.sc-checkout-btn) {
+
+html body :is(.btn-primary,.nav-cta,.add-cart-btn,.buy-now-btn,.checkout-btn,.btn-buynow,.promo-card-cta,.b-add-btn,.upsell-add,.sc-checkout-btn) {
   background:var(--ui-accent)!important; background-image:none!important; color:#fff!important;
   border:1px solid transparent!important; border-radius:999px!important;
   box-shadow:0 5px 12px #74203515,inset 0 1px #ffffff25!important;
   font-weight:600; letter-spacing:0; text-transform:none; filter:none;
 }
-html body :is(.btn-outline,.shader-btn-ghost,.btn-qadd,.btn-wishlist,.promo-apply-btn) {
+html body :is(.btn-outline,.btn-qadd,.btn-wishlist,.promo-apply-btn) {
   background:var(--ui-surface)!important; background-image:none!important; color:var(--ui-accent)!important;
   border:1px solid var(--ui-line)!important; border-radius:999px!important; box-shadow:none!important;
 }
-html body :is(.btn-primary,.nav-cta,.shader-btn-primary,.add-cart-btn,.buy-now-btn,.checkout-btn,.btn-buynow,.btn-outline,.btn-qadd,.btn-wishlist,.promo-card-cta)::before,
-html body :is(.btn-primary,.nav-cta,.shader-btn-primary,.add-cart-btn,.buy-now-btn,.checkout-btn,.btn-buynow,.btn-outline,.btn-qadd,.btn-wishlist,.promo-card-cta)::after { content:none!important; }
+html body :is(.btn-primary,.nav-cta,.add-cart-btn,.buy-now-btn,.checkout-btn,.btn-buynow,.btn-outline,.btn-qadd,.btn-wishlist,.promo-card-cta)::before,
+html body :is(.btn-primary,.nav-cta,.add-cart-btn,.buy-now-btn,.checkout-btn,.btn-buynow,.btn-outline,.btn-qadd,.btn-wishlist,.promo-card-cta)::after { content:none!important; }
 html body :is(button,a,input,select,textarea):focus-visible { outline:2px solid var(--ui-accent); outline-offset:3px; }
 html body .nav-cta { padding:12px 22px; font-size:11px; }
-/* One hero; the original offer carousel follows the shopping sections. */
+
 html body #page-home.active { display:flex; flex-direction:column; }
 html body #page-home > * { flex-shrink:0; order:6; }
 html body #page-home > #shaderHero { order:0; }
@@ -50,28 +50,7 @@ html body #page-home > #heroBanner { order:7; }
 html body #page-home > .bundle-section { order:8; }
 html body #page-home > .refer-section { order:10; }
 html body #page-home > .influencer-section { order:11; }
-html body #page-home #shaderHero.shader-hero {
-  width:calc(100% - 64px); max-width:1380px; min-height:510px!important; margin:28px auto 20px;
-  padding:58px 6%!important; border:1px solid #eadbd6; border-radius:30px;
-  background:var(--ui-soft)!important; overflow:hidden; isolation:isolate; align-self:center;
-}
-html body #page-home #shaderHero .shader-hero-inner { position:relative; z-index:3; width:100%; max-width:none; padding:0; margin:0; text-align:left!important; }
-html body #page-home #shaderHero .shader-badge { justify-content:flex-start; margin:0 0 30px; color:var(--ui-muted); font-size:9px; letter-spacing:.13em; }
-html body #page-home #shaderHero .shader-headline { width:54%; margin:0 0 20px; }
-html body #page-home #shaderHero .sh-line-1 { font-size:11px!important; letter-spacing:.2em; margin-bottom:10px; color:var(--ui-accent); }
-html body #page-home #shaderHero .sh-line-2 { font-family:Georgia,serif!important; font-style:italic!important; font-weight:400!important; font-size:clamp(54px,6vw,82px)!important; line-height:1.02!important; color:var(--ui-accent); }
-html body #page-home #shaderHero .sh-line-3 { font-size:clamp(30px,3.7vw,52px)!important; line-height:1.12!important; font-weight:500!important; letter-spacing:-.055em; margin-top:10px; color:var(--ui-ink); }
-html body #page-home #shaderHero .shader-sub { display:block; width:47%; max-width:40ch; font-size:12px; line-height:1.8; color:var(--ui-muted); margin:0 0 24px; }
-html body #page-home #shaderHero .shader-cta-row { justify-content:flex-start; }
-html body #page-home #shaderHero .shader-btn-primary { min-height:47px; padding:14px 25px; font-size:12px; }
-html body #page-home #shaderHero::before { content:''; position:absolute; z-index:1; width:30%; height:65px; right:9%; bottom:33px; border-radius:50%; background:linear-gradient(#faf2ed,#d9c2bd); box-shadow:0 22px 25px #663d4917,inset 0 2px 2px #fff; }
-html body #page-home #shaderHero::after { content:''; position:absolute; z-index:2; pointer-events:none; left:54%; right:2%; top:6%; bottom:9%; background:url('/assets/products/cutouts/38.webp') center/contain no-repeat; transform:rotate(-9deg); filter:drop-shadow(18px 20px 10px #663d4926); }
-html body #shaderHeroCanvas { opacity:.035; pointer-events:none; }
-html body #shaderHero .shader-hero-veil { background:none; }
-html body #shaderHero .shader-ring-wrap { opacity:.2; left:57%; top:16%; width:34%; }
-html body #shaderHero .shader-ring { border:1px solid #c7a8ac; background:transparent; box-shadow:none; }
-html body #shaderHero .shader-ring::before,html body #shaderHero .shader-ring::after { background:#ffffff30; border:1px solid #fff8; box-shadow:none; }
-/* Reuse every offer image at its own aspect ratio, as a secondary campaign. */
+
 html body #page-home #heroBanner { width:calc(100% - 64px)!important; max-width:940px; margin:30px auto 55px!important; border:1px solid var(--ui-line); border-radius:24px!important; box-shadow:none!important; background:var(--ui-soft); overflow:hidden; }
 html body :is(.hero-banner-slide,.shop-hero-slide) :is(img,video) { object-fit:contain!important; }
 html body .hero-banner-arrow { width:34px; height:34px; background:#fff9; color:var(--ui-ink); border:1px solid #fff8; box-shadow:none; backdrop-filter:blur(12px); }
@@ -83,25 +62,7 @@ html body .section-title { font-size:clamp(28px,3.1vw,42px); line-height:1.15; f
 html body .section-subtitle { color:var(--ui-muted); font-size:12px; line-height:1.75; }
 html body .sec-head-link { font-size:11px; color:var(--ui-ink); border-bottom:1px solid #cbb5bd; background:none; border-radius:0; padding:6px 0; }
 html body #page-home > .container { width:calc(100% - 64px); margin-inline:auto; }
-html body #page-home .vita-micro { width:calc(100% - 64px); max-width:1280px; margin:0 auto; padding:14px 20px; border:0; border-bottom:1px solid var(--ui-line); border-radius:0; background:transparent; color:var(--ui-ink); animation:none; transform:none; box-shadow:none; }
-html body .vita-micro :is(.vm-copy,.vm-copy span,.vm-copy b,.vm-arrow) { color:var(--ui-ink)!important; }
-html body .vita-micro .vm-copy { font-size:11px; line-height:1.7; }
-html body .vita-micro .vm-chip { background:transparent; border:0; box-shadow:none; }
-html body #page-home .fizz-counters { background:transparent!important; border:0; padding:16px 0; }
-html body .fizz-counters-grid { max-width:920px; gap:0; }
-html body .fizz-counter { border:0; border-radius:0; box-shadow:none!important; background:transparent!important; padding:14px 20px; }
-html body .fizz-counter + .fizz-counter { border-left:1px solid var(--ui-line); }
-html body .fc-num { color:var(--ui-ink); font-size:27px; font-weight:500; }
-html body .fc-label { font-size:9px; color:var(--ui-muted); letter-spacing:.07em; }
-html body #page-home .promise-section { padding:24px 0 4px!important; }
-html body #page-home .promise-section .sec-head { margin:0 0 22px!important; }
-html body #page-home .promise-section .section-title { font-size:27px!important; }
-html body #page-home .trust-grid { gap:0; margin:0; border-block:1px solid var(--ui-line); }
-html body #page-home .trust-tile { padding:23px 12px; border:0; border-radius:0; background:transparent!important; box-shadow:none!important; }
-html body #page-home .trust-tile + .trust-tile { border-left:1px solid var(--ui-line); }
-html body .tt-ico { filter:grayscale(1); opacity:.7; }
-html body .tt-lbl { color:var(--ui-muted); font-size:10px; font-weight:500; }
-/* The same product component is used in home, shop, wishlist and related products. */
+
 html body :is(#page-home,#page-shop,#page-wishlist,#page-product) .products-grid { grid-template-columns:repeat(4,minmax(0,1fr)); gap:32px 22px; }
 html body :is(#page-home,#page-shop,#page-wishlist,#page-product) .product-card { min-width:0; border:0!important; border-radius:0; background:transparent!important; box-shadow:none!important; transform:none!important; overflow:visible; }
 html body :is(#page-home,#page-shop,#page-wishlist,#page-product) .product-card::before,
@@ -125,7 +86,7 @@ html body .product-card .btn-buynow { min-height:40px; padding:10px 14px; font-s
 html body .product-card :is(.badge-new,.badge-sale,.p-badge,.p-discount) { border-radius:99px; background:#fff9; border:1px solid #ffffffa0; box-shadow:none; }
 html body :is(.cpill,.tab,.filter-btn,.goal-pill) { border:1px solid var(--ui-line); border-radius:999px; background:var(--ui-surface); box-shadow:none; font-size:11px; }
 html body :is(.cpill.active,.tab.active,.filter-btn.active,.goal-pill.active) { background:var(--ui-ink); color:#fff; border-color:var(--ui-ink); box-shadow:none; }
-/* Campaign, category, bundle and review sections share the same panel treatment. */
+
 html body :is(.promo-card,.cat-card,.cat-card-sm,.cert-card,.inf-card,.blog-card,.refer-card,.rr-badge) { border:1px solid var(--ui-line); border-radius:22px; box-shadow:none!important; background:var(--ui-surface); }
 html body .promo-hero-wrap { padding:15px 0 40px; }
 html body .promo-card { min-height:282px; background:var(--ui-soft); }
@@ -151,7 +112,7 @@ html body .refer-title { font-size:34px; font-weight:500; }
 html body .refer-sub { font-size:12px; }
 html body .rr-amo { font-weight:500; }
 html body .inf-card { padding:25px; }
-/* Apply the same template to all routes and purchase surfaces. */
+
 html body :is(.page-header,.shop-header) { background:var(--ui-bg)!important; border-bottom:1px solid var(--ui-line); padding-block:40px 30px; }
 html body .page-header h1,html body .page-header > div { font-size:clamp(30px,4vw,48px); font-weight:500; }
 html body .page-header p { font-size:13px; color:var(--ui-muted); }
@@ -189,39 +150,9 @@ html body .footer :is(p,a,.footer-desc,.footer-tagline) { color:var(--ui-muted);
   html body .app-nav-item { background:transparent; box-shadow:none; }
   html body .app-nav-item.active { color:var(--ui-accent); background:#f5e9ec; border-radius:13px; box-shadow:none; }
   html body :is(#page-home,#page-shop,#page-wishlist,#page-product) .products-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
-  html body #page-home #shaderHero.shader-hero { min-height:440px!important; padding:40px 5%!important; }
-  html body #page-home #shaderHero .shader-headline { width:58%; }
-  html body #page-home #shaderHero .shader-sub { width:51%; }
-  html body #page-home #shaderHero .sh-line-2 { font-size:58px!important; }
-  html body #page-home #shaderHero .sh-line-3 { font-size:34px!important; }
 }
 @media(max-width:700px) {
-  html body #page-home #shaderHero.shader-hero { width:calc(100% - 28px); min-height:380px!important; margin:14px auto; padding:27px 22px 34px!important; border-radius:23px; }
-  html body #page-home #shaderHero .shader-badge { font-size:7px; margin-bottom:24px; }
-  html body #page-home #shaderHero .shader-headline { width:74%; margin-bottom:16px; }
-  html body #page-home #shaderHero .sh-line-1 { font-size:9px!important; margin-bottom:8px; }
-  html body #page-home #shaderHero .sh-line-2 { font-size:46px!important; }
-  html body #page-home #shaderHero .sh-line-3 { font-size:28px!important; margin-top:6px; }
-  html body #page-home #shaderHero .shader-sub { width:56%; font-size:10px; line-height:1.65; margin-bottom:19px; }
-  html body #page-home #shaderHero .shader-btn-primary { min-height:42px; padding:11px 17px; font-size:10px; }
-  html body #page-home #shaderHero::after { left:55%; right:-8%; top:34%; bottom:6%; transform:rotate(-11deg); }
-  html body #page-home #shaderHero::before { width:38%; right:0; bottom:18px; height:30px; }
-  html body #shaderHero .shader-ring-wrap { left:58%; top:40%; width:38%; }
   html body #page-home > .container { width:calc(100% - 28px); }
-  html body #page-home .vita-micro { width:calc(100% - 28px); padding:12px 6px; gap:9px; }
-  html body .vita-micro .vm-copy { font-size:9px; }
-  html body .vita-micro .vm-chip { width:32px; height:32px; }
-  html body #page-home .fizz-counters { padding:8px 0; }
-  html body .fizz-counter { padding:12px 6px; }
-  html body .fc-num { font-size:22px; }
-  html body .fc-label { font-size:8px; letter-spacing:0; }
-  html body #page-home .promise-section { padding:21px 0 0!important; }
-  html body #page-home .promise-section .section-title { font-size:24px!important; }
-  html body #page-home .trust-grid { grid-template-columns:repeat(3,minmax(0,1fr)); grid-auto-flow:row; overflow:visible; gap:0; }
-  html body #page-home .trust-tile { padding:14px 5px; }
-  html body #page-home .trust-tile:nth-child(4) { border-left:0; }
-  html body #page-home .trust-tile:nth-child(n+4) { border-top:1px solid var(--ui-line); }
-  html body .tt-lbl { font-size:9px; }
   html body .section { padding-block:36px; }
   html body .section-title { font-size:27px; }
   html body .section-subtitle { font-size:11px; }
@@ -259,11 +190,8 @@ html body .footer :is(p,a,.footer-desc,.footer-tagline) { color:var(--ui-muted);
   html body #page-product .gallery-main { border-radius:20px; }
   html body :is(.cart-items-box,.cart-summary-box,.checkout-section,.ck-section,.account-sidebar,.account-main,.account-panel,.account-welcome) { border-radius:18px; }
 }
-@media(prefers-reduced-motion:reduce) { html body #shaderHero *,html body .vita-micro { animation:none!important; } }
-/* Complete the replacement of legacy family accents and catalogue geometry. */
-html body .ann-bar .ann-inner span { color:#fff!important; opacity:1; }
-html body #page-home .fizz-counter::after,html body :is(.cat-card,.cat-card-sm,.cert-card,.value-card)::before { content:none!important; }
-html body #page-home .fizz-counter .fc-num { color:var(--ui-ink); }
+
+html body .ann-bar .ann-inner span { color:#fff!important; opacity:1; }html body :is(.cat-card,.cat-card-sm,.cert-card,.value-card)::before { content:none!important; }
 html body #page-product .gallery-main::before { content:none!important; }
 html body #page-product .qty-tier { animation:none!important; }
 html body #page-product .qty-tier.best-value { background:var(--ui-surface)!important; box-shadow:none!important; border-color:var(--ui-line); }
@@ -289,3 +217,20 @@ html body #page-shop .oz-search-panel > div { min-width:0!important; }
 html body #page-shop #shopSearch { width:0!important; min-width:0!important; flex:1 1 0; }
 html body #page-shop .oz-search-panel .btn-outline { flex:0 0 auto; }
 html body #page-shop .cpill::before,html body #page-shop .cpill::after { content:none!important; }
+
+/* Restore the four requested home sections to the existing legacy template.
+   Original rules, responsive breakpoints, theme values and animation scripts remain authoritative. */
+html body #page-home :is(#shaderHero,.vita-micro,.fizz-counters,.promise-section) {
+ --font-display:'Jost',system-ui,sans-serif;
+ --neo-1:3px 3px 7px var(--sh-d),-3px -3px 7px var(--sh-l);
+ --neo-2:6px 6px 14px var(--sh-d),-6px -6px 14px var(--sh-l);
+ --neo-3:10px 10px 24px var(--sh-d),-8px -8px 20px var(--sh-l);
+ --neo-4:16px 16px 38px var(--sh-d),-12px -12px 30px var(--sh-l);
+ --neo-in:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);
+}
+html body #shaderHero .shader-hero-inner { max-width:1080px; }
+html body #shaderHero .shader-headline { font-family:var(--font-display);font-weight:300;letter-spacing:-.03em; }
+html body #page-home .promise-section { width:100%;max-width:var(--shell);margin-inline:auto; }
+html body #page-home .promise-section .sec-head { gap:14px 24px; }
+html body #page-home .promise-section .section-title { font-family:var(--font-display);font-weight:300;letter-spacing:-.03em; }
+html body #page-home .promise-section .section-label { color:var(--sage-lo); }
