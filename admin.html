@@ -192,6 +192,7 @@
 @media(max-width:1100px){#storeEdStylePanel,#storeEdContentPanel{grid-template-columns:minmax(0,1fr)!important}#page-storeeditor .page-actions{flex-wrap:wrap}#page-storeeditor .page-hdr{flex-wrap:wrap}}
 #storeEdStylePanel > *,#storeEdContentPanel > *{min-width:0}
 </style>
+<link rel="stylesheet" href="styles/admin-media-workspace.css?v=20261017-1">
 </head>
 <body>
 <script>
@@ -213,7 +214,7 @@
      so sitting here still guarantees window.supabase exists before
      admin-core.js executes. -->
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js" integrity="sha384-/E7xfJz9bbCsrwJAbrt9CO5JB1REPVQjuSrQT4Cpz2BQBocDVsGLB2/VMAEzYaf+" crossorigin="anonymous"></script>
-<script defer src="scripts/admin-core.min.js?v=20261008-3"></script>
+<script defer src="scripts/admin-core.min.js?v=20261017-media-1"></script>
 <script defer src="scripts/admin-api.min.js?v=20261013-engine-completion"></script>
 <script defer src="scripts/store-templates.js?v=20261010-device-templates"></script>
 <script defer src="scripts/admin-ui.min.js?v=20261014-2"></script>
@@ -1828,19 +1829,16 @@
 <!-- ═════════════ BANNERS ═════════════ -->
 <div class="page" id="page-banners">
   <div class="page-hdr">
-    <div><div class="page-title">Banners</div><div class="page-sub">Upload and manage promotional banners</div></div>
-    <div class="page-actions">
-      <input type="file" id="bannerFileInput" accept="image/*,.svg,video/*,.mp4,.webm,.mov" onchange="uploadBanner(this)">
-      <button class="btn btn-primary" onclick="document.getElementById('bannerFileInput').click()">＋ Upload Banner</button>
-    </div>
+    <div><div class="page-title">Banners</div><div class="page-sub">Choose a storefront location before uploading</div></div>
   </div>
+  <p class="form-hint">Choose where the banner should appear. Each location has its own preview, dimensions and upload controls.</p>
   <div id="bannerGrid" class="grid-3"></div>
 </div>
 
 <!-- ═════════════ PHOTO LIBRARY ═════════════ -->
 <div class="page" id="page-photolibrary">
   <div class="page-hdr">
-    <div><div class="page-title">Photo &amp; Video Library</div><div class="page-sub">All uploaded product and website media</div></div>
+    <div><div class="page-title">Photo &amp; Video Library</div><div class="page-sub">Files go to Ozylix media storage, not the code repository. Assign them to a storefront location in Site Images or Products.</div></div>
     <div class="page-actions">
       <label class="toggle-wrap" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;">
         <label class="toggle"><input type="checkbox" id="mediaWebpToggle" checked><span class="toggle-slider"></span></label>
@@ -3757,8 +3755,10 @@ body.role-admin #azRoleBanner{display:block}
   <script defer src="scripts/admin-advanced-v3.js?v=20261008-behaviour"></script>
 
 <script defer src="scripts/store-motion.js?v=20261008-5"></script>
+<script defer src="scripts/admin-media-workspace.js?v=20261017-1"></script>
 </body>
 </html>
+
 
 
 
