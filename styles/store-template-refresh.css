@@ -260,3 +260,28 @@ html body .footer :is(p,a,.footer-desc,.footer-tagline) { color:var(--ui-muted);
   html body :is(.cart-items-box,.cart-summary-box,.checkout-section,.ck-section,.account-sidebar,.account-main,.account-panel,.account-welcome) { border-radius:18px; }
 }
 @media(prefers-reduced-motion:reduce) { html body #shaderHero *,html body .vita-micro { animation:none!important; } }
+/* Complete the replacement of legacy family accents and catalogue geometry. */
+html body .ann-bar .ann-inner span { color:#fff!important; opacity:1; }
+html body #page-home .fizz-counter::after,html body :is(.cat-card,.cat-card-sm,.cert-card,.value-card)::before { content:none!important; }
+html body #page-home .fizz-counter .fc-num { color:var(--ui-ink); }
+html body #page-product .gallery-main::before { content:none!important; }
+html body #page-product .qty-tier { animation:none!important; }
+html body #page-product .qty-tier.best-value { background:var(--ui-surface)!important; box-shadow:none!important; border-color:var(--ui-line); }
+html body #page-product .qty-tier.selected { background:#f6edef!important; border-color:var(--ui-accent)!important; box-shadow:none!important; }
+html body #page-product .qty-tier.best-value .qt-flag { background:var(--ui-accent); box-shadow:none; transform:translate(-50%,-45%)!important; }
+html body #page-product .qty-tier :is(.qt-rate,.qt-save) { color:var(--ui-accent); }
+html body #page-product .qty-tier .qt-free { background:var(--ui-accent); color:#fff; }
+html body #page-shop > .container { display:flex; flex-direction:column; }
+html body #page-shop > .container > * { order:6; }
+html body #page-shop > .container > .breadcrumb { order:0; }
+html body #page-shop > .container > div:has(#shopTitle) { order:1; }
+html body #page-shop #shopPills { order:2; }
+html body #page-shop .oz-search-panel { order:3; background:var(--ui-surface)!important; border-color:var(--ui-line)!important; border-radius:18px!important; }
+html body #page-shop #filterToggle { order:3; }
+html body #page-shop .shop-layout { order:4; }
+html body #page-shop #shopHero { order:5; max-width:940px; align-self:center; margin:36px auto; }
+html body #page-shop :is(.filter-box,.mm-side-card,.mm-shop-banner,.shop-offer-bar,.shop-banner-slot) { background:var(--ui-surface); border:1px solid var(--ui-line); border-radius:20px; box-shadow:none; }
+html body #page-shop :is(.mm-side-card,.mm-shop-banner) { background:var(--ui-soft); }
+html body #page-shop .cpill.active { background:var(--ui-ink)!important; color:#fff!important; box-shadow:none!important; }
+@media(min-width:1025px) { html body #page-shop #shopGrid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media(max-width:700px) { html body #page-shop #shopGrid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
