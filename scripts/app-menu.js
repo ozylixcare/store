@@ -6,6 +6,7 @@ function openAppMenu() {
   document.getElementById('appMenuDrawer')?.classList.add('open');
   document.getElementById('appMenuOverlay')?.classList.add('open');
   document.getElementById('appHamburgerBtn')?.classList.add('open');
+  setMenuButtonState(true);
   // Robust scroll lock (overflow:hidden alone doesn't reliably block touch scroll on mobile)
   _appMenuScrollY = window.scrollY || window.pageYOffset || 0;
   document.body.style.position = 'fixed';
@@ -28,8 +29,24 @@ function closeAppMenu() {
   document.getElementById('appMenuDrawer')?.classList.remove('open');
   document.getElementById('appMenuOverlay')?.classList.remove('open');
   document.getElementById('appHamburgerBtn')?.classList.remove('open');
+  setMenuButtonState(false);
   unlockBodyScroll();   // restores position, overflow AND scroll offset
 }
+
+function setMenuButtonState(open) {
+  var button = document.getElementById('appHamburgerBtn');
+  if (!button) return;
+  button.setAttribute('aria-expanded', String(open));
+  button.setAttribute('aria-controls', 'appMenuDrawer');
+  button.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  button.title = open ? 'Close menu' : 'Open menu';
+}
+setMenuButtonState(false);
+var menuButton = document.getElementById('appHamburgerBtn');
+if (menuButton) menuButton.onclick = function () {
+  if (document.getElementById('appMenuDrawer')?.classList.contains('open')) closeAppMenu();
+  else openAppMenu();
+};
 
 // ── Show mobile overlays on mobile only ──
 document.addEventListener('DOMContentLoaded', function() {
