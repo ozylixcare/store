@@ -1,138 +1,206 @@
-// Extracted from index.html (line 9153) by Manus SEO pass — load order preserved
-
-  (function(){
-    var BADGES = ['15% off','10% off','20% off','5% off','10% off','5% off'];
-    function buildCard(item, badge, deferImage){
-      var hasSrc = item && item.src && item.src.trim();
-      var page = (item && item.ctaPage) || 'shop';
-      var media = hasSrc
-        ? (item.type==='video'
-            ? '<video class="pm-card-media" src="'+item.src+'"'+(item.poster?' poster="'+item.poster+'"':'')+' muted playsinline loop preload="metadata" autoplay></video>'
-            // loading="lazy" is wrong on a marquee. Lazy only fires when an
-            // element enters the VIEWPORT; this track is translated
-            // horizontally, so the off-screen half never triggers a load and
-            // you get blank tiles scrolling past. That is the "10 images but
-            // 19 broken cards" report — the track renders `cards + cards`,
-            // so 10 images become 20 tiles and the clone half stayed empty.
-            // Eager + fixed dimensions (no CLS) + a hard failure path.
-            : '<img class="pm-card-media" ' + (deferImage ? 'data-src="'+item.src+'"' : 'src="'+item.src+'"')
-              + ' alt="'+((item.alt||'Ozylix promotion').replace(/"/g,'&quot;'))+'"'
-              + (deferImage ? ' loading="lazy"' : ' loading="eager"')
-              + ' decoding="async" fetchpriority="low" width="185" height="231"'
-              + ' onerror="this.closest(\'.pm-card\').style.display=\'none\'">')
-        : '<div class="pm-card-ph"><div class="pm-card-ph-inner">+</div></div>';
-      return '<div class="pm-card" onclick="showPage(\''+page+'\')">'
-        + media
-        + '</div>';
-    }
-    function paintPromoMedia(data){
-      var track = document.getElementById('pmTrack');
-      if(!track) return;
-      data = data && data.length ? data : [];
-      // Only ever render as many cards as there is media for (capped at 12).
-      // Padding to a minimum of 6 is what produced rows of empty "+" tiles.
-      var n = Math.min(data.length, 12);
-      var cards = '', clones = '';
-      for(var i=0;i<n;i++){
-        var item = data[i] || {};
-        var badge = (item && item.discount) || BADGES[i%BADGES.length];
-        // Only the first four original cards are likely to be above the fold.
-        // The rest, and every decorative clone, hydrate just before entering
-        // view instead of opening 2xN image connections during first paint.
-        cards += buildCard(item, badge, i >= 4);
-        clones += buildCard(item, badge, true);
+/* Admin-managed video reels. Only active videos from the public API are shown. */
+(function () {
+  'use strict';
+  var items = [], dialog, player, counter, message, previousFocus, savedOverflow;
+  var observer, visible = new Set(), activeIndex = 0, refreshTimer, request;
+  var section, track;
+  function safeUrl(value) {
+    if (typeof value !== 'string' || !value.trim()) return '';
+    try {
+      var url = new URL(value, window.location.origin);
+      return /^https?:$/.test(url.protocol) ? url.href : '';
+    } catch (_) { return ''; }
+  }
+  function videosFrom(payload) {
+    var rows = payload && (payload.data || payload.items || payload);
+    return (Array.isArray(rows) ? rows : []).filter(function (item) {
+      return item && item.active !== false && safeUrl(item.src) &&
+        (item.type === 'video' || (!item.type && /\.(mp4|webm|mov|m4v)(?:[?#]|$)/i.test(item.src)));
+    }).map(function (item) {
+      var cdn = typeof cdnImg === 'function' ? cdnImg : function (url) { return url; };
+      return { src: safeUrl(cdn(item.src)), poster: safeUrl(cdn(item.poster || '')), title: item.alt || item.title || 'Ozylix video' };
+    }).filter(function (item) { return !!item.src; });
+  }
+  function attemptPlay(video) {
+    var promise = video.play();
+    if (promise && promise.catch) promise.catch(function () {});
+  }
+  function syncPreviews() {
+    if (!track) return;
+    track.querySelectorAll('video').forEach(function (video) {
+      if (!document.hidden && !(dialog && dialog.open) && visible.has(video)) {
+        if (!video.getAttribute('src')) video.src = video.dataset.src;
+        attemptPlay(video);
+      } else video.pause();
+    });
+  }
+  function element(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text) node.textContent = text;
+    return node;
+  }
+  function control(text, label, action) {
+    var button = element('button', 'pm-reel-control', text);
+    button.type = 'button';
+    button.setAttribute('aria-label', label);
+    button.addEventListener('click', action);
+    return button;
+  }
+  function showVideo(index) {
+    if (!items.length) return;
+    activeIndex = (index + items.length) % items.length;
+    var item = items[activeIndex];
+    player.pause();
+    player.src = item.src;
+    player.poster = item.poster;
+    player.setAttribute('aria-label', item.title);
+    counter.textContent = (activeIndex + 1) + ' / ' + items.length;
+    message.hidden = true;
+    player.load();
+    attemptPlay(player);
+  }
+  function createViewer() {
+    if (dialog) return;
+    dialog = element('dialog', 'pm-reel-viewer');
+    dialog.setAttribute('aria-label', 'Ozylix promotional videos');
+    var panel = element('div', 'pm-reel-panel');
+    var header = element('div', 'pm-reel-header');
+    header.appendChild(element('strong', '', 'Ozylix videos'));
+    counter = element('span', 'pm-reel-counter');
+    counter.setAttribute('aria-live', 'polite');
+    header.appendChild(counter);
+    header.appendChild(control('×', 'Close video viewer', function () { dialog.close(); }));
+    player = element('video', 'pm-reel-player');
+    player.controls = true;
+    player.playsInline = true;
+    player.preload = 'metadata';
+    player.addEventListener('ended', function () { showVideo(activeIndex + 1); });
+    message = element('p', 'pm-reel-error', 'This video could not load. Try the next video.');
+    message.hidden = true;
+    player.addEventListener('error', function () { message.hidden = false; });
+    var nav = element('div', 'pm-reel-nav');
+    nav.appendChild(control('‹', 'Previous video', function () { showVideo(activeIndex - 1); }));
+    nav.appendChild(element('span', '', 'Swipe or use the arrows to browse'));
+    nav.appendChild(control('›', 'Next video', function () { showVideo(activeIndex + 1); }));
+    panel.append(header, player, message, nav);
+    dialog.appendChild(panel);
+    document.body.appendChild(dialog);
+    dialog.addEventListener('click', function (event) { if (event.target === dialog) dialog.close(); });
+    dialog.addEventListener('close', function () {
+      player.pause();
+      player.removeAttribute('src');
+      player.load();
+      section.classList.remove('pm-viewing');
+      document.body.style.overflow = savedOverflow;
+      if (previousFocus && previousFocus.isConnected) previousFocus.focus({ preventScroll: true });
+      syncPreviews();
+    });
+    dialog.addEventListener('keydown', function (event) {
+      if (event.target === player) return;
+      if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+        event.preventDefault(); showVideo(activeIndex + (event.key === 'ArrowRight' ? 1 : -1));
       }
-      // Duplicate for seamless infinite loop. The clone is decorative and
-      // must be hidden from assistive tech, otherwise a screen reader
-      // announces every promo twice.
-      track.innerHTML = cards
-        + '<div class="pm-clone" aria-hidden="true" role="presentation" style="display:contents">' + clones + '</div>';
-      var pending = track.querySelectorAll('img[data-src]');
-      function hydrate(img) {
-        if (!img || !img.dataset.src) return;
-        img.src = img.dataset.src;
-        img.removeAttribute('data-src');
-      }
-      if (pending.length && 'IntersectionObserver' in window) {
-        var io = new IntersectionObserver(function(entries) {
-          entries.forEach(function(entry) {
-            if (entry.isIntersecting) { hydrate(entry.target); io.unobserve(entry.target); }
-          });
-        }, { rootMargin: '500px 800px 500px 800px' });
-        pending.forEach(function(img) { io.observe(img); });
-        // Never leave a marquee tile blank if a browser does not report the
-        // translated track as intersecting; finish the remainder after idle.
-        setTimeout(function() { pending.forEach(hydrate); }, 5000);
-      } else {
-        pending.forEach(hydrate);
-      }
-      track.querySelectorAll('video').forEach(function(v){
-        v.muted = true;
-        v.setAttribute('playsinline','');
-        v.addEventListener('loadstart',function(){ v.play().catch(function(){}); });
-        // Hover still pauses so users can stare at a still tile without
-        // losing data — it resumes 0.5s after the cursor leaves.
-        v.addEventListener('mouseenter',function(){ try{v.pause();}catch(e){} });
-        v.addEventListener('mouseleave',function(){ v.currentTime=0; v.play().catch(function(){}); });
-        // iOS needs an explicit kick for muted autoplay videos inside a
-        // translated container.
-        v.play().catch(function(){});
+    });
+    var startX, startY;
+    player.addEventListener('touchstart', function (event) { startX = event.changedTouches[0].clientX; startY = event.changedTouches[0].clientY; }, { passive: true });
+    player.addEventListener('touchend', function (event) {
+      var dx = event.changedTouches[0].clientX - startX;
+      var dy = event.changedTouches[0].clientY - startY;
+      if (Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.5) showVideo(activeIndex + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+  }
+  function openVideo(index) {
+    createViewer();
+    previousFocus = document.activeElement;
+    savedOverflow = document.body.style.overflow;
+    dialog.showModal();
+    document.body.style.overflow = 'hidden';
+    section.classList.add('pm-viewing');
+    syncPreviews();
+    showVideo(index);
+  }
+  function card(item, index, clone) {
+    var button = element('button', 'pm-card pm-reel-card');
+    button.type = 'button';
+    button.setAttribute('aria-label', 'Play ' + item.title + ' (' + (index + 1) + ' of ' + items.length + ')');
+    if (clone) { button.tabIndex = -1; button.setAttribute('aria-hidden', 'true'); }
+    button.dataset.index = index;
+    var video = element('video', 'pm-card-media');
+    video.dataset.src = item.src;
+    video.muted = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.preload = 'none';
+    video.setAttribute('aria-hidden', 'true');
+    if (item.poster) video.poster = item.poster;
+    button.appendChild(video);
+    var play = element('span', 'pm-reel-play', '▶');
+    play.setAttribute('aria-hidden', 'true');
+    button.appendChild(play);
+    button.appendChild(element('span', 'pm-reel-caption', item.title));
+    return button;
+  }
+  function paint() {
+    if (observer) observer.disconnect();
+    track.querySelectorAll('video').forEach(function (video) { video.pause(); video.removeAttribute('src'); video.load(); });
+    visible.clear();
+    track.replaceChildren();
+    section.style.display = items.length ? '' : 'none';
+    if (!items.length) { if (dialog && dialog.open) dialog.close(); return; }
+    // Repeat complete sequences only to fill wide screens; there is no item cap.
+    var copies = Math.max(1, Math.ceil(window.innerWidth / (items.length * 180)));
+    for (var groupIndex = 0; groupIndex < 2; groupIndex++) {
+      var group = element('div', 'pm-reel-group');
+      if (groupIndex) group.setAttribute('aria-hidden', 'true');
+      for (var repeat = 0; repeat < copies; repeat++) items.forEach(function (item, index) {
+        group.appendChild(card(item, index, !!(groupIndex || repeat)));
       });
+      track.appendChild(group);
     }
-    // A card is only worth showing if it actually carries media. The admin
-    // list still holds the blank rows from when every image was cleared,
-    // and `remote.length` counted those — so the uploaded images painted,
-    // then the backend answered a second later and replaced them all with
-    // empty placeholders. That is the "images appear then vanish" report.
-    function usable(list){
-      return (Array.isArray(list) ? list : []).filter(function(it){
-        return it && typeof it.src === 'string' && it.src.trim();
+    track.style.setProperty('--pm-duration', Math.max(24, copies * items.length * 6) + 's');
+    if ('IntersectionObserver' in window) {
+      observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) { if (entry.isIntersecting) visible.add(entry.target); else visible.delete(entry.target); });
+        syncPreviews();
       });
+      track.querySelectorAll('video').forEach(function (video) { observer.observe(video); });
     }
-    function renderPromoMedia(){
-      // Never paint checked-in or third-party promo URLs. The backend is the
-      // only source of truth; it accepts media only after an admin upload to
-      // Supabase Storage and serves it through the Cloudflare image Worker.
-      var section = document.getElementById('promo-media-section');
-      if (section) section.style.display = 'none';
-
-      // Load only admin-managed, backend-verified media.
-      var base = (typeof API_BASE !== 'undefined') ? API_BASE : '';
-      // The backend is a free Render instance that can be asleep; without a
-      // deadline this request can sit open for 30s holding a connection.
-      var ctl = ('AbortController' in window) ? new AbortController() : null;
-      var timer = setTimeout(function(){ ctl && ctl.abort(); }, 6000);
-      var startRemote = window.requestIdleCallback
-        ? function(fn){ window.requestIdleCallback(fn, {timeout: 1400}); }
-        : function(fn){ setTimeout(fn, 900); };
-      startRemote(function(){ fetch(base + '/api/promo-media', ctl ? { signal: ctl.signal } : undefined)
-        .then(function(r){ return r.ok ? r.json() : null; })
-        .then(function(d){
-          clearTimeout(timer);
-          var cdn = (typeof cdnImg === 'function') ? cdnImg : function(u){ return u; };
-          var remote = usable(d && (d.data || d.items || d)).map(function(m){
-            if (m && typeof m === 'object') {
-              var t = m.type || mediaTypeFromUrl(m.src);
-              return Object.assign({}, m, { type: t, src: cdn(m.src), poster: cdn(m.poster) });
-            }
-            return m;
-          });
-          if (remote.length) {
-            paintPromoMedia(remote);
-            if (section) section.style.display = '';
-          } else if (section) {
-            paintPromoMedia([]);
-            section.style.display = 'none';
-          }
-        })
-        .catch(function(){
-          clearTimeout(timer);
-          paintPromoMedia([]);
-          if (section) section.style.display = 'none';
-        });
-      });
-    }
-    if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',renderPromoMedia); }
-    else { renderPromoMedia(); }
-  })();
-  
+  }
+  function load() {
+    if (request) return;
+    var base = typeof API_BASE !== 'undefined' ? API_BASE : '';
+    var ctl = new AbortController();
+    var timer = setTimeout(function () { ctl.abort(); }, 8000);
+    request = fetch(base + '/api/promo-media', { signal: ctl.signal, cache: 'no-store' })
+      .then(function (response) { if (!response.ok) throw new Error('Unavailable'); return response.json(); })
+      .then(function (payload) {
+        var next = videosFrom(payload);
+        if (JSON.stringify(next) === JSON.stringify(items)) return;
+        if (dialog && dialog.open) dialog.close();
+        items = next; paint();
+      })
+      .catch(function () { /* Keep the last verified list during a temporary network error. */ })
+      .finally(function () { clearTimeout(timer); request = null; });
+  }
+  function init() {
+    section = document.getElementById('promo-media-section');
+    track = document.getElementById('pmTrack');
+    if (!section || !track) return;
+    section.style.display = 'none';
+    track.addEventListener('click', function (event) {
+      var button = event.target.closest('.pm-reel-card');
+      if (button && track.contains(button)) openVideo(Number(button.dataset.index));
+    });
+    load();
+    setInterval(function () { if (!document.hidden) load(); }, 60000);
+    document.addEventListener('visibilitychange', function () {
+      syncPreviews();
+      if (document.hidden && player) player.pause();
+      if (!document.hidden) load();
+    });
+    window.addEventListener('resize', function () { clearTimeout(refreshTimer); refreshTimer = setTimeout(function () { if (!(dialog && dialog.open)) paint(); }, 200); });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
