@@ -35,6 +35,7 @@ const MANIFEST = path.join(ROOT, 'assets.manifest.json');
 
 // Only files big enough to be worth the generated-sibling tradeoff.
 const MIN_BYTES = 20 * 1024;
+const ALWAYS_MINIFY = new Set(['scripts/admin-media-workspace.js']);
 const DIRS = ['scripts', 'styles'];
 
 const sha = (buf) => createHash('sha256').update(buf).digest('hex').slice(0, 16);
@@ -47,7 +48,7 @@ function targets() {
       if (isGenerated(f)) continue;
       if (!/\.(js|css)$/.test(f)) continue;
       const rel = `${dir}/${f}`;
-      if (fs.statSync(path.join(ROOT, rel)).size < MIN_BYTES) continue;
+      if (fs.statSync(path.join(ROOT, rel)).size < MIN_BYTES && !ALWAYS_MINIFY.has(rel)) continue;
       out.push(rel);
     }
   }
@@ -102,3 +103,4 @@ for (const rel of targets()) {
 }
 fs.writeFileSync(MANIFEST, JSON.stringify(next, null, 2) + '\n');
 console.log(`\ntotal ${before} -> ${after} bytes  (${((before - after) / 1024).toFixed(0)}KB saved)`);
+

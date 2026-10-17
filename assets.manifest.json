@@ -17,5 +17,6 @@
   "scripts/blog-page.js": "c5cd708a9be23b51",
   "scripts/payment-flow.js": "eca60ee51e286f95",
   "scripts/account-page.js": "09d4ab1f72ae704d",
-  "styles/store-template-refresh.css": "a9c56dd7851abad1"
+  "styles/store-template-refresh.css": "a9c56dd7851abad1",
+  "scripts/admin-media-workspace.js": "f6c0efc857efab62"
 }
