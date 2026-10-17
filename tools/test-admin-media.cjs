@@ -22,8 +22,13 @@ for (const file of ['admin.html', 'worker/index.js', '_headers']) {
   const policy = file === 'worker/index.js' ? source.match(/const ADMIN_CSP = "([^"]+)"/)[1] : source;
   const media = policy.match(/media-src ([^;]+);/)[1];
   assert.ok(media.includes("'self'"));
-  assert.ok(media.includes('https://syayxfxyqnnvmvrjoxyw.supabase.co'));
-  assert.ok(media.includes('https://wyvpuafzirwlwweifzao.supabase.co'));
+  if (file === '_headers') {
+    assert.ok(!media.includes('supabase.co'), 'public storefront uses same-origin media');
+  } else {
+    assert.ok(media.includes('https://syayxfxyqnnvmvrjoxyw.supabase.co'));
+    assert.ok(media.includes('https://wyvpuafzirwlwweifzao.supabase.co'));
+  }
   assert.ok(!media.includes('*'));
 }
 console.log('PASS: source/minified previews preserve storage URLs; legacy paths resolve; admin video policies allow configured hosts only');
+
