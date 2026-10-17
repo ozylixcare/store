@@ -320,3 +320,36 @@ html body #promo-media-section .pm-track:hover, html body #promo-media-section .
   .pm-reel-viewer { width:calc(100vw - 16px); max-height:calc(100dvh - 16px); border-radius:20px; }
 }
 @media (prefers-reduced-motion:reduce) { html body #promo-media-section .pm-track { animation:none!important; } }
+
+/* Keep the mobile filter sheet in viewport coordinates, above app chrome. */
+@media (max-width: 1024px) {
+  html body #page-shop.active { animation: none; transform: none; will-change: auto; }
+  html body #page-shop > .container { z-index: auto; transform: none; perspective: none; }
+  html body #page-shop #shopFilterSidebar {
+    position: fixed;
+    z-index: 1301;
+    top: max(8px, env(safe-area-inset-top, 0px));
+    bottom: max(8px, env(safe-area-inset-bottom, 0px));
+    left: 8px;
+    right: auto;
+    width: min(320px, calc(100vw - 36px));
+    height: calc(100dvh - max(8px, env(safe-area-inset-top, 0px)) - max(8px, env(safe-area-inset-bottom, 0px)));
+    max-height: calc(100dvh - max(8px, env(safe-area-inset-top, 0px)) - max(8px, env(safe-area-inset-bottom, 0px)));
+    padding: 0 16px 16px;
+    border-radius: 22px;
+    box-sizing: border-box;
+    transform: translateX(calc(-100% - 16px));
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  html body #page-shop #shopFilterSidebar.is-open { transform: translateX(0); }
+  html body #page-shop #filterScrim { position: fixed; inset: 0; z-index: 1300; }
+  html body #page-shop .filter-drawer-bar { flex: none; min-height: 70px; margin: 0 -16px 4px; padding: 12px 16px; font-size: 19px; }
+  html body #page-shop .filter-box { flex: none; padding: 0; }
+  html body #page-shop .filter-sec { padding: 12px 0; }
+  html body #page-shop .filter-sec h4 { margin-bottom: 8px; font-size: 12px; }
+  html body #page-shop .f-opt { min-height: 40px; padding: 6px 0; font-size: 12px; }
+  html body #page-shop .filter-drawer-apply { position: sticky; bottom: 0; z-index: 3; flex: none; margin: 12px 0; min-height: 44px; }
+  html body #page-shop .mm-side-card { flex: none; }
+}
