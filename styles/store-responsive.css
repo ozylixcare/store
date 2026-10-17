@@ -165,3 +165,74 @@
 @media (prefers-reduced-motion: reduce) {
   #appHamburgerBtn, #appHamburgerBtn .app-ham-line { transition: none; }
 }
+
+/* Reference panel framing shared by filters, cart and navigation. */
+html body #page-shop #shopHero {
+  order: -1;
+  width: 100%;
+  max-width: none;
+  align-self: stretch;
+  margin: 0 0 28px;
+  border-radius: 24px;
+  overflow: hidden;
+}
+@media (min-width: 1025px) {
+  html body #page-home > #heroBanner {
+    width: calc(100% - clamp(20px, 4vw, 48px)) !important;
+    max-width: var(--shell);
+    margin: 24px auto 26px !important;
+  }
+}
+html body #page-shop .filter-box {
+  display: block;
+  padding: 26px;
+  border: 1px solid var(--ui-line);
+  border-radius: 26px;
+  background: var(--ui-bg);
+  box-shadow: 0 12px 36px #30262b08;
+}
+html body #page-shop .filter-hdr { gap: 12px; padding-bottom: 20px; margin-bottom: 0; }
+html body #page-shop .filter-hdr h3 { font-size: 23px; font-weight: 500; letter-spacing: -.04em; }
+html body #page-shop .filter-clear { color: var(--ui-accent); font-size: 12px; font-weight: 500; }
+html body #page-shop .filter-sec { padding: 20px 0; border-color: var(--ui-line); }
+html body #page-shop .filter-sec h4 { margin-bottom: 12px; font-size: 13px; font-weight: 600; letter-spacing: 0; }
+html body #page-shop .f-opt { min-height: 44px; padding: 8px 0; gap: 12px; font-size: 13px; }
+html body #page-shop .f-opt input { width: 18px; height: 18px; flex: none; accent-color: var(--ui-accent); }
+html body #page-shop .price-slider input { accent-color: var(--ui-accent); }
+html body #page-shop .sort-sel { min-width: 0; min-height: 44px; padding: 11px 12px; border: 1px solid var(--ui-line); border-radius: 12px; background: var(--ui-surface); box-shadow: none; font-size: 13px; }
+html body :is(#sideCart,#appMenuDrawer) { background: var(--ui-bg); border-radius: 28px; border: 1px solid #ffffffb3; box-shadow: 0 24px 72px #30262b26; }
+html body #sideCart .sc-head { border-bottom: 0; padding-bottom: 14px; }
+html body #sideCart .sc-title { font-size: 27px; letter-spacing: -.045em; }
+html body :is(#sideCart .sc-close,#appMenuDrawer .app-menu-close,.filter-drawer-close) { min-width: 44px; min-height: 44px; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--ui-line); color: var(--ui-ink); background: var(--ui-surface); box-shadow: none; }
+html body #sideCart .sc-empty { padding-top: 68px; }
+html body :is(.side-cart-overlay,.app-menu-overlay,.filter-scrim) { background: #30262b66; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+@media (max-width: 1024px) {
+  html body #page-shop #shopFilterSidebar {
+    top: max(8px, env(safe-area-inset-top));
+    bottom: max(8px, env(safe-area-inset-bottom));
+    left: auto;
+    right: 8px;
+    width: min(460px, calc(100vw - 16px));
+    max-height: calc(100dvh - 16px);
+    padding: 0 22px 22px;
+    border: 1px solid #ffffffb3;
+    border-radius: 26px;
+    background: var(--ui-bg);
+    box-shadow: 0 24px 72px #30262b26;
+    transform: translateX(calc(100% + 16px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  html body #page-shop #shopFilterSidebar.is-open { transform: translateX(0); }
+  html body #page-shop .filter-drawer-bar { margin: 0 -22px 8px; padding: 22px; background: var(--ui-bg); box-shadow: none; border-bottom: 1px solid var(--ui-line); font-size: 23px; font-weight: 500; letter-spacing: -.04em; }
+  html body #page-shop .filter-box { padding: 8px 0; border: 0; border-radius: 0; box-shadow: none; }
+  html body #page-shop .filter-hdr h3 { display: none; }
+  html body #page-shop .filter-hdr { justify-content: flex-end; padding: 0; border: 0; }
+  html body #page-shop .filter-clear { min-height: 44px; }
+  html body #page-shop .filter-drawer-apply { min-height: 48px; margin: 18px 0; border-radius: 999px; background: var(--ui-accent); color: white; box-shadow: 0 5px 12px #74203515; }
+  html body #page-shop .mm-side-card { margin-top: 8px; }
+}
+@media (max-width: 600px) {
+  html body #page-shop #shopHero { margin-bottom: 20px; border-radius: 20px; }
+  html body :is(#sideCart,#appMenuDrawer) { border-radius: 24px; }
+}
