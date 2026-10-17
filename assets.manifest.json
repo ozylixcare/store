@@ -16,5 +16,6 @@
   "styles/store-main.css": "a739921ec1f1dcb4",
   "scripts/blog-page.js": "c5cd708a9be23b51",
   "scripts/payment-flow.js": "eca60ee51e286f95",
-  "scripts/account-page.js": "09d4ab1f72ae704d"
+  "scripts/account-page.js": "09d4ab1f72ae704d",
+  "styles/store-template-refresh.css": "78d91b6479d0dbbe"
 }
