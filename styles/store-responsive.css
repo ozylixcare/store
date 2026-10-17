@@ -236,3 +236,36 @@ html body :is(.side-cart-overlay,.app-menu-overlay,.filter-scrim) { background: 
   html body #page-shop #shopHero { margin-bottom: 20px; border-radius: 20px; }
   html body :is(#sideCart,#appMenuDrawer) { border-radius: 24px; }
 }
+
+/* Colourful navigation tiles inside the hamburger drawer. */
+html body #appMenuDrawer .app-menu-icon {
+  --menu-tint: #edf0ff;
+  --menu-edge: #d8dff8;
+  --menu-ink: #5269b8;
+  display: grid;
+  place-items: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  border: 1px solid var(--menu-edge);
+  background: var(--menu-tint);
+  color: var(--menu-ink);
+  font-size: 21px;
+  line-height: 1;
+  filter: none;
+  box-shadow: inset 0 1px 0 #ffffffb3, 0 2px 5px #30262b06;
+}
+html body #appMenuDrawer .app-menu-item[onclick*="Account"] .app-menu-icon,
+html body #appMenuDrawer .app-menu-item[onclick*="contact"] .app-menu-icon { --menu-tint:#eaf2ff; --menu-edge:#d2e2fa; --menu-ink:#3677b6; }
+html body #appMenuDrawer .app-menu-item[onclick*="wishlist"] .app-menu-icon { --menu-tint:#ffedf2; --menu-edge:#f6d4df; --menu-ink:#c13d68; font-size:27px; }
+html body #appMenuDrawer .app-menu-item[onclick*="Notification"] .app-menu-icon,
+html body #appMenuDrawer .app-menu-item[onclick*="VitaPopup"] .app-menu-icon { --menu-tint:#fff4d9; --menu-edge:#f4e1ad; --menu-ink:#a16a12; }
+html body #appMenuDrawer .app-menu-item[onclick*="SideCart"] .app-menu-icon,
+html body #appMenuDrawer .app-menu-item[onclick*="shop"] .app-menu-icon { --menu-tint:#fff0e7; --menu-edge:#f6dcc9; --menu-ink:#b86935; }
+html body #appMenuDrawer .app-menu-item[onclick*="advisor"] .app-menu-icon,
+html body #appMenuDrawer .app-menu-item[onclick*="about"] .app-menu-icon { --menu-tint:#e9f5ed; --menu-edge:#cfe7d6; --menu-ink:#3e8155; }
+html body #appMenuDrawer .app-menu-item[onclick*="download"] .app-menu-icon,
+html body #appMenuDrawer .app-menu-item[onclick*="blog"] .app-menu-icon { --menu-tint:#f1ebff; --menu-edge:#e0d5f6; --menu-ink:#8054b2; }
+html body #appMenuDrawer .app-menu-icon.vp3d-slot .vp3d { --vp3d:32px; --vp3d-sm:32px; }
+html body #appMenuDrawer .app-menu-avatar { background:#e9f5ed; border-color:#cfe7d6; color:#3e8155; filter:none; }
