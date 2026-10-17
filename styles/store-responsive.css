@@ -269,3 +269,24 @@ html body #appMenuDrawer .app-menu-item[onclick*="download"] .app-menu-icon,
 html body #appMenuDrawer .app-menu-item[onclick*="blog"] .app-menu-icon { --menu-tint:#f1ebff; --menu-edge:#e0d5f6; --menu-ink:#8054b2; }
 html body #appMenuDrawer .app-menu-icon.vp3d-slot .vp3d { --vp3d:32px; --vp3d-sm:32px; }
 html body #appMenuDrawer .app-menu-avatar { background:#e9f5ed; border-color:#cfe7d6; color:#3e8155; filter:none; }
+
+/* Compact wellness introduction beneath the campaign banner. */
+html body #page-home #shaderHero.shader-hero {
+  min-height: 0 !important;
+  padding: clamp(18px, 2.2vw, 28px) 0 !important;
+}
+html body #page-home #shaderHero .shader-badge { margin: 0 0 10px; padding: 0; font-size: 10px; letter-spacing: .13em; }
+html body #page-home #shaderHero .shader-headline { margin: 0 0 16px; }
+html body #page-home #shaderHero .sh-line-1 { font-size: 11px; letter-spacing: .2em; margin-bottom: 8px; }
+html body #page-home #shaderHero .sh-line-2,
+html body #page-home #shaderHero .sh-line-3 { font-size: clamp(28px, 3vw, 40px); line-height: 1.08; }
+html body #page-home #shaderHero .shader-btn-primary { min-height: 44px; padding: 10px 23px; font-size: 13px; }
+html body #page-home #shaderHero .shader-cta-row { gap: 10px; }
+@media (max-width: 600px) {
+  html body #page-home #shaderHero.shader-hero { padding: 18px 0 !important; }
+  html body #page-home #shaderHero .shader-badge { font-size: 9px; margin-bottom: 8px; }
+  html body #page-home #shaderHero .sh-line-1 { font-size: 10px; margin-bottom: 6px; }
+  html body #page-home #shaderHero .sh-line-2,
+  html body #page-home #shaderHero .sh-line-3 { font-size: clamp(25px, 6.5vw, 32px); }
+  html body #page-home #shaderHero .shader-headline { margin-bottom: 12px; }
+}
