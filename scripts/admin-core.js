@@ -466,6 +466,7 @@ async function adminProofUpload(path, formData, promptText) {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token, 'X-Password-Proof': proof },
       body: formData,
+      signal: AbortSignal.timeout(120000),
     });
   });
 }
@@ -8841,3 +8842,4 @@ function renderVisitorBehavior(behavior, note) {
   }
   const n=document.getElementById('vaCollectionNote');if(n)n.textContent=note||'';
 }
+

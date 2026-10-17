@@ -37,14 +37,14 @@ export async function handleApiRequest(request) {
     if (request.headers.get('Sec-Fetch-Site') === 'cross-site') return privateResponse('Origin not allowed',403);
   }
   const headers = new Headers();
-  for (const name of ['User-Agent','Accept','Content-Type','Authorization','Range','If-Range','X-Session-Id','X-Device-Id','X-Idempotency-Key','X-Payment-Session','X-Security-Version','X-Request-Id','X-Requested-With']) {
+  for (const name of ['User-Agent','Accept','Content-Type','Authorization','Range','If-Range','X-Session-Id','X-Device-Id','X-Idempotency-Key','X-Payment-Session','X-Security-Version','X-Request-Id','X-Requested-With','X-Password-Proof']) {
     if (request.headers.has(name)) headers.set(name,request.headers.get(name));
   }
   headers.set('Origin',url.origin);
   const ip = request.headers.get('CF-Connecting-IP');
   if (ip) headers.set('X-Forwarded-For',ip);
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(),25000);
+  const timeout = setTimeout(() => controller.abort(),path === '/api/upload/image' && request.method === 'POST' ? 90000 : 25000);
   try {
     const upstream = await fetch((tracking ? MARKETING : BACKEND) + path + url.search, {
       method:request.method,headers,redirect:'manual',signal:controller.signal,
@@ -70,3 +70,4 @@ export async function handleApiRequest(request) {
     return privateResponse('Service temporarily unavailable. Please retry.',502);
   } finally { clearTimeout(timeout); }
 }
+
