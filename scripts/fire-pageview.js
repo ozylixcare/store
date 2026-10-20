@@ -56,3 +56,6 @@
   });
   window.addEventListener('hashchange', firePageView);
 })();
+
+// The help centre enhances the existing accessible, prerendered answers.
+(function(){function load(){if(!document.getElementById('fullFaqWrap')||document.getElementById('ozFaqExperience'))return;var script=document.createElement('script');script.id='ozFaqExperience';script.src='/scripts/faq-experience.js?v=20261020-1';document.head.appendChild(script);}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load);else load();})();

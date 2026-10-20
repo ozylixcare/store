@@ -414,3 +414,58 @@ html body #page-faq .faq-detail[open] summary { color:var(--ui-accent); }
 html body #page-faq .faq-detail-answer { padding:0 20px 18px; }
 html body #page-faq .faq-detail-answer p { color:var(--ui-muted); font-size:13px; line-height:1.8; margin:0; }
 @media(max-width:600px) { html body #page-faq .faq-detail summary { padding:15px 16px; } html body #page-faq .faq-detail-answer { padding:0 16px 16px; } }
+
+/* Ozylix help centre: clear topic navigation and readable answer cards. */
+html body #page-faq { background:#f6f8f4; color:#213e30; }
+html body #page-faq .page-header { max-width:1160px; margin:0 auto; padding:56px 24px 36px; text-align:center; background:transparent; }
+html body #page-faq .faq-eyebrow { display:block; font-size:11px; font-weight:700; letter-spacing:.16em; color:#607865; margin:0 0 18px; }
+html body #page-faq .page-header h1 { font-size:clamp(32px,4.8vw,60px); line-height:1.12; letter-spacing:-.045em; color:#213e30; margin:0 0 20px; font-weight:600; }
+html body #page-faq .page-header h1 em { color:#6a8469; font-style:normal; }
+html body #page-faq .page-header p { font-size:15px; line-height:1.8; color:#617365; max-width:560px; margin:0 auto; }
+html body #page-faq .section { padding:18px 0 80px; }
+html body #page-faq .faq-layout { display:grid; grid-template-columns:260px minmax(0,1fr); column-gap:48px; max-width:1160px!important; padding:0 24px; align-items:start; }
+html body #page-faq .faq-sidebar { grid-column:1; grid-row:1 / span 2; position:sticky; top:110px; }
+html body #page-faq .faq-sidebar nav { display:grid; gap:6px; }
+html body #page-faq .faq-sidebar nav a { display:flex; align-items:center; justify-content:space-between; gap:12px; color:#526557; text-decoration:none; font-size:13px; font-weight:500; padding:13px 14px; border-radius:12px; transition:background .2s,color .2s; }
+html body #page-faq .faq-sidebar nav a:hover,html body #page-faq .faq-sidebar nav a.is-active { background:#e5ecdf; color:#234b32; }
+html body #page-faq .faq-topic-count { font-size:11px; color:#788b78; }
+html body #page-faq .faq-help-card { margin-top:26px; border-radius:20px; padding:24px; background:#e6eddf; border:1px solid #d9e3d2; }
+html body #page-faq .faq-help-mark { display:grid; place-items:center; width:36px; height:36px; border-radius:50%; background:#fff9; font-size:22px; color:#406640; margin-bottom:22px; }
+html body #page-faq .faq-help-card h2 { font-size:19px; letter-spacing:-.03em; margin:0 0 10px; color:#294b33; }
+html body #page-faq .faq-help-card p { font-size:13px; line-height:1.7; color:#62735d; margin:0 0 20px; }
+html body #page-faq .faq-help-card>a { display:flex; justify-content:space-between; font-size:13px; color:#2d5f3f; font-weight:700; text-decoration:none; }
+html body #page-faq .faq-search { grid-column:2; padding:0 0 24px; }
+html body #page-faq .faq-search label { display:block; font-size:13px; font-weight:600; margin:0 0 10px; color:#38543d; }
+html body #page-faq .faq-search-field { display:flex; align-items:center; gap:12px; background:#fff; border:1px solid #dce4d7; border-radius:14px; padding:0 17px; box-shadow:0 4px 14px #183c2003; }
+html body #page-faq .faq-search-field>span { font-size:26px; color:#7d917c; }
+html body #page-faq .faq-search input { width:100%; min-width:0; height:54px; font:inherit; font-size:14px; color:#213e30; border:0; background:transparent; outline:none; }
+html body #page-faq .faq-search-field:focus-within { outline:2px solid #628b57; outline-offset:3px; }
+html body #page-faq #faqSearchStatus { color:#71816e; font-size:12px; margin:9px 1px 0; min-height:20px; }
+html body #page-faq #fullFaqWrap { grid-column:2; min-width:0; }
+html body #page-faq .faq-topic { margin:0 0 36px; scroll-margin-top:110px; }
+html body #page-faq .faq-topic h2 { font-size:21px; font-weight:600; letter-spacing:-.025em; color:#274631; margin:0 0 16px; padding-top:6px; }
+html body #page-faq .faq-detail { margin:0 0 10px; border:1px solid #e0e7db; border-radius:15px; background:#fff; box-shadow:0 3px 12px #28442a02; }
+html body #page-faq .faq-detail summary { display:flex; align-items:center; justify-content:space-between; gap:22px; list-style:none; padding:20px 22px; color:#314b38; font-size:14px; font-weight:500; line-height:1.6; }
+html body #page-faq .faq-detail summary::-webkit-details-marker { display:none; }
+html body #page-faq .faq-detail summary::after { content:'+'; flex-shrink:0; display:grid; place-items:center; width:26px; height:26px; border-radius:50%; background:#f0f4eb; color:#627e54; font:20px/1 system-ui; }
+html body #page-faq .faq-detail[open] { border-color:#c2d3b7; }
+html body #page-faq .faq-detail[open] summary { color:#2d5f3f; }
+html body #page-faq .faq-detail[open] summary::after { content:'−'; background:#e6efdc; }
+html body #page-faq .faq-detail-answer { padding:0 62px 22px 22px; }
+html body #page-faq .faq-detail-answer p { font-size:13px; line-height:1.9; color:#657263; margin:0; }
+html body #page-faq [hidden] { display:none!important; }
+html body #page-faq a:focus-visible,html body #page-faq summary:focus-visible { outline:2px solid #628b57; outline-offset:3px; }
+@media(max-width:800px) {
+ html body #page-faq .page-header { padding:30px 20px 22px; }
+ html body #page-faq .page-header p { font-size:13px; }
+ html body #page-faq .faq-layout { grid-template-columns:minmax(0,1fr); padding:0 16px; gap:0; }
+ html body #page-faq .faq-sidebar { grid-column:1; grid-row:auto; position:static; margin:0 0 22px; }
+ html body #page-faq .faq-sidebar>.faq-eyebrow { margin-bottom:10px; font-size:10px; }
+ html body #page-faq .faq-sidebar nav { display:flex; overflow-x:auto; gap:8px; padding-bottom:6px; scrollbar-width:thin; }
+ html body #page-faq .faq-sidebar nav a { flex:0 0 auto; white-space:nowrap; border:1px solid #dfe7d8; background:#fff; padding:10px 12px; font-size:12px; }
+ html body #page-faq .faq-help-card { display:none; }
+ html body #page-faq .faq-search,html body #page-faq #fullFaqWrap { grid-column:1; }
+ html body #page-faq .faq-detail summary { padding:17px 16px; font-size:13px; gap:14px; }
+ html body #page-faq .faq-detail-answer { padding:0 16px 18px; }
+ html body #page-faq .faq-topic h2 { font-size:19px; }
+}
