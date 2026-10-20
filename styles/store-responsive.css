@@ -402,3 +402,15 @@ html body #page-shop #mmShopBanner .mm-visual-ico { display:grid; place-items:ce
 @media(min-width:701px) {
   html body #page-shop .shop-promos > [data-extra-shop-banner]:last-child:nth-child(odd) { grid-column:1/-1; width:calc(50% - 8px); justify-self:center; }
 }
+
+/* Readable, linkable FAQ topics with native keyboard-accessible answers. */
+html body #page-faq .section { padding:24px 0 64px; }
+html body #page-faq .faq-topic { margin:0 0 32px; scroll-margin-top:100px; }
+html body #page-faq .faq-topic h2 { font-size:21px; line-height:1.3; margin:0 0 14px; }
+html body #page-faq .faq-detail { margin:0 0 10px; border:1px solid var(--ui-line); border-radius:16px; background:var(--ui-surface); overflow:hidden; }
+html body #page-faq .faq-detail summary { padding:17px 20px; color:var(--ui-ink); font-size:14px; font-weight:500; cursor:pointer; line-height:1.5; }
+html body #page-faq .faq-detail summary:focus-visible { outline:2px solid var(--ui-accent); outline-offset:-3px; border-radius:16px; }
+html body #page-faq .faq-detail[open] summary { color:var(--ui-accent); }
+html body #page-faq .faq-detail-answer { padding:0 20px 18px; }
+html body #page-faq .faq-detail-answer p { color:var(--ui-muted); font-size:13px; line-height:1.8; margin:0; }
+@media(max-width:600px) { html body #page-faq .faq-detail summary { padding:15px 16px; } html body #page-faq .faq-detail-answer { padding:0 16px 16px; } }
