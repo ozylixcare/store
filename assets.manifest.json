@@ -18,5 +18,6 @@
   "scripts/payment-flow.js": "eca60ee51e286f95",
   "scripts/account-page.js": "09d4ab1f72ae704d",
   "styles/store-template-refresh.css": "a9c56dd7851abad1",
-  "scripts/admin-media-workspace.js": "f6c0efc857efab62"
+  "scripts/admin-media-workspace.js": "f6c0efc857efab62",
+  "styles/store-responsive.css": "6680bcbec7d40bc1"
 }
