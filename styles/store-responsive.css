@@ -353,3 +353,52 @@ html body #promo-media-section .pm-track:hover, html body #promo-media-section .
   html body #page-shop .filter-drawer-apply { position: sticky; bottom: 0; z-index: 3; flex: none; margin: 12px 0; min-height: 44px; }
   html body #page-shop .mm-side-card { flex: none; }
 }
+
+/* A readable shop promotion grid: complete artwork and calm information cards. */
+html body #page-shop .shop-promos { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-top:38px; padding-top:28px; border-top:1px solid var(--ui-line); }
+html body #page-shop .shop-promos > * { min-width:0; margin:0; }
+html body #page-shop .shop-promos-intro { grid-column:1/-1; margin-bottom:4px; }
+html body #page-shop .shop-promos-eyebrow { display:block; margin-bottom:7px; color:var(--ui-accent); font-size:10px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; }
+html body #page-shop .shop-promos-title { font-size:clamp(22px,2.4vw,30px); line-height:1.15; margin:0 0 8px; color:var(--ui-ink); }
+html body #page-shop .shop-promos-intro p { font-size:13px; line-height:1.6; color:var(--ui-muted); margin:0; }
+html body #page-shop .shop-promos #mmShopBanner { grid-column:1/-1; display:flex; gap:16px; padding:22px; background:var(--ui-soft); border:1px solid var(--ui-line); border-radius:20px; box-shadow:none; }
+html body #page-shop #mmShopBanner .mm-visual { width:48px; height:48px; flex:0 0 48px; border-radius:14px; background:var(--ui-surface); border:1px solid var(--ui-line); }
+html body #page-shop #mmShopBanner .mm-title { font-size:17px; line-height:1.35; color:var(--ui-ink); }
+html body #page-shop #mmShopBanner .mm-sub { font-size:12px; line-height:1.6; margin-top:5px; color:var(--ui-muted); }
+html body #page-shop #mmShopBanner .mm-cta { display:block; white-space:normal; text-align:center; flex:0 0 150px; padding:12px 16px; border-radius:999px; background:var(--ui-accent); color:white; font-size:11px; line-height:1.4; box-shadow:none; }
+html body #page-shop #shopOfferBar { grid-column:1/-1; }
+html body #page-shop #shopOfferBar:empty { display:none; }
+html body #page-shop .shop-banner-slot { align-self:start; aspect-ratio:auto; min-height:0; margin:0; border:1px solid var(--ui-line); border-radius:20px; background:var(--ui-surface); box-shadow:none; }
+html body #page-shop .shop-banner-slot > img { position:static; inset:auto; display:block; width:100%; height:auto; object-fit:contain; aspect-ratio:auto 1600/686; }
+html body #page-shop .shop-banner-slot[data-no-img="no"] .sb-overlay { display:none; }
+html body #page-shop .shop-banner-slot[data-no-img="yes"] { align-self:stretch; min-height:128px; }
+html body #page-shop .shop-banner-slot[data-no-img="yes"] .sb-overlay { position:relative; inset:auto; height:100%; padding:22px; background:none; justify-content:flex-start; align-items:center; text-align:left; }
+html body #page-shop .shop-banner-slot[data-no-img="yes"] .sb-copy { display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:8px; max-width:none; padding:0; color:var(--ui-ink); }
+html body #page-shop .shop-banner-slot .sb-copy h3 { color:var(--ui-ink); font-size:16px; line-height:1.35; letter-spacing:-.025em; }
+html body #page-shop .shop-banner-slot .sb-copy p { color:var(--ui-muted); font-size:12px; line-height:1.6; }
+html body #page-shop .shop-banner-slot .vp3d { display:none; }
+html body #page-shop .shop-campaign { grid-column:1/-1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin:0; }
+html body #page-shop .shop-campaign-card { min-height:132px; padding:22px; text-align:left; background:var(--ui-surface); border:1px solid var(--ui-line); border-radius:20px; color:var(--ui-ink); box-shadow:none; gap:14px; }
+html body #page-shop .shop-campaign-card .sc-label { font-size:9px; color:var(--ui-accent); opacity:1; letter-spacing:.12em; }
+html body #page-shop .shop-campaign-card h3 { font-size:17px; line-height:1.4; color:var(--ui-ink); margin-top:7px; font-weight:500; }
+html body #page-shop .shop-campaign-card .sc-cta { font-size:11px; padding:0; margin:0; min-height:24px; border:0; background:none; color:var(--ui-accent); }
+html body #page-shop .shop-campaign-card:hover { transform:translateY(-2px); border-color:var(--ui-accent); box-shadow:0 6px 20px #30262b09; }
+@media(max-width:700px) {
+  html body #page-shop .shop-promos { gap:12px; margin-top:28px; padding-top:22px; }
+  html body #page-shop .shop-promos #mmShopBanner { padding:18px; gap:12px; flex-wrap:wrap; }
+  html body #page-shop #mmShopBanner .mm-copy { flex:1 1 calc(100% - 64px); }
+  html body #page-shop #mmShopBanner .mm-title { font-size:16px; }
+  html body #page-shop #mmShopBanner .mm-cta { flex:1 1 100%; min-height:44px; }
+  html body #page-shop .shop-banner-slot[data-no-img="no"] { grid-column:1/-1; }
+  html body #page-shop .shop-banner-slot[data-no-img="yes"] .sb-overlay { padding:16px; }
+  html body #page-shop .shop-banner-slot .sb-copy h3 { font-size:14px; }
+  html body #page-shop .shop-banner-slot .sb-copy p { font-size:11px; }
+  html body #page-shop .shop-campaign { gap:12px; }
+  html body #page-shop .shop-campaign-card { min-height:142px; padding:16px; }
+  html body #page-shop .shop-campaign-card h3 { font-size:15px; }
+}
+@media(max-width:380px) { html body #page-shop .shop-campaign { grid-template-columns:1fr; } }
+html body #page-shop #mmShopBanner .mm-visual-ico { display:grid; place-items:center; color:var(--ui-accent); }
+@media(min-width:701px) {
+  html body #page-shop .shop-promos > [data-extra-shop-banner]:last-child:nth-child(odd) { grid-column:1/-1; width:calc(50% - 8px); justify-self:center; }
+}

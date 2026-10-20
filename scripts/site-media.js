@@ -18,19 +18,57 @@
       return String(u).indexOf('/cdn-storage/ozylix%20store/') === 0 ? String(u) : '';
     }
     function smCdn(u){ return (typeof cdnImg === 'function') ? cdnImg(u) : smCdnFallback(u); }
+    function organiseShopPromos(){
+      var wrap = document.querySelector('.shop-promos');
+      if (!wrap || wrap.querySelector('.shop-promos-intro')) return;
+      var intro = document.createElement('div');
+      intro.className = 'shop-promos-intro';
+      var label = document.createElement('span');
+      label.className = 'shop-promos-eyebrow'; label.textContent = 'A little more Ozylix';
+      var title = document.createElement('h2');
+      title.className = 'shop-promos-title'; title.textContent = 'Make more of your routine';
+      var text = document.createElement('p');
+      text.textContent = 'Explore bundles, rewards and the latest offers.';
+      intro.append(label, title, text);
+      wrap.prepend(intro);
+      var gift = wrap.querySelector('.mm-visual-ico');
+      if (gift) gift.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h16v10H4zM3 6h18v4H3zM12 6v14"/><path d="M12 6H8.5A2.5 2.5 0 1 1 11 3.5L12 6Zm0 0h3.5A2.5 2.5 0 1 0 13 3.5L12 6Z"/></svg>';
+      wrap.querySelectorAll('.sb-copy h3').forEach(function(heading){
+        heading.textContent = heading.textContent.replace(/^[✨💎]\s*/u, '');
+      });
+      wrap.querySelectorAll('div.shop-campaign-card').forEach(function(card){
+        var button = document.createElement('button');
+        Array.from(card.attributes).forEach(function(attr){ button.setAttribute(attr.name, attr.value); });
+        button.type = 'button';
+        while (card.firstChild) button.appendChild(card.firstChild);
+        card.replaceWith(button);
+      });
+    }
     function applySiteMedia(map){
       if(!map) return;
+      organiseShopPromos();
       document.querySelectorAll('[data-media-key]').forEach(function(el){
         var key = el.getAttribute('data-media-key');
-        if(map[key]) el.src = smCdn(map[key]);
+        if (!/^shop\.banner\./.test(key) && map[key]) el.src = smCdn(map[key]);
       });
       if(map['about.hero_background']) document.documentElement.style.setProperty('--about-hero-bg', "url('"+smCdn(map['about.hero_background'])+"')");
       if(map['b2b.hero_background']) document.documentElement.style.setProperty('--b2b-hero-bg', "url('"+smCdn(map['b2b.hero_background'])+"')");
       // Reveal shop banners when their upload exists (fixed slots)
       ['shop.banner.1','shop.banner.2','shop.banner.mix_match'].forEach(function(k){
-        if(map[k]){
-          var el=document.querySelector('[data-media-key="'+k+'"]');
-          if(el){el.style.display='';el.onload=function(){var s=el.closest('[data-no-img]');if(s)s.setAttribute('data-no-img','no');};if(el.complete){var s=el.closest('[data-no-img]');if(s)s.setAttribute('data-no-img','no');}}
+        var el = document.querySelector('[data-media-key="'+k+'"]');
+        if (!el) return;
+        var slot = el.closest('[data-no-img]');
+        var src = map[k] && smCdn(map[k]);
+        el.onload = function(){
+          if (el.naturalWidth > 0) { el.style.display = ''; if(slot) slot.setAttribute('data-no-img','no'); }
+        };
+        el.onerror = function(){ el.style.display = 'none'; if(slot) slot.setAttribute('data-no-img','yes'); };
+        if (!src) {
+          el.removeAttribute('src'); el.style.display = 'none';
+          if(slot) slot.setAttribute('data-no-img','yes');
+        } else {
+          el.src = src;
+          if(el.complete && el.naturalWidth > 0) el.onload();
         }
       });
       // Aug 2026: admin-uploaded image slots. Kept early and global so any
@@ -47,7 +85,7 @@
     //   site.og_image             — og:image / twitter:image
     //   fallback.*                — category product-image fallbacks
     function applyAdminImageFamilies(map) {
-      if (!map || !Object.keys(map).length) return;
+      if (!map) return;
       var imgCdn = smCdn;
       // Offer banner carousel — admin decides the count (any positive N).
       var bnSlides = [];
@@ -73,23 +111,30 @@
           if (k.match(/^shop\.banner\.(\d+)$/) && !taken.has(k)) extras.push({ key: k, n: +k.split('.').pop(), url: map[k] });
         });
         extras.sort(function (a, b) { return a.n - b.n; });
+        var keys = new Set(extras.map(function(e){ return e.key; }));
+        sbWrap.querySelectorAll('[data-extra-shop-banner]').forEach(function(slot){
+          var image = slot.querySelector('img');
+          if (!image || !keys.has(image.getAttribute('data-media-key'))) slot.remove();
+        });
         extras.forEach(function (e, idx) {
-          var slot = document.getElementById('shopBannerSlot' + (idx + 3));
+          var slot = document.getElementById('shopBannerSlot' + e.n);
           if (!slot) {
             slot = document.createElement('div');
             slot.className = 'shop-banner-slot';
-            slot.id = 'shopBannerSlot' + (idx + 3);
+            slot.id = 'shopBannerSlot' + e.n;
             slot.setAttribute('data-no-img', 'yes');
+            slot.setAttribute('data-extra-shop-banner', '');
             var img = document.createElement('img');
-            img.id = 'shopBannerImg' + (idx + 3);
+            img.id = 'shopBannerImg' + e.n;
             img.loading = 'lazy';
             img.style.display = 'none';
-            img.onerror = function () { this.style.display = 'none'; };
+            img.onerror = function () { this.closest('.shop-banner-slot').style.display = 'none'; };
+            img.onload = function () { if (this.naturalWidth > 0) this.closest('.shop-banner-slot').style.display = ''; };
             slot.appendChild(img);
             sbWrap.appendChild(slot);
           }
           var img2 = slot.querySelector('img') || slot.querySelector('[data-media-key]');
-          if (img2) { img2.src = imgCdn(e.url); img2.setAttribute('data-media-key', e.key); img2.setAttribute('alt', 'Ozylix supplement range banner'); img2.style.display = ''; }
+          if (img2) { var resolved = imgCdn(e.url); if(img2.getAttribute('src') !== resolved) img2.src = resolved; img2.setAttribute('data-media-key', e.key); img2.setAttribute('alt', 'Ozylix supplement range banner'); img2.style.display = ''; }
           slot.setAttribute('data-no-img', 'no');
         });
       }
@@ -228,6 +273,7 @@
     // means the hero is built with its images on the first pass: no empty
     // display:none section, no late is-live flip pushing the page down.
     function startSiteMedia(){
+      organiseShopPromos();
       // Do not hydrate localStorage or a build-time snapshot: either can keep
       // deleted media visible after an admin delete. Every image slot starts
       // empty and is populated only by the current backend response.
