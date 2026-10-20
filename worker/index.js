@@ -338,7 +338,9 @@ export default {
       // Serve the app shell while keeping the visitor's URL and a 200, so the
       // page is indexable. index.html reads location.pathname on boot and opens
       // the matching page or product.
-      const shell = await env.ASSETS.fetch(new URL('/', url));
+      // FAQ answers and metadata are available to crawlers before JavaScript.
+      const assetPath = url.pathname.replace(/\/+$/, '') === '/faq' ? '/faq/' : '/';
+      const shell = await env.ASSETS.fetch(new URL(assetPath, url));
       return publicHeaders(new Response(shell.body, { status: shell.status, headers: shell.headers }));
     }
 

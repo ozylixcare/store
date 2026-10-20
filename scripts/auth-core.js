@@ -97,18 +97,156 @@
 // ── BLOG DATA ──
 // ── FAQ DATA ──
 const FAQS = [
-  { q:"How long does delivery take?", a:"Standard delivery across India generally takes 3–5 business days. Online prepaid orders below ₹999 have a ₹69 shipping fee; prepaid shipping is free when the paid subtotal reaches ₹999 or more. COD orders have a ₹69 delivery fee. Dispatch is normally within 24–48 hours, and the tracking link is sent after dispatch.", cat:"Shipping" },
-  { q:"What payment methods do you accept?", a:"Payment options shown at checkout may include UPI, cards, net banking, supported wallets or EMI options, and Cash on Delivery where available for your PIN code. The available methods are confirmed by the payment provider at checkout.", cat:"Payment" },
-  { q:'How does Mix & Match work?', a:"Add four eligible units and the lowest-priced eligible unit becomes free. Mix & Match is a standalone offer: if it unlocks, any coupon code or additional percentage discount is removed rather than stacked. The final saving is recalculated securely at checkout.", cat:"Offers" },
-  { q:"Are Ozylix products FSSAI approved?", a:"Yes. All Ozylix products are manufactured in FSSAI-licensed facilities and meet all regulatory requirements for food supplements in India. Product licenses are available on request.", cat:"Products" },
-  { q:"Can I take multiple supplements together?", a:"Generally yes, but we recommend checking with your doctor if you're on medications. Ozylix supplements are designed to be safe when combined. Our Combo Kits are specifically curated for safe, effective multi-supplement use.", cat:"Products" },
-  { q:"How do I track my order?", a:"After dispatch, you'll receive an SMS and email with a tracking link from our shipping partner (Shiprocket). Track directly at shiprocket.in/shipment-tracking or via the link in your confirmation email.", cat:"Shipping" },
-  { q:"Is COD available? Are there extra charges?", a:"Cash on Delivery is offered where the delivery PIN code supports it and carries a ₹69 delivery fee. Online prepaid orders below ₹999 have a ₹69 shipping fee; prepaid shipping is free at ₹999 or more.", cat:"Payment" },
-  { q:"Can I return or exchange products?", a:"Request a return within 7 days of delivery for sealed and unused products. Damaged, defective, or incorrect items should be reported promptly with photographs. Refunds are processed after the return is received and checked; promotional discounts and redeemed VitaPoints are reversed according to the final eligible amount.", cat:"Returns" },
-  { q:"How should I store the products?", a:"Store all Ozylix products in a cool, dry place below 30°C. Keep away from direct sunlight and moisture. After opening effervescent tablet tubes, seal tightly and use within 30 days.", cat:"Products" },
-  { q:"Are these suitable for vegetarians/vegans?", a:"All Ozylix supplements are 100% vegetarian. The spirulina products are also vegan. Glutathione and B1+Biotin are vegetarian but check if vegan-strict, as some capsule shells may vary.", cat:"Products" },
-  { q:"How do I apply a discount code?", a:"Enter one active code in the Apply Coupon field and press Apply. A coupon cannot be stacked with Mix & Match when Mix & Match unlocks, and the server checks expiry, usage limits, minimum order value, and the maximum permitted saving again before payment.", cat:"Offers" },
-  { q:"Do you offer bulk/wholesale pricing?", a:"Yes. For bulk orders or wholesale partnerships, contact hi@ozylix.com or call +91 9898 582 650. Bulk pricing and quantities are quoted separately and are not automatically combined with consumer coupons or Mix & Match.", cat:"Orders" },
+  {
+    "cat": "About Ozylix",
+    "q": "What is Ozylix?",
+    "a": "Ozylix is an Indian supplement brand from Ascovita Healthcare. The range includes effervescent tablets, multivitamins, spirulina-based products and selected herbal supplements. The official online store is www.ozylix.com."
+  },
+  {
+    "cat": "About Ozylix",
+    "q": "Who manufactures Ozylix supplements?",
+    "a": "Ozylix is a consumer brand of Ascovita Healthcare, based in Anand, Gujarat, India. Check your product label for the manufacturer, address, batch number and product-specific details."
+  },
+  {
+    "cat": "About Ozylix",
+    "q": "Where are Ozylix products made?",
+    "a": "Ozylix products are made in Anand, Gujarat, India. The product label identifies the manufacturing details for your particular pack."
+  },
+  {
+    "cat": "About Ozylix",
+    "q": "Where can I find FSSAI, batch and expiry information?",
+    "a": "Check the product packaging for its FSSAI licence number, manufacturer information, batch or lot number, and manufacture and expiry dates. Contact hi@ozylix.com if a label is unclear or you need help checking a pack."
+  },
+  {
+    "cat": "Choosing and using products",
+    "q": "What types of supplements does Ozylix offer?",
+    "a": "The Ozylix catalogue includes effervescent tablets such as glutathione, vitamin C with amla and apple cider vinegar, alongside multivitamin, spirulina and herbal ranges. Browse the current Shop page for active products, ingredients, pack options and availability."
+  },
+  {
+    "cat": "Choosing and using products",
+    "q": "How do I choose an Ozylix supplement?",
+    "a": "Compare the ingredients, nutrient amounts, directions, age guidance and warnings on each product page and label. Choose for your dietary needs rather than combining products with overlapping nutrients. A qualified healthcare professional can help if you are unsure."
+  },
+  {
+    "cat": "Choosing and using products",
+    "q": "What is an effervescent tablet?",
+    "a": "An effervescent tablet is designed to dissolve in water before drinking. Use the water quantity and serving directions printed on the specific Ozylix product label; do not assume every formula has the same directions."
+  },
+  {
+    "cat": "Choosing and using products",
+    "q": "Are effervescent tablets always better absorbed than regular tablets?",
+    "a": "No blanket claim applies to every nutrient or formula. Effervescent tablets dissolve in water, but absorption depends on the ingredient, formulation and individual circumstances. The format alone does not establish that one supplement is superior."
+  },
+  {
+    "cat": "Choosing and using products",
+    "q": "How do I take an Ozylix effervescent tablet?",
+    "a": "Follow the serving size and water volume on your product label. Let the tablet dissolve fully before drinking and observe the label warnings. Directions for one Ozylix product should not be applied automatically to another."
+  },
+  {
+    "cat": "Choosing and using products",
+    "q": "Can I take multiple supplements together?",
+    "a": "Check all ingredient lists and serving amounts for overlap. Do not assume a bundle or combination is appropriate for everyone. Seek advice from a qualified healthcare professional if you take medicines or have questions about suitability."
+  },
+  {
+    "cat": "Choosing and using products",
+    "q": "Are Ozylix products vegetarian, vegan or allergen-free?",
+    "a": "Dietary suitability and allergen information are product-specific. Check the label and current product page for the formula you plan to buy. Do not assume the entire range is vegan, allergen-free or suitable for every dietary restriction."
+  },
+  {
+    "cat": "Choosing and using products",
+    "q": "How should I store Ozylix supplements?",
+    "a": "Follow the storage instructions on the pack, including any temperature limits and guidance after opening. Keep products protected from moisture and direct sunlight, close the container after use and keep it out of reach of children."
+  },
+  {
+    "cat": "Choosing and using products",
+    "q": "Are Ozylix supplements medicines?",
+    "a": "Ozylix dietary supplements support a balanced diet and lifestyle. They are not intended to diagnose, treat, cure or prevent disease and are not a replacement for prescribed treatment."
+  },
+  {
+    "cat": "Ordering and delivery",
+    "q": "What payment methods do you accept?",
+    "a": "Checkout shows the payment methods currently available for your order. These may include UPI, cards, net banking and supported payment-provider options. Cash on Delivery is offered only for eligible orders and delivery PIN codes."
+  },
+  {
+    "cat": "Ordering and delivery",
+    "q": "Is COD available? Are there extra charges?",
+    "a": "Cash on Delivery is available only when offered at checkout for your PIN code. The published COD delivery charge is ₹69. Final delivery charges and eligibility are confirmed at checkout before you place the order."
+  },
+  {
+    "cat": "Ordering and delivery",
+    "q": "Is prepaid delivery free?",
+    "a": "The published prepaid delivery charge is ₹69 below a paid subtotal of ₹999, with free prepaid delivery from ₹999. Checkout confirms the final charge and whether the offer applies to your address and order."
+  },
+  {
+    "cat": "Ordering and delivery",
+    "q": "How long does delivery take?",
+    "a": "Standard delivery generally takes 3–5 business days after dispatch. Timing can vary by PIN code, courier service and operational conditions. Use the tracking information for the latest status of your shipment."
+  },
+  {
+    "cat": "Ordering and delivery",
+    "q": "How do I track my order?",
+    "a": "Sign in to the same Ozylix account used for your purchase and open My Orders. Use the shipment tracking link when available. If an order or tracking update is missing, contact support with your order number."
+  },
+  {
+    "cat": "Ordering and delivery",
+    "q": "Can I change my delivery address or cancel an order?",
+    "a": "Contact support promptly with your order number. Address changes and cancellations depend on the order status and may not be possible after dispatch. Check the Refund, Return & Cancellation Policy for the applicable conditions."
+  },
+  {
+    "cat": "Ordering and delivery",
+    "q": "Does Ozylix offer recurring subscriptions?",
+    "a": "Recurring subscriptions are currently unavailable. You can place one-time orders and reorder through the store when needed."
+  },
+  {
+    "cat": "Offers and VitaPoints",
+    "q": "How does Mix & Match work?",
+    "a": "Add four eligible units and the lowest-priced eligible unit in the qualifying group becomes free. The server confirms eligible items and the final saving at checkout. Mix & Match is a standalone offer and does not stack with a coupon on the same qualifying value."
+  },
+  {
+    "cat": "Offers and VitaPoints",
+    "q": "How do I apply a discount code?",
+    "a": "Enter an active code in the coupon field and select Apply. Eligibility can depend on the products, minimum order value, expiry and usage limits. Checkout recalculates the final discount, including any restriction on combining it with Mix & Match."
+  },
+  {
+    "cat": "Offers and VitaPoints",
+    "q": "What are Ozylix VitaPoints?",
+    "a": "VitaPoints are Ozylix loyalty rewards. The published earning rate is 1 point per ₹1 of eligible spend on delivered orders, with 150 points redeemable for ₹1 off. Your account balance, reward terms and checkout show the points available for your order."
+  },
+  {
+    "cat": "Offers and VitaPoints",
+    "q": "When will my VitaPoints appear?",
+    "a": "Order rewards are linked to eligible delivered purchases. Points may remain pending before delivery. Check your account activity for the status and contact support with the order number if a delivered order appears to be missing."
+  },
+  {
+    "cat": "Offers and VitaPoints",
+    "q": "What happens to VitaPoints after a cancellation or refund?",
+    "a": "A cancellation, return or refund can reverse points earned from the affected purchase and adjust points redeemed against it. The final adjustment follows the eligible refunded amount and the current reward terms; review your account activity for the recorded changes."
+  },
+  {
+    "cat": "Returns and support",
+    "q": "Can I return or exchange products?",
+    "a": "You can request a return within 7 days of delivery for sealed, unused products, subject to the Refund, Return & Cancellation Policy and inspection. Different conditions can apply to damage, defects, missing items or an incorrect delivery. A request is not an automatic refund approval."
+  },
+  {
+    "cat": "Returns and support",
+    "q": "What should I do if my order arrives damaged or incorrect?",
+    "a": "Contact Ozylix support promptly with your order number and clear photos of the package, label and affected items. Keep the packaging while support reviews the issue and follow the instructions in the return policy."
+  },
+  {
+    "cat": "Returns and support",
+    "q": "Where can I find my order invoice?",
+    "a": "Sign in to the account used at checkout and open the order details in My Orders. Use the invoice download option when available, or contact support with the order number if you need assistance."
+  },
+  {
+    "cat": "Returns and support",
+    "q": "How do I contact Ozylix customer support?",
+    "a": "Email hi@ozylix.com or use the Contact page and its current phone or WhatsApp options. Include your order number for an order query, but do not send passwords, payment credentials or sign-in codes."
+  },
+  {
+    "cat": "Returns and support",
+    "q": "Does Ozylix accept bulk or wholesale enquiries?",
+    "a": "Yes. Use the Contact page or email hi@ozylix.com with the products, quantities and business details you need quoted. Wholesale prices, minimum quantities and timelines are quoted separately from retail offers."
+  }
 ];
 
 // ── APP STATE ──
@@ -281,8 +419,8 @@ function showPage(pg) {
       'Expert guides on Glutathione skin glow, Spirulina for vegans, Moringa hair growth & ACV weight loss from Ozylix\'s nutritionists. Free health tips for India.'
     ],
     faq:           [
-      'FAQ – Effervescent Vitamins, Shipping & Returns | Ozylix',
-      'Common questions about Ozylix supplements: absorption, FSSAI certification, delivery across India, returns and all payment options including UPI and EMI.'
+      'Ozylix FAQs | Products, Orders, Delivery & VitaPoints',
+      'Answers about Ozylix and Ascovita Healthcare, product labels, effervescent tablets, payments, delivery, returns and VitaPoints.'
     ],
     contact:       [
       'Contact Ozylix | Supplement Manufacturer in Anand, Gujarat India',
@@ -356,6 +494,7 @@ function showPage(pg) {
   el.classList.add('active');
   window.scrollTo({ top:0, behavior:'instant' });
   currentPage = pg;
+  if (pg !== 'faq') document.getElementById('ozylix-faq-schema')?.remove();
   document.querySelectorAll('.nav-links a').forEach(a => {
     a.classList.toggle('active', a.dataset.page === pg);
   });
@@ -536,6 +675,7 @@ function openProduct(id, routeOptions) {
   const el = document.getElementById('page-product');
   if (el) { el.classList.add('active'); window.scrollTo({top:0,behavior:'smooth'}); }
   currentPage = 'product';
+  document.getElementById('ozylix-faq-schema')?.remove();
   const bc=document.getElementById('prodBCName'); if(bc) bc.textContent = currentProduct.name;
 }
 
@@ -2365,10 +2505,25 @@ function renderFaqItem(f) {
   return `<div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">${f.q}<span class="faq-icon">+</span></button><div class="faq-a"><div class="faq-a-inner">${answer}</div></div></div>`;
 }
 function renderFullFaq() {
-  const el=document.getElementById('fullFaqWrap'); if(!el) return;
-  const cats=[...new Set(FAQS.map(f=>f.cat))];
-  el.innerHTML=cats.map(c=>`<h2 style="font-size:1.1rem;font-weight:700;color:var(--green);margin:28px 0 14px;padding-bottom:7px;border-bottom:2px solid var(--green-pale)">${c}</h2>${FAQS.filter(f=>f.cat===c).map(renderFaqItem).join('')}`).join('');
+  const el = document.getElementById('fullFaqWrap'); if (!el) return;
+  const cats = [...new Set(FAQS.map(f => f.cat))];
+  el.innerHTML = cats.map((cat, group) => `<section class="faq-topic" aria-labelledby="faq-topic-${group}"><h2 id="faq-topic-${group}">${esc(cat)}</h2>${FAQS.filter(f => f.cat === cat).map(f => `<details class="faq-detail"><summary>${esc(f.q)}</summary><div class="faq-detail-answer"><p>${esc(f.a)}</p></div></details>`).join('')}</section>`).join('');
+  if (typeof deliveryCopy === 'function') {
+    el.querySelectorAll('details').forEach(detail => {
+      const question = detail.querySelector('summary').textContent;
+      if (question === 'Is prepaid delivery free?' || question === 'Is COD available? Are there extra charges?') {
+        detail.querySelector('p').textContent = deliveryCopy('policy');
+      }
+    });
+  }
+  document.getElementById('ozylix-faq-schema')?.remove();
+  if (currentPage !== 'faq') return;
+  const schema = document.createElement('script');
+  schema.id = 'ozylix-faq-schema'; schema.type = 'application/ld+json';
+  schema.textContent = JSON.stringify({'@context':'https://schema.org','@type':'FAQPage','@id':'https://www.ozylix.com/faq#questions',url:'https://www.ozylix.com/faq',inLanguage:'en-IN',mainEntity:[...el.querySelectorAll('details')].map(detail => ({'@type':'Question',name:detail.querySelector('summary').textContent,acceptedAnswer:{'@type':'Answer',text:detail.querySelector('p').textContent}}))});
+  document.head.appendChild(schema);
 }
+
 function toggleFaq(btn) {
   const item=btn.parentElement, open=item.classList.contains('open');
   document.querySelectorAll('.faq-item.open').forEach(i=>i.classList.remove('open'));
