@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const source=fs.readFileSync('scripts/auth-core.js','utf8');
+const source=fs.readFileSync('scripts/auth-core.js','utf8')+'\n'+fs.readFileSync('scripts/account-page.js','utf8');
 const section=(a,b)=>source.slice(source.indexOf(a),source.indexOf(b,source.indexOf(a)));
 const db=new Map(),elements={ordersList:{innerHTML:''},invoicesList:{innerHTML:''}};
 const user={id:1,email:'a@example.com',name:'A'},token='a.'+Buffer.from(JSON.stringify({id:1,email:user.email,exp:Date.now()/1000+3600})).toString('base64url')+'.sig';
@@ -7,6 +7,7 @@ db.set('asc_user',JSON.stringify(user));db.set('asc_jwt',token);
 const c=vm.createContext({console,Date,Number,String,Set,Map,JSON,atob,localStorage:{getItem:k=>db.get(k)||null},window:{},document:{getElementById:id=>elements[id]},API_BASE:'https://test',_renderOrderCards:(rows,el)=>el.innerHTML=JSON.stringify(rows)});
 vm.runInContext(section('function getCurrentUser()', '// Shared post-login'),c);
 vm.runInContext(section('function accountSessionMatches(', 'function resetAccountSession('),c);
+vm.runInContext('let _accountOrdersPending=null;'+section('function readAccountOrders()', 'function loadActiveAccountPanel()'),c);
 vm.runInContext(section('async function loadOrdersList()', 'async function loadInvoicesList()'),c);
 vm.runInContext(section('async function loadInvoicesList()', 'function openTracking('),c);
 vm.runInContext(section('function _vitaKey(', 'function _vitaBlank('),c);

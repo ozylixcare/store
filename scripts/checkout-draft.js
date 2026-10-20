@@ -28,7 +28,7 @@
   // scripts run — this avoids the async re-hydration race where reads at
   // 900ms+ occasionally still return null).
   let BOOT_STATE = null;
-  try { BOOT_STATE = JSON.parse(localStorage.getItem(POS_KEY) || 'null'); } catch (e) {}
+  try { BOOT_STATE = JSON.parse(localStorage.getItem(POS_KEY) || 'null'); if(BOOT_STATE && BOOT_STATE.ckFields){delete BOOT_STATE.ckFields;localStorage.setItem(POS_KEY,JSON.stringify(BOOT_STATE));} } catch (e) {}
 
   // Snapshot the raw query string at PARSE TIME — the app's boot router
   // replaces ?p= deep-link params with a clean URL synchronously, so
@@ -93,17 +93,6 @@
         if (gw) snap_.payMethod = gw.getAttribute('data-gateway') || 'online';
       }
     } catch (e) {}
-    // Checkout form field values (never store passwords — there are none)
-    if (typeof currentPage !== 'undefined' && currentPage === 'checkout') {
-      try {
-        const vals = {};
-        for (const k in CK_FIELDS) {
-          const el = document.querySelector('#page-checkout ' + CK_FIELDS[k]);
-          if (el && el.value) vals[k] = el.value;
-        }
-        if (Object.keys(vals).length) snap_.ckFields = vals;
-      } catch (e) {}
-    }
     return snap_;
   }
 

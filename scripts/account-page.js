@@ -327,11 +327,12 @@ function switchAccountPanel(panel) {
   const el = document.getElementById('panel-' + panel);
   if (el) el.classList.add('active');
   const navItems = document.querySelectorAll('.account-nav-item');
-  const labels = ['orders','tracking','invoices','vita','returns','profile'];
+  const labels = ['orders','tracking','invoices','vita','returns','profile','privacy'];
   if (panel === 'returns') { try { renderReturnsPanel(); } catch(e) { console.error('[renderReturnsPanel]', e); } }
   if (panel === 'vita') { try { renderVitaPanel(); } catch(e) { console.error('[renderVitaPanel]', e); } }
   if (panel === 'orders') loadOrdersList();
   if (panel === 'invoices') loadInvoicesList();
+  if (panel === 'privacy' && typeof window.loadAccountPrivacy === 'function') window.loadAccountPrivacy();
   try { refreshAccountWelcome(); } catch(e) {}
   const idx = labels.indexOf(panel);
   if (idx >= 0 && navItems[idx]) navItems[idx].classList.add('active');
