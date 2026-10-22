@@ -1242,8 +1242,21 @@
 <script defer src="/scripts/banners.min.js?v=20261003-origin-refresh-1"></script>
 
   
-  <section class="section" style="background:var(--green-wash)">
-    <div class="container" style="max-width:720px">
+<style id="oz-home-faq-polish">
+.oz-home-faq{padding-block:clamp(42px,6vw,76px)}
+.oz-home-faq .section-title{font-size:clamp(1.65rem,3.2vw,2.65rem);line-height:1.15;letter-spacing:-.035em}
+.oz-home-faq #homeFaqWrap{display:grid;gap:11px}
+.oz-home-faq #homeFaqWrap .faq-item{min-width:0;overflow:hidden;background:#fff;border:1px solid #eadfe0;border-radius:17px;box-shadow:0 4px 18px rgba(45,36,41,.035)}
+.oz-home-faq #homeFaqWrap .faq-q{min-height:58px;padding:15px 18px;font-size:clamp(.91rem,1.5vw,1rem);line-height:1.35;align-items:center}
+.oz-home-faq #homeFaqWrap .faq-icon{width:27px;height:27px}
+.oz-home-faq #homeFaqWrap .faq-a{overflow:hidden;min-height:0}
+.oz-home-faq #homeFaqWrap .faq-a-inner{padding:0 18px 17px;font-size:.88rem;line-height:1.6;overflow-wrap:anywhere}
+.oz-home-faq #homeFaqWrap .faq-item:not(.open) .faq-a{grid-template-rows:0fr;visibility:hidden}
+.oz-home-faq #homeFaqWrap .faq-item.open .faq-a{visibility:visible}
+@media(max-width:600px){.oz-home-faq #homeFaqWrap{gap:9px}.oz-home-faq #homeFaqWrap .faq-q{padding:13px 14px;min-height:54px}.oz-home-faq #homeFaqWrap .faq-a-inner{padding:0 14px 15px}}
+</style>
+  <section class="section oz-home-faq" style="background:var(--green-wash)">
+    <div class="container" style="max-width:760px">
       <div class="text-center" style="margin-bottom:36px">
         <div class="section-label">Got Questions?</div>
         <h2 class="section-title">Frequently Asked Questions</h2>
