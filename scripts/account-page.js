@@ -9,6 +9,8 @@ function loadAccountPage() {
   document.getElementById('accEmail')?.textContent != null && (document.getElementById('accEmail').textContent = user.email);
   const parts = (user.name || 'Member').split(' ');
   const av=document.getElementById('accAvatar'); if(av) av.textContent = (parts[0][0] + (parts[1]?parts[1][0]:'')).toUpperCase();
+  accountMenuInit();
+  document.querySelectorAll('.account-panel').forEach(p=>{ const active=p.classList.contains('active'); if(active){p.removeAttribute('inert');p.removeAttribute('aria-hidden');}else{p.setAttribute('inert','');p.setAttribute('aria-hidden','true');} });
   loadActiveAccountPanel();
   prefillProfile(user);
   // Refresh the top Account Hub identity and live summary on every account entry.
@@ -318,14 +320,38 @@ async function cancelReturn(id) {
   }
 }
 
+function accountMenuClose(restoreFocus) {
+  const menu=document.getElementById('accountSectionMenu'),toggle=document.getElementById('accountSectionToggle');
+  if(!menu||!toggle)return;
+  menu.classList.remove('account-menu-open');
+  toggle.setAttribute('aria-expanded','false');
+  if(restoreFocus)toggle.focus({preventScroll:true});
+}
+function accountMenuInit() {
+  const menu=document.getElementById('accountSectionMenu'),toggle=document.getElementById('accountSectionToggle');
+  if(!menu||!toggle||toggle.dataset.bound)return;
+  toggle.dataset.bound='1';
+  toggle.addEventListener('click',()=>{
+    const open=toggle.getAttribute('aria-expanded')!=='true';
+    menu.classList.toggle('account-menu-open',open);
+    toggle.setAttribute('aria-expanded',String(open));
+    if(open) (menu.querySelector('.account-nav-item.active')||menu.querySelector('.account-nav-item'))?.focus({preventScroll:true});
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&toggle.getAttribute('aria-expanded')==='true'){e.preventDefault();accountMenuClose(true);}
+  });
+  document.addEventListener('pointerdown',e=>{
+    if(toggle.getAttribute('aria-expanded')==='true'&&!menu.contains(e.target)&&!toggle.contains(e.target))accountMenuClose(false);
+  });
+}
 function switchAccountPanel(panel) {
   if (currentPage !== 'account') return;
   if (!getCurrentUser()) { openAuth('login'); return; }
   if (!document.getElementById('panel-' + panel)) return;
-  document.querySelectorAll('.account-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.account-panel').forEach(p => { p.classList.remove('active'); p.setAttribute('aria-hidden','true'); p.setAttribute('inert',''); });
   document.querySelectorAll('.account-nav-item').forEach(b => b.classList.remove('active'));
   const el = document.getElementById('panel-' + panel);
-  if (el) el.classList.add('active');
+  if (el) { el.classList.add('active'); el.removeAttribute('aria-hidden'); el.removeAttribute('inert'); }
   const navItems = document.querySelectorAll('.account-nav-item');
   const labels = ['orders','tracking','invoices','vita','returns','profile','privacy'];
   if (panel === 'returns') { try { renderReturnsPanel(); } catch(e) { console.error('[renderReturnsPanel]', e); } }
@@ -334,6 +360,11 @@ function switchAccountPanel(panel) {
   if (panel === 'invoices') loadInvoicesList();
   if (panel === 'privacy' && typeof window.loadAccountPrivacy === 'function') window.loadAccountPrivacy();
   try { refreshAccountWelcome(); } catch(e) {}
+  accountMenuInit();
+  const selectedName = document.querySelector('#panel-' + panel + ' .account-panel-title')?.textContent?.trim() || panel;
+  const currentLabel=document.getElementById('accountSectionLabel');
+  if(currentLabel)currentLabel.textContent=selectedName.replace(/^[^\\p{L}\\p{N}]+/u,'').trim();
+  accountMenuClose(false);
   const idx = labels.indexOf(panel);
   if (idx >= 0 && navItems[idx]) navItems[idx].classList.add('active');
   navItems.forEach(b => b.setAttribute('aria-current', b.classList.contains('active') ? 'page' : 'false'));
