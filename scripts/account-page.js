@@ -517,33 +517,21 @@ async function loadInvoicesList() {
 
   const sorted = orders.sort((a,b) => new Date(b.created_at||b.date||0) - new Date(a.created_at||a.date||0));
   window.__INVOICE_ORDERS = sorted;   // so downloadInvoice() can find backend-sourced orders
-  container.innerHTML = `
-    <div style="background:var(--sub-1);border-radius:var(--radius);border:1px solid rgba(0,0,0,0.08);overflow:hidden">
-      <table style="width:100%;border-collapse:collapse">
-        <thead><tr style="background:var(--off-white);font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--gray)">
-          <th style="padding:12px 18px;text-align:left">Order ID</th>
-          <th style="padding:12px 18px;text-align:left">Date</th>
-          <th style="padding:12px 18px;text-align:left">Amount</th>
-          <th style="padding:12px 18px;text-align:left">Status</th>
-          <th style="padding:12px 18px;text-align:left">Invoice</th>
-        </tr></thead>
-        <tbody>${sorted.map(o => {
-          const oid  = o.id || o.orderId || '';
-          const date = o.date || (o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '');
-          const paid = (o.payment_status||'').toLowerCase().includes('paid') || (o.payment_status||'').toLowerCase().includes('cod') ? o.payment_status : 'Paid';
-          const paidColor = paid.toLowerCase().includes('cod') ? 'var(--st-warn-fg)' : 'var(--st-ok-fg)';
-          const paidBg    = paid.toLowerCase().includes('cod') ? 'var(--st-warn-bg)' : 'var(--st-ok-bg)';
-          return `<tr style="border-top:1px solid var(--light-gray);font-size:0.84rem">
-            <td style="padding:14px 18px;font-weight:700;color:var(--green)">${oid}</td>
-            <td style="padding:14px 18px;color:var(--gray)">${date}</td>
-            <td style="padding:14px 18px;font-weight:600">₹${parseFloat(o.total||0).toLocaleString('en-IN')}</td>
-            <td style="padding:14px 18px"><span style="background:${paidBg};color:${paidColor};padding:3px 10px;border-radius:100px;font-size:0.72rem;font-weight:700">${paid}</span></td>
-            <td style="padding:14px 18px;white-space:nowrap"><button class="invoice-btn" onclick="downloadInvoice('${oid}')">⬇ Updated Invoice</button> <button class="invoice-btn" onclick="printInvoice('${oid}')">🖨️ Print</button></td>
-          </tr>`;
-        }).join('')}</tbody>
-      </table>
-    </div>
-  `;
+  const rows = sorted.map(o => {
+    const oid=String(o.id||o.orderId||'');
+    const date=o.date||(o.created_at?new Date(o.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—');
+    const amount='₹'+Number(o.total||0).toLocaleString('en-IN');
+    const status=String(o.payment_status||'Not available');
+    const safeId=_esc(oid), safeDate=_esc(date),safeAmount=_esc(amount),safeStatus=_esc(status);
+    // Inline handlers receive JSON-encoded values, escaped for HTML attribute context.
+    const actionId=_esc(JSON.stringify(oid));
+    const actions='<button type="button" class="invoice-btn" onclick="downloadInvoice('+actionId+')">Download</button> <button type="button" class="invoice-btn" onclick="printInvoice('+actionId+')">Print</button>';
+    return {safeId,safeDate,safeAmount,safeStatus,actions};
+  });
+  container.innerHTML = '<div class="account-invoices-desktop"><table class="account-invoice-table"><thead><tr><th scope="col">Order ID</th><th scope="col">Date</th><th scope="col">Amount</th><th scope="col">Payment status</th><th scope="col">Invoice</th></tr></thead><tbody>'+
+    rows.map(r=>'<tr><td>'+r.safeId+'</td><td>'+r.safeDate+'</td><td>'+r.safeAmount+'</td><td>'+r.safeStatus+'</td><td>'+r.actions+'</td></tr>').join('')+
+    '</tbody></table></div><div class="account-invoices-mobile">'+
+    rows.map(r=>'<article class="account-invoice-card"><dl><div><dt>Order ID</dt><dd>'+r.safeId+'</dd></div><div><dt>Date</dt><dd>'+r.safeDate+'</dd></div><div><dt>Amount</dt><dd>'+r.safeAmount+'</dd></div><div><dt>Payment status</dt><dd>'+r.safeStatus+'</dd></div></dl><div class="account-invoice-actions">'+r.actions+'</div></article>').join('')+'</div>';
 }
 
 function openTracking(orderId) {
