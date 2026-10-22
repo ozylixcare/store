@@ -3698,91 +3698,8 @@ textarea.b2b-form-input { min-height: 110px; resize: vertical; font-family: inhe
 .access-card-title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; letter-spacing: -.028em; color: var(--t-hi); margin-bottom: 9px; }
 
 /* ══ ACCOUNT ══════════════════════════════════════════════════════ */
-.account-layout { display: grid; gap: 24px; grid-template-columns: 258px 1fr; align-items: start; }
-.account-sidebar {
-  position: sticky; top: 96px;
-  padding: 24px; border-radius: var(--r-lg); text-align: center;
-  background: var(--paper);
-  border: none;
-  box-shadow: var(--sink-2);
-}
-.account-avatar {
-  display: grid; place-items: center; width: 76px; height: 76px; margin: 0 auto 15px;
-  border-radius: 24px; font-size: 2rem; font-weight: 800; color: #fff;
-  background: var(--indigo);
-  box-shadow: var(--lit-mineral);
-}
-.account-name { font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; letter-spacing: -.032em; color: var(--t-hi); }
-.account-email { font-size: .78rem; color: var(--t-dim); margin-top: 4px; word-break: break-all; }
-.account-nav { display: flex; flex-direction: column; gap: 5px; margin-top: 22px; }
-.account-nav-item {
-  display: flex; align-items: center; gap: 11px; width: 100%;
-  padding: 12px 15px; border-radius: var(--r-sm); text-align: left;
-  font-size: .875rem; font-weight: 600; color: var(--t-mid);
-  transition: background var(--dur-1) var(--settle), color var(--dur-1) var(--settle);
-}
-.account-nav-item:hover { background: var(--paper); color: var(--t-hi); }
-.account-nav-item.active {
-  color: #fff; font-weight: 700;
-  background: var(--indigo);
-  box-shadow: var(--neo-1);
-}
-.account-content { min-width: 0; }
 /* ── Premium account welcome banner ─────────────────────────── */
-.account-welcome {
-  display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;
-  margin-bottom: 24px; padding: 26px 30px;
-  border-radius: var(--r-lg);
-  background: linear-gradient(135deg, var(--indigo) 0%, #4a3d8f 55%, #6b5bc8 100%);
-  box-shadow: var(--sink-2), 0 18px 40px -18px rgba(74,61,143,.45);
-  position: relative; overflow: hidden;
-}
-.account-welcome::before {
-  content: ''; position: absolute; top: -60px; right: -60px;
-  width: 200px; height: 200px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,255,255,.14) 0%, rgba(255,255,255,0) 70%);
-}
-.aw-eyebrow { font-size: .66rem; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: rgba(255,255,255,.65); margin-bottom: 7px; }
-.aw-name { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; letter-spacing: -.03em; color: #fff; line-height: 1.2; }
-.aw-sub { font-size: .82rem; color: rgba(255,255,255,.72); margin-top: 8px; }
-.aw-stats { display: flex; gap: 14px; }
-.aw-stat {
-  text-align: center; padding: 14px 22px;
-  border-radius: var(--r-sm);
-  background: rgba(255,255,255,.12); backdrop-filter: blur(6px);
-  border: 1px solid rgba(255,255,255,.16);
-  min-width: 118px;
-}
-.aw-stat-val { font-family: var(--font-display); font-size: 1.55rem; font-weight: 800; letter-spacing: -.03em; color: #fff; }
-.aw-stat-lbl { font-size: .7rem; font-weight: 600; color: rgba(255,255,255,.75); margin-top: 3px; letter-spacing: .02em; }
-@media (max-width: 768px) {
-  .account-welcome { flex-direction: column; align-items: flex-start; padding: 22px; }
-  .aw-stats { width: 100%; }
-  .aw-stat { flex: 1; min-width: 0; padding: 12px 8px; }
-  .aw-stat-val { font-size: 1.25rem; }
-  .aw-name { font-size: 1.25rem; }
-}
-@media (max-width: 560px) {
-  .account-welcome { margin: 0 0 18px; border-radius: var(--r-md); }
-}
 /* Premium nav polish */
-.account-nav-item .nav-ico { display: inline-block; width: 22px; text-align: center; font-size: .95rem; transition: transform var(--dur-1) var(--settle); }
-.account-nav-item:hover .nav-ico { transform: translateX(2px); }
-.account-nav-item.active .nav-ico { filter: brightness(1.35); }
-.account-panel-title { margin-bottom: 18px; }
-.account-panel { display: none; }
-.account-panel.active { display: block; animation: fz-in .4s var(--rise) both; }
-.account-panel-title {
-  font-family: var(--font-display); font-size: 1.4rem; font-weight: 800;
-  letter-spacing: -.038em; color: var(--t-hi);
-  padding-bottom: 14px; margin-bottom: 22px; border-bottom: 1px solid var(--edge);
-}
-.profile-form {
-  padding: clamp(20px, 3vw, 30px); border-radius: var(--r-lg);
-  background: var(--paper);
-  border: none; box-shadow: var(--sink-1);
-}
-.profile-row { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; }
 
 /* ══ VITA ADVISOR ═════════════════════════════════════════════════ */
 .vita-chat-wrap {
@@ -4032,10 +3949,6 @@ textarea.b2b-form-input { min-height: 110px; resize: vertical; font-family: inhe
   }
   .cart-layout, .checkout-layout { grid-template-columns: 1fr; }
   .cart-summary-box, .bundle-summary { position: static; }
-  .account-layout { grid-template-columns: 1fr; }
-  .account-sidebar { position: static; }
-  .account-nav { flex-direction: row; flex-wrap: wrap; justify-content: center; }
-  .account-nav-item { width: auto; }
   .ig-card, .ig-skeleton { flex: 0 0 calc((100% - 42px) / 4); }
   .b2b-contact-grid, .contact-grid { grid-template-columns: 1fr; }
 }
@@ -4137,7 +4050,7 @@ textarea.b2b-form-input { min-height: 110px; resize: vertical; font-family: inhe
   .ig-card, .ig-skeleton { flex: 0 0 calc((100% - 14px) / 2); min-height: 148px; }
   .ig-prev, .ig-next { display: none; }
 
-  .form-row, .profile-row, .inv-cust-grid { grid-template-columns: 1fr; }
+  .form-row, .inv-cust-grid { grid-template-columns: 1fr; }
   .fizz-counters-grid { grid-template-columns: repeat(3, 1fr); }
   .fizz-counter + .fizz-counter::before { display: none; }
   .fizz-counter:nth-child(n+4) { border-top: 1px solid var(--edge); }
@@ -4389,7 +4302,7 @@ textarea.b2b-form-input { min-height: 110px; resize: vertical; font-family: inhe
 .fizz-counter:nth-child(4n+4) .fc-num { color: var(--clay-lo);    }
 
 /* Selected states are tinted, not inverted. */
-.cpill.active, .auth-tab.active, .account-nav-item.active {
+.cpill.active, .auth-tab.active {
   color: var(--indigo-lo); background: var(--sky-bg);
   box-shadow: inset 0 0 0 1.4px rgba(192,57,74,.32);
 }
@@ -4402,10 +4315,7 @@ textarea.b2b-form-input { min-height: 110px; resize: vertical; font-family: inhe
 /* ══ LAYOUT SAFETY ════════════════════════════════════════════════
    Grid and flex children default to min-width:auto, so one wide
    child pushes its track out and the phone scrolls sideways.       */
-.product-page > *, .about-hero-grid > *, .about-contact-grid > *,
-.about-stats-grid > *, .about-team-grid > *, .contact-grid > *,
-.bundle-layout > *, .vita-home-inner > *, .cart-layout > *,
-.checkout-layout > *, .account-layout > * { min-width: 0; }
+.product-page > *, .about-hero-grid > *, .about-contact-grid > *, .about-stats-grid > *, .about-team-grid > *, .contact-grid > *, .bundle-layout > *, .vita-home-inner > *, .cart-layout > *, .checkout-layout > * { min-width: 0; }
 
 @media (hover: none) {
   .product-card:active, .cat-card:active, .blog-card:active,
@@ -5069,19 +4979,6 @@ button, [role="button"] {
 /* Mobile: the account nav was a vertical list that pushed the panel
    below the fold on a phone. Turn it into a horizontal scroller. */
 @media (max-width: 860px) {
-  .account-layout { grid-template-columns: 1fr !important; }
-  .account-sidebar { position: static !important; }
-  .account-nav {
-    display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden;
-    -webkit-overflow-scrolling: touch; scrollbar-width: none;
-    padding: 4px 2px 8px; margin-bottom: 6px;
-  }
-  .account-nav::-webkit-scrollbar { display: none; }
-  .account-nav-item {
-    flex: 0 0 auto; white-space: nowrap; padding: 10px 15px !important;
-    font-size: .8rem !important; border-radius: 99px !important; min-height: 44px;
-  }
-  .account-nav-item .nav-ico { margin-right: 5px; }
   .ret-head { flex-direction: column; align-items: stretch; }
   .ret-actions .btn-primary, .ret-actions .btn-outline { width: 100%; }
 }

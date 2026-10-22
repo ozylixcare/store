@@ -2921,8 +2921,8 @@ function bootApp() {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       const el = document.getElementById('page-' + pg);
       if (el) {
-        el.classList.add('active'); window.scrollTo({top:0}); currentPage = pg;
-        if (pg === 'account' && typeof loadAccountPage === 'function') loadAccountPage();
+        el.classList.add('active'); if(pg !== 'account') window.scrollTo({top:0}); currentPage = pg;
+        if (pg === 'account' && typeof loadAccountPage === 'function') loadAccountPage({scroll:true});
       }
       document.querySelectorAll('.nav-links a').forEach(a => a.classList.toggle('active', a.dataset.page === pg));
     }
@@ -4618,8 +4618,16 @@ async function renderVitaPanel() {
   // and repaint — avoids a blank/loading flash while still showing the
   // authoritative number as soon as it's back.
   _renderVitaPanelBody(el);
+  const refreshNotice=document.createElement('p');refreshNotice.setAttribute('role','status');refreshNotice.textContent='Refreshing VitaPoints…';el.prepend(refreshNotice);
   const refreshed = await vitaRefreshFromServer();
+  refreshNotice.remove();
   if (refreshed) _renderVitaPanelBody(el);
+  else {
+    const notice=document.createElement('p');notice.setAttribute('role','status');
+    notice.textContent='Could not refresh VitaPoints. The last saved balance is shown. ';
+    const retry=document.createElement('button');retry.type='button';retry.className='btn-outline';retry.textContent='Retry';retry.onclick=renderVitaPanel;
+    notice.appendChild(retry);el.prepend(notice);
+  }
 }
 
 function _renderVitaPanelBody(el) {
@@ -4635,10 +4643,10 @@ function _renderVitaPanelBody(el) {
     const col  = h.pts > 0 ? 'var(--fern-lo)' : (h.pts < 0 ? 'var(--clay-lo)' : 'var(--t-mid)');
     const lbl  = h.label || h.type || 'Activity';
     const d = new Date(h.t).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
-    return '<tr><td style="padding:9px 12px;font-size:.8rem">' + d + '</td>' +
-           '<td style="padding:9px 12px;font-size:.8rem">' + lbl + '</td>' +
-           '<td style="padding:9px 12px;font-size:.75rem;color:var(--t-low)">' + (h.ref||'\u2014') + '</td>' +
-           '<td style="padding:9px 12px;text-align:right;font-weight:800;color:' + col + '">' +
+    return '<tr><td data-label="Date" style="padding:9px 12px;font-size:.8rem">' + d + '</td>' +
+           '<td data-label="Activity" style="padding:9px 12px;font-size:.8rem">' + lbl + '</td>' +
+           '<td data-label="Reference" style="padding:9px 12px;font-size:.75rem;color:var(--t-low)">' + (h.ref||'\u2014') + '</td>' +
+           '<td data-label="Points" style="padding:9px 12px;text-align:right;font-weight:800;color:' + col + '">' +
              (h.pts ? sign + h.pts.toLocaleString('en-IN') : '\u2014') + '</td></tr>';
   }).join('') || '<tr><td colspan="4" style="padding:22px;text-align:center;color:var(--gray);font-size:.85rem">No VitaPoints activity yet \u2014 your first order starts the collection.</td></tr>';
 
@@ -4684,7 +4692,7 @@ function _renderVitaPanelBody(el) {
     '<div class="vita-prog-wrap">' +
       '<div class="vita-prog-top"><span>Progress to your 50% OFF reward</span>' +
         '<span>' + avail.toLocaleString('en-IN') + ' / ' + VITA.TIER_50_THRESHOLD.toLocaleString('en-IN') + '</span></div>' +
-      '<div class="vita-prog"><i style="width:' + pct.toFixed(1) + '%"></i></div>' +
+      '<div class="vita-prog" role="progressbar" aria-label="VitaPoints reward progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct.toFixed(1) + '"><i style="width:' + pct.toFixed(1) + '%"></i></div>' +
       '<div class="vita-prog-note">' + milestoneNote + '</div>' +
       (st.milestoneReady ? '<button class="btn" style="margin-top:10px" onclick="vitaClaimMilestone(this)">Claim my 50% OFF reward</button>' : '') +
     '</div>' +
