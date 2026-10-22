@@ -569,3 +569,21 @@ body:not(.oz-product) #stickyCart { display: none !important; }
 #page-account .account-panel table{display:table;min-width:max-content}
 }
 @media(prefers-reduced-motion:reduce){#page-account *{scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
+#page-account .account-invoices-desktop{overflow-x:auto;max-width:100%}
+#page-account .account-invoices-mobile{display:none}
+#page-account .account-invoice-table{width:100%;border-collapse:collapse;min-width:650px}
+#page-account .account-invoice-table :is(th,td){padding:13px 12px;border-bottom:1px solid var(--edge);text-align:left;vertical-align:middle;overflow-wrap:anywhere}
+#page-account .account-invoice-table th{font-size:.76rem;color:var(--t-mid);font-weight:700}
+#page-account .account-invoice-table :is(th,td):nth-child(3){text-align:right}
+#page-account .account-invoice-table .invoice-btn,#page-account .account-invoice-actions .invoice-btn{min-height:44px;padding:8px 12px}
+@media(max-width:700px){
+#page-account .account-invoices-desktop{display:none}
+#page-account .account-invoices-mobile{display:grid;gap:12px}
+#page-account .account-invoice-card{padding:16px;border:1px solid var(--edge);border-radius:14px;background:var(--paper-hi,#fff);min-width:0}
+#page-account .account-invoice-card dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0}
+#page-account .account-invoice-card dt{font-size:.74rem;color:var(--t-mid);margin-bottom:4px}
+#page-account .account-invoice-card dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+#page-account .account-invoice-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+#page-account .account-invoice-actions .invoice-btn{flex:1 1 120px}
+}
