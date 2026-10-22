@@ -2742,7 +2742,10 @@
           </div>
         </div>
         <div class="account-nav-heading">Account centre</div>
-        <nav class="account-nav">
+        <div class="account-mobile-picker">
+          <button type="button" id="accountSectionToggle" class="account-section-toggle" aria-expanded="false" aria-controls="accountSectionMenu" aria-haspopup="true"><span>Section: <strong id="accountSectionLabel">My Orders</strong></span><span aria-hidden="true">⌄</span></button>
+        </div>
+        <nav class="account-nav" id="accountSectionMenu" aria-label="Account sections">
           <button class="account-nav-item active" type="button" onclick="switchAccountPanel('orders')" aria-current="page" title="My Orders" aria-label="My Orders" data-mobile-label="Orders"><span class="nav-ico" aria-hidden="true"><span class="desktop-account-icon">📦</span><svg class="mobile-rail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m3 7 9-4 9 4-9 4-9-4Zm0 0v10l9 4 9-4V7M12 11v10M7.5 5 17 9"/></svg></span><span class="account-nav-copy"><strong>My Orders</strong><small>View history</small></span><span class="account-nav-count" id="accOrdersCount">0</span></button>
           <button class="account-nav-item" type="button" onclick="switchAccountPanel('tracking')" title="Track Shipment" aria-label="Track Shipment" data-mobile-label="Track"><span class="nav-ico" aria-hidden="true"><span class="desktop-account-icon">🚚</span><svg class="mobile-rail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M3 5h11v12H3zM14 9h4l3 4v4h-7M5 17a2 2 0 1 0 4 0M16 17a2 2 0 1 0 4 0"/></svg></span><span class="account-nav-copy"><strong>Track Shipment</strong><small>Live delivery updates</small></span><span class="account-nav-arrow" aria-hidden="true">›</span></button>
           <button class="account-nav-item" type="button" onclick="switchAccountPanel('invoices')" title="Invoices &amp; Payments" aria-label="Invoices &amp; Payments" data-mobile-label="Invoices"><span class="nav-ico" aria-hidden="true"><span class="desktop-account-icon">🧾</span><svg class="mobile-rail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3ZM9 7h6M9 11h6M9 15h3"/></svg></span><span class="account-nav-copy"><strong>Invoices &amp; Payments</strong><small>Receipts and billing</small></span><span class="account-nav-arrow" aria-hidden="true">›</span></button>
@@ -2750,8 +2753,7 @@
           <button class="account-nav-item" type="button" onclick="switchAccountPanel('returns')" title="Returns &amp; Refunds" aria-label="Returns &amp; Refunds" data-mobile-label="Returns"><span class="nav-ico" aria-hidden="true"><span class="desktop-account-icon">↩️</span><svg class="mobile-rail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m8 5-5 5 5 5M3 10h11a6 6 0 0 1 0 12"/></svg></span><span class="account-nav-copy"><strong>Returns &amp; Refunds</strong><small>Manage requests</small></span><span class="account-nav-arrow" aria-hidden="true">›</span></button>
           <button class="account-nav-item" type="button" onclick="switchAccountPanel('profile')" title="Profile &amp; Address" aria-label="Profile &amp; Address" data-mobile-label="Profile"><span class="nav-ico" aria-hidden="true"><span class="desktop-account-icon">✏️</span><svg class="mobile-rail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span><span class="account-nav-copy"><strong>Profile &amp; Address</strong><small>Keep details current</small></span><span class="account-nav-arrow" aria-hidden="true">›</span></button>
           <button class="account-nav-item" type="button" onclick="switchAccountPanel('privacy')" title="Privacy &amp; account" aria-label="Privacy &amp; account" data-mobile-label="Privacy"><span class="nav-ico" aria-hidden="true">🔒</span><span class="account-nav-copy"><strong>Privacy &amp; account</strong><small>Data and preferences</small></span></button>
-          <button class="account-nav-item account-nav-signout" type="button" onclick="doLogout()" title="Sign out" aria-label="Sign out" data-mobile-label="Sign out"><span class="nav-ico" aria-hidden="true"><span class="desktop-account-icon">↪</span><svg class="mobile-rail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M10 3H4v18h6M9 12h12m-4-4 4 4-4 4"/></svg></span><span class="account-nav-copy"><strong>Sign out</strong><small>End this session</small></span></button>
-        </nav>
+          </nav><div class="account-signout-wrap"><button class="account-nav-item account-nav-signout" type="button" onclick="doLogout()" title="Sign out" aria-label="Sign out" data-mobile-label="Sign out"><span class="nav-ico" aria-hidden="true"><span class="desktop-account-icon">↪</span><svg class="mobile-rail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M10 3H4v18h6M9 12h12m-4-4 4 4-4 4"/></svg></span><span class="account-nav-copy"><strong>Sign out</strong><small>End this session</small></span></button></div>
       </aside>
 
       <div class="account-content">
@@ -2780,7 +2782,7 @@
           </div>
         </section>
         <div class="account-panel active" id="panel-orders">
-          <div class="account-panel-title">📦 My Orders</div>
+          <div class="account-panel-title" role="heading" aria-level="2">📦 My Orders</div>
           <p class="account-section-copy">Follow your purchases from checkout to delivery.</p>
           <div id="ordersList"></div>
         </div>
@@ -2791,7 +2793,7 @@
           <div style="background:var(--sub-1);border-radius:var(--radius);border:1px solid rgba(0,0,0,0.08);padding:28px;max-width:500px">
             <p style="font-size:0.86rem;color:var(--gray);margin-bottom:16px">Enter your Order ID or Shiprocket tracking number to get live updates.</p>
             <div class="promo-row" style="margin-bottom:12px">
-              <input class="promo-input" type="text" id="trackInput" placeholder="e.g. AVC-12345678">
+              <input class="promo-input" type="text" id="trackInput" aria-label="Order ID or Shiprocket tracking number" autocomplete="off" placeholder="e.g. AVC-12345678">
               <button class="promo-apply-btn" onclick="doTrackOrder()">Track →</button>
             </div>
             <div id="trackResult" style="display:none;margin-top:16px"></div>
@@ -2837,20 +2839,20 @@
           <p class="account-section-copy">Keep your contact and delivery details up to date.</p>
           <div class="profile-form">
             <div class="profile-row">
-              <div class="auth-form-group"><label class="auth-label">First Name</label><input class="auth-input" type="text" id="profileFirst" placeholder="First name"></div>
-              <div class="auth-form-group"><label class="auth-label">Last Name</label><input class="auth-input" type="text" id="profileLast" placeholder="Last name"></div>
+              <div class="auth-form-group"><label class="auth-label">First Name</label><input class="auth-input" type="text" id="profileFirst" autocomplete="given-name" placeholder="First name"></div>
+              <div class="auth-form-group"><label class="auth-label">Last Name</label><input class="auth-input" type="text" id="profileLast" autocomplete="family-name" placeholder="Last name"></div>
             </div>
-            <div class="auth-form-group"><label class="auth-label">Email</label><input class="auth-input" type="email" id="profileEmail" placeholder="Email" readonly style="background:var(--off-white)"></div>
-            <div class="auth-form-group"><label class="auth-label">Phone</label><input class="auth-input" type="tel" id="profilePhone" placeholder="+91 98765 43210"></div>
+            <div class="auth-form-group"><label class="auth-label">Email</label><input class="auth-input" type="email" id="profileEmail" autocomplete="email" placeholder="Email" readonly style="background:var(--off-white)"></div>
+            <div class="auth-form-group"><label class="auth-label">Phone</label><input class="auth-input" type="tel" id="profilePhone" autocomplete="tel" placeholder="+91 98765 43210"></div>
             <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--light-gray)">
               <div style="font-weight:700;font-size:0.88rem;margin-bottom:14px">📍 Default Delivery Address</div>
-              <div class="auth-form-group"><label class="auth-label">Address Line 1</label><input class="auth-input" type="text" id="profileAddr1" placeholder="House / Flat No., Street"></div>
-              <div class="auth-form-group"><label class="auth-label">Address Line 2</label><input class="auth-input" type="text" id="profileAddr2" placeholder="Area / Locality (optional)"></div>
+              <div class="auth-form-group"><label class="auth-label">Address Line 1</label><input class="auth-input" type="text" id="profileAddr1" autocomplete="address-line1" placeholder="House / Flat No., Street"></div>
+              <div class="auth-form-group"><label class="auth-label">Address Line 2</label><input class="auth-input" type="text" id="profileAddr2" autocomplete="address-line2" placeholder="Area / Locality (optional)"></div>
               <div class="profile-row">
-                <div class="auth-form-group"><label class="auth-label">City</label><input class="auth-input" type="text" id="profileCity" placeholder="City"></div>
-                <div class="auth-form-group"><label class="auth-label">State</label><input class="auth-input" type="text" id="profileState" placeholder="State"></div>
+                <div class="auth-form-group"><label class="auth-label">City</label><input class="auth-input" type="text" id="profileCity" autocomplete="address-level2" placeholder="City"></div>
+                <div class="auth-form-group"><label class="auth-label">State</label><input class="auth-input" type="text" id="profileState" autocomplete="address-level1" placeholder="State"></div>
               </div>
-              <div class="auth-form-group"><label class="auth-label">PIN Code</label><input class="auth-input" type="text" id="profilePin" placeholder="6-digit PIN" style="max-width:160px"></div>
+              <div class="auth-form-group"><label class="auth-label">PIN Code</label><input class="auth-input" type="text" id="profilePin" autocomplete="postal-code" inputmode="numeric" placeholder="6-digit PIN" style="max-width:160px"></div>
             </div>
             <button class="auth-btn" onclick="saveProfile()" style="margin-top:10px">Save Profile & Address</button>
           </div>
