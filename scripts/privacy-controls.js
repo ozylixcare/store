@@ -40,7 +40,7 @@
   function open() {
     if (document.getElementById('ozPrivacyDialog')) return;
     var p = read(), box = document.createElement('dialog'); box.id = 'ozPrivacyDialog'; box.setAttribute('aria-labelledby', 'ozPrivacyTitle');
-    box.innerHTML = '<h2 id="ozPrivacyTitle">Your privacy choices</h2><p>Essential storage keeps sign-in, your basket, security and checkout working. Optional analytics measures site use. Advertising tools measure campaigns and may link visits across sites.</p><label><input type="checkbox" id="ozAnalytics"> Allow analytics</label><label><input type="checkbox" id="ozAdvertising"> Allow advertising measurement (Google Tag Manager and Meta)</label><p>Choosing optional tracking is separate from email, WhatsApp and browser-notification permissions. You can change this choice in Privacy Policy.</p><div class="oz-privacy-actions"><button type="button" data-choice="reject">Essential only</button><button type="button" data-choice="save">Save choices</button><button type="button" data-choice="all">Allow optional tracking</button></div>';
+    box.innerHTML = '<h2 id="ozPrivacyTitle">Your privacy choices</h2><p>Essential cookies keep your account and checkout working. Choose whether to allow optional tracking.</p><label><input type="checkbox" id="ozAnalytics"> Allow analytics</label><label><input type="checkbox" id="ozAdvertising"> Allow marketing tracking</label><p>Change these choices anytime in Privacy Policy.</p><div class="oz-privacy-actions"><button type="button" data-choice="reject">Essential only</button><button type="button" data-choice="save">Save choices</button><button type="button" data-choice="all">Allow all</button></div>';
     document.body.appendChild(box);
     box.querySelector('#ozAnalytics').checked = !!p && p.analytics === true;
     box.querySelector('#ozAdvertising').checked = !!p && p.advertising === true;
@@ -49,7 +49,7 @@
   }
   function boot() {
     var style = document.createElement('style');
-    style.textContent = '#ozPrivacyDialog{box-sizing:border-box;width:min(92vw,620px);max-height:85vh;overflow:auto;border:1px solid #d6d6d6;border-radius:20px;padding:24px;background:var(--paper,#fff);color:var(--t-hi,#20303a);font:inherit;line-height:1.65}#ozPrivacyDialog::backdrop{background:rgba(0,0,0,.36)}#ozPrivacyDialog label{display:block;margin:14px 0}.oz-privacy-actions{display:flex;flex-wrap:wrap;gap:10px}.oz-privacy-actions button{padding:10px 15px;border:1px solid currentColor;border-radius:12px;background:var(--paper,#fff);color:inherit;font:inherit;cursor:pointer}';
+    style.textContent = '#ozPrivacyDialog{box-sizing:border-box;width:min(92vw,620px);max-height:85vh;overflow:auto;border:1px solid #d6d6d6;border-radius:20px;padding:24px;background:var(--paper,#fff);color:var(--t-hi,#20303a);font:inherit;line-height:1.45}#ozPrivacyDialog h2{font-size:1.16rem;line-height:1.3;margin:0 0 8px}#ozPrivacyDialog p{font-size:.83rem;line-height:1.5;margin:8px 0;color:inherit}#ozPrivacyDialog::backdrop{background:rgba(0,0,0,.36)}#ozPrivacyDialog label{display:block;margin:9px 0;font-size:.86rem}.oz-privacy-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}.oz-privacy-actions button{padding:9px 12px;border:1px solid #dfd5d4;border-radius:10px;background:var(--paper,#fff);color:inherit;font:inherit;cursor:pointer}';
     document.head.appendChild(style);
     if (!read() && !restricted()) open();
   }
