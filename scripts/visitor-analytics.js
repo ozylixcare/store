@@ -4,10 +4,12 @@
   window.createOzylixAnalytics = function (API) {
     var sid, lastPage=null, lastActivity=Date.now(), status='starting', pending=Promise.resolve();
     function disabled() {
+      if (!window.ozylixPrivacy || !window.ozylixPrivacy.allows('analytics')) return true;
       try { return localStorage.getItem('ozy_optout')==='1' || navigator.doNotTrack==='1' || navigator.doNotTrack==='yes' || window.doNotTrack==='1'; } catch (_) { return navigator.doNotTrack==='1'; }
     }
     function uuid() { return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2); }
     function session(activity) {
+      if(disabled())return null;
       var now=Date.now(), record;
       try { record=JSON.parse(sessionStorage.getItem('ozy_analytics_session')||'null'); } catch (_) {}
       if(!sid) {sid=record && now-record.at<1800000 ? record.id : uuid();lastActivity=record && record.id===sid ? record.at : now;}
@@ -39,7 +41,7 @@
       var ua=navigator.userAgent, hint=/iPad/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1)?'tablet':/Mobi|iPhone|Android/i.test(ua)?'mobile':'desktop';
       var utm={}, params=new URLSearchParams(location.search);
       ['source','medium','campaign'].forEach(function(k){var v=params.get('utm_'+k);if(v)utm[k]=v.slice(0,120);});
-      var body={session_id:sid,kind:'heartbeat',view_id:null,site:location.hostname,page:current,referrer:document.referrer,device_hint:hint,screen_w:screen.width,screen_h:screen.height,is_pwa:matchMedia('(display-mode: standalone)').matches||!!navigator.standalone,utm:utm};
+      var body={session_id:sid,kind:'heartbeat',view_id:null,site:location.hostname,page:current,referrer:(function(){try{return new URL(document.referrer).origin;}catch(_){return '';}})(),device_hint:hint,screen_w:screen.width,screen_h:screen.height,is_pwa:matchMedia('(display-mode: standalone)').matches||!!navigator.standalone,utm:utm};
       // Serialize sends so a first page establishes the session before subsequent events.
       pending=pending.catch(function(){}).then(function(){var view=body.session_id!==sid || current!==lastPage;body.kind=view?'pageview':'heartbeat';body.view_id=view?uuid():null;return send('/api/visitors/ping',body).then(function(ok){if(ok && sid===body.session_id)lastPage=current;return ok;});});
       return pending;

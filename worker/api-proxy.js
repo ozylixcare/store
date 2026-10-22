@@ -36,9 +36,23 @@ export async function handleApiRequest(request) {
     if (origin && origin !== url.origin) return privateResponse('Origin not allowed',403);
     if (request.headers.get('Sec-Fetch-Site') === 'cross-site') return privateResponse('Origin not allowed',403);
   }
+  if (path === '/api/auth/logout' && request.method === 'POST') return new Response(null,{status:204,headers:{'Cache-Control':'no-store','Set-Cookie':'__Host-ozylix_session=; Path=/; Max-Age=0; Secure; HttpOnly; SameSite=Lax'}});
   const headers = new Headers();
   for (const name of ['User-Agent','Accept','Content-Type','Authorization','Range','If-Range','X-Session-Id','X-Device-Id','X-Idempotency-Key','X-Payment-Session','X-Security-Version','X-Request-Id','X-Requested-With','X-Password-Proof']) {
     if (request.headers.has(name)) headers.set(name,request.headers.get(name));
+  }
+  // Only the edge reads the HttpOnly credential. The browser sends an opaque,
+  // non-authorising session marker to preserve the app's existing UI contract.
+  const marker = headers.get('Authorization') || '';
+  if (marker.startsWith('Bearer cookie.')) {
+    const match = (request.headers.get('Cookie') || '').match(/(?:^|;\s*)__Host-ozylix_session=([A-Za-z0-9_.-]{20,8192})(?:;|$)/);
+    if (!match) return privateResponse('Please sign in again.',401);
+    try {
+      const decode=t=>JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+      const requested=decode(marker.slice(7)), actual=decode(match[1]);
+      if(String(requested.id)!==String(actual.id) || requested.email!==actual.email)return privateResponse('Your session changed. Please sign in again.',401);
+    } catch { return privateResponse('Please sign in again.',401); }
+    headers.set('Authorization','Bearer '+match[1]);
   }
   headers.set('Origin',url.origin);
   const ip = request.headers.get('CF-Connecting-IP');
@@ -63,6 +77,16 @@ export async function handleApiRequest(request) {
     // in public catalogue/content JSON without changing the data contract.
     if (upstream.headers.get('Content-Type')?.includes('application/json')) {
       const payload = publicMedia(await upstream.json());
+      if (/^\/api\/auth\/(?:email-login|register|google|google-code|session)\/*$/i.test(decodedPath) && upstream.ok && typeof payload.token === 'string' && payload.user) {
+        let claims;
+        try { claims=JSON.parse(atob(payload.token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))); } catch { return privateResponse('Session verification failed',502); }
+        if (claims.role || !claims.id || !claims.email || !Number.isFinite(claims.exp)) return privateResponse('Session verification failed',502);
+        const seconds=Math.max(0,Math.min(2592000,Math.floor(claims.exp-Date.now()/1000)));
+        responseHeaders.set('Set-Cookie','__Host-ozylix_session='+payload.token+'; Path=/; Max-Age='+seconds+'; Secure; HttpOnly; SameSite=Lax');
+        const state=btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify({id:claims.id,email:claims.email,exp:claims.exp})))).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+        payload.token='cookie.'+state+'.'+crypto.randomUUID();
+      }
+      if (path === '/api/account/delete' && upstream.status === 202) responseHeaders.set('Set-Cookie','__Host-ozylix_session=; Path=/; Max-Age=0; Secure; HttpOnly; SameSite=Lax');
       return new Response(JSON.stringify(payload),{status:upstream.status,headers:responseHeaders});
     }
     return new Response(upstream.body,{status:upstream.status,headers:responseHeaders});

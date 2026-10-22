@@ -3,8 +3,8 @@
 (function () {
   'use strict';
   const allowed = new Set(['homepage_viewed','page_viewed','category_viewed','product_viewed','product_added_to_cart','cart_viewed','cart_snapshot','checkout_started','purchase_completed']);
-  const disabled = () => { try { return localStorage.getItem('ozy_optout') === '1'; } catch (_) { return true; } };
-  const session = (function () { try { let id=sessionStorage.getItem('ozy_anonymous_visit'); if(!id){id=crypto.randomUUID();sessionStorage.setItem('ozy_anonymous_visit',id);}return id;}catch(_){return null;} })();
+  const disabled = () => { if (!window.ozylixPrivacy || !window.ozylixPrivacy.allows('analytics')) return true; try { return localStorage.getItem('ozy_optout') === '1'; } catch (_) { return true; } };
+  const session = (function () { if(disabled())return null; try { let id=sessionStorage.getItem('ozy_anonymous_visit'); if(!id){id=crypto.randomUUID();sessionStorage.setItem('ozy_anonymous_visit',id);}return id;}catch(_){return null;} })();
   function pageType() { const part=location.pathname.split('/').filter(Boolean)[0] || 'home'; return ['home','shop','product','cart','checkout','blog','about','contact','faq'].includes(part) ? '/' + part : '/other'; }
   function boundedNumber(value, max) { return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= max ? value : null; }
   function productId(value) {

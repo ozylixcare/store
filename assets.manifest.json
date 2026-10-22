@@ -3,7 +3,7 @@
   "scripts/admin-audit.js": "e9a2c1da49f37df8",
   "scripts/admin-core.js": "36a57d0850e4507b",
   "scripts/admin-ui.js": "765a80dfe3513882",
-  "scripts/auth-core.js": "a4da6a11fdf98883",
+  "scripts/auth-core.js": "3ae3820cd594b18a",
   "scripts/banners.js": "85dc21af1a670697",
   "scripts/invoice-renderer.js": "c40c66fd0ce87c6c",
   "scripts/seo-core.js": "c9ae6af5c5e724c6",
@@ -16,8 +16,9 @@
   "styles/store-main.css": "a739921ec1f1dcb4",
   "scripts/blog-page.js": "c5cd708a9be23b51",
   "scripts/payment-flow.js": "eca60ee51e286f95",
-  "scripts/account-page.js": "09d4ab1f72ae704d",
+  "scripts/account-page.js": "6fa3ef57e45bce90",
   "styles/store-template-refresh.css": "a9c56dd7851abad1",
   "scripts/admin-media-workspace.js": "f6c0efc857efab62",
-  "styles/store-responsive.css": "6680bcbec7d40bc1"
+  "styles/store-responsive.css": "6680bcbec7d40bc1",
+  "scripts/ozy-track.js": "c19bdd501d9e1637"
 }

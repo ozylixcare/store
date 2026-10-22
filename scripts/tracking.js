@@ -5,15 +5,24 @@
  * Both destinations share one loader and the shopping/SPA helpers.
  */
 (function () {
+  function allows(kind) { return !!window.ozylixPrivacy && window.ozylixPrivacy.allows(kind); }
   window.dataLayer = window.dataLayer || [];
   function gtag() { window.dataLayer.push(arguments); }
-  gtag('js', new Date());
-  gtag('config', 'G-1SPY139WS1');
-  gtag('config', 'G-VC8L1WF561');
-  var _gtag = function () {
-    var args = Array.prototype.slice.call(arguments);
-    gtag.apply(null, args);
-  };
+  function loadScript(src) { var s=document.createElement('script');s.src=src;s.async=true;document.head.appendChild(s); }
+  if (allows('analytics')) {
+    gtag('consent','default',{analytics_storage:'granted',ad_storage:allows('advertising')?'granted':'denied',ad_user_data:allows('advertising')?'granted':'denied',ad_personalization:allows('advertising')?'granted':'denied'});
+    gtag('js',new Date());
+    ['G-1SPY139WS1','G-VC8L1WF561'].forEach(function(id){gtag('config',id,{send_page_view:false,allow_google_signals:allows('advertising'),allow_ad_personalization_signals:allows('advertising')});});
+    loadScript('https://www.googletagmanager.com/gtag/js?id=G-VC8L1WF561');
+  }
+  if (allows('advertising')) {
+    var fb=function(){fb.callMethod?fb.callMethod.apply(fb,arguments):fb.queue.push(arguments);};
+    fb.queue=[];fb.loaded=true;fb.version='2.0';window.fbq=fb;
+    loadScript('https://connect.facebook.net/en_US/fbevents.js');
+    fb('init','5548440758714716');fb('track','PageView');
+    if(allows('analytics')) {window.dataLayer.push({'gtm.start':Date.now(),event:'gtm.js'});loadScript('https://www.googletagmanager.com/gtm.js?id=GTM-K5B42TC9');}
+  }
+  var _gtag = function () { if (allows('analytics')) gtag.apply(null, arguments); };
 
   // ── GOOGLE IDENTITY SERVICES (bot-gated) ──
   var ua = navigator.userAgent || '';
@@ -34,8 +43,8 @@
   window._trackPage = function (pageName) {
     _gtag('event', 'page_view', {
       page_title:    'Ozylix – ' + (pageName.charAt(0).toUpperCase() + pageName.slice(1)),
-      page_location: window.location.href,
-      page_path:     window.location.pathname + window.location.search,
+      page_location: window.location.origin + window.location.pathname,
+      page_path:     window.location.pathname,
     });
   };
 
@@ -131,6 +140,8 @@
   };
 
   window._trackSearch = function (searchTerm) {
+    searchTerm = String(searchTerm || '').slice(0,100);
+    if (/@|\d{7,}/.test(searchTerm)) return;
     _gtag('event', 'search', { search_term: searchTerm });
     if (typeof fbq === 'function') fbq('track', 'Search', { search_string: searchTerm });
   };

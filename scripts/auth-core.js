@@ -5,10 +5,12 @@
   window.createOzylixAnalytics = function (API) {
     var sid, lastPage=null, lastActivity=Date.now(), status='starting', pending=Promise.resolve();
     function disabled() {
+      if (!window.ozylixPrivacy || !window.ozylixPrivacy.allows('analytics')) return true;
       try { return localStorage.getItem('ozy_optout')==='1' || navigator.doNotTrack==='1' || navigator.doNotTrack==='yes' || window.doNotTrack==='1'; } catch (_) { return navigator.doNotTrack==='1'; }
     }
     function uuid() { return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2); }
     function session(activity) {
+      if(disabled())return null;
       var now=Date.now(), record;
       try { record=JSON.parse(sessionStorage.getItem('ozy_analytics_session')||'null'); } catch (_) {}
       if(!sid) {sid=record && now-record.at<1800000 ? record.id : uuid();lastActivity=record && record.id===sid ? record.at : now;}
@@ -40,7 +42,7 @@
       var ua=navigator.userAgent, hint=/iPad/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1)?'tablet':/Mobi|iPhone|Android/i.test(ua)?'mobile':'desktop';
       var utm={}, params=new URLSearchParams(location.search);
       ['source','medium','campaign'].forEach(function(k){var v=params.get('utm_'+k);if(v)utm[k]=v.slice(0,120);});
-      var body={session_id:sid,kind:'heartbeat',view_id:null,site:location.hostname,page:current,referrer:document.referrer,device_hint:hint,screen_w:screen.width,screen_h:screen.height,is_pwa:matchMedia('(display-mode: standalone)').matches||!!navigator.standalone,utm:utm};
+      var body={session_id:sid,kind:'heartbeat',view_id:null,site:location.hostname,page:current,referrer:(function(){try{return new URL(document.referrer).origin;}catch(_){return '';}})(),device_hint:hint,screen_w:screen.width,screen_h:screen.height,is_pwa:matchMedia('(display-mode: standalone)').matches||!!navigator.standalone,utm:utm};
       // Serialize sends so a first page establishes the session before subsequent events.
       pending=pending.catch(function(){}).then(function(){var view=body.session_id!==sid || current!==lastPage;body.kind=view?'pageview':'heartbeat';body.view_id=view?uuid():null;return send('/api/visitors/ping',body).then(function(ok){if(ok && sid===body.session_id)lastPage=current;return ok;});});
       return pending;
@@ -404,15 +406,15 @@ function showPage(pg) {
   const PAGE_SEO = {
     home:          [
       'Glutathione Effervescent Tablets | Ozylix India',
-      'FSSAI approved effervescent vitamins from Anand, Gujarat. Glutathione, Spirulina, Moringa, ACV & Multivitamins. FSSAI Approved. Delivery charges shown at checkout.'
+      'FSSAI licensed effervescent vitamins from Anand, Gujarat. Glutathione, Spirulina, Moringa, ACV & Multivitamins. FSSAI Licensed. Delivery charges shown at checkout.'
     ],
     shop:          [
       'Shop Effervescent Vitamins & Supplements | Ozylix India',
-      'Browse 11 premium supplements — Glutathione, Spirulina B12+D3, Organic Moringa, ACV+Moringa, Multivitamin. FSSAI approved, made in Gujarat. Up to 35% OFF on packs.'
+      'Browse 11 premium supplements — Glutathione, Spirulina B12+D3, Organic Moringa, ACV+Moringa, Multivitamin. FSSAI licensed, made in Gujarat. Up to 35% OFF on packs.'
     ],
     about:         [
       'About Ozylix | FSSAI Licensed Supplement Manufacturer Anand Gujarat',
-      'Ozylix — nutraceutical manufacturer in Anand, Gujarat. FSSAI approved. Effervescent tablets, organic spirulina and moringa supplements India.'
+      'Ozylix — nutraceutical manufacturer in Anand, Gujarat. FSSAI licensed. Effervescent tablets, organic spirulina and moringa supplements India.'
     ],
     blog:          [
       'Supplement & Wellness Blog | Glutathione, Spirulina Guides | Ozylix',
@@ -428,11 +430,11 @@ function showPage(pg) {
     ],
     cart:          [
       'Your Cart | Ozylix – Effervescent Vitamins India',
-      'Review your Ozylix supplement order. Delivery charges shown at checkout. Secure UPI, card and EMI checkout. FSSAI approved, made in Anand Gujarat.'
+      'Review your Ozylix supplement order. Delivery charges shown at checkout. Secure UPI, card and EMI checkout. FSSAI licensed, made in Anand Gujarat.'
     ],
     checkout:      [
       'Secure Checkout | Ozylix – Made in Gujarat India',
-      'Complete your order securely. Pay via UPI, Credit/Debit Card, Net Banking or EMI via GoKwik. FSSAI approved effervescent supplements delivered pan-India.'
+      'Complete your order securely. Pay via UPI, Credit/Debit Card, Net Banking or EMI via GoKwik. FSSAI licensed effervescent supplements delivered pan-India.'
     ],
     advisor:       [
       'AI Health Advisor – Find Your Perfect Supplement | Ozylix',
@@ -1459,7 +1461,7 @@ function refreshProductReviewUI(pid) {
       items: [] },
     { id: 'why',      label: 'Why Ozylix',
       title: 'Made with care, verified end to end',
-      intro: 'FSSAI approved, manufactured at our Anand, Gujarat facility, with quality checks from raw material to finished tablet.',
+      intro: 'FSSAI licensed, manufactured at our Anand, Gujarat facility, with quality checks from raw material to finished tablet.',
       items: [] }
   ];
   // Content that can genuinely be verified — general wellness education
@@ -1482,7 +1484,7 @@ function refreshProductReviewUI(pid) {
       { h: 'Spirulina', p: 'A blue-green algae valued for protein and micronutrients such as B12, iron and beta-carotene in a vegan form.' }
     ],
     why: [
-      { h: 'FSSAI approved', p: 'Every Ozylix product carries FSSAI approval — check the licence on-pack.' },
+      { h: 'FSSAI licensed', p: 'Every Ozylix product carries FSSAI approval — check the licence on-pack.' },
       { h: 'Made in Anand', p: 'Manufactured at our own facility in Anand, Gujarat — no third-party white-labelling.' },
       { h: 'Real ingredients', p: 'What is on the label is what is in the tablet: disclosed ingredients, disclosed doses.' },
       { h: 'Delivery across India', p: typeof deliveryCopy === 'function' ? deliveryCopy('policy') : 'Delivery charges and availability are confirmed at checkout.' }
@@ -1609,9 +1611,9 @@ function buildProductPage(p) {
       <button class="buy-now-btn" ${Number(p.stock) <= 0 ? "disabled" : ""} onclick="addToCartWithTier(${p.id});showPage('checkout')">&#x26A1; Buy Now</button>
       <div id="productMMProgress"></div>
       <div class="prod-features">
-        <div class="feat-item"><span class="feat-ico">&#x1F331;</span>100% Organic</div>
+        <div class="feat-item"><span class="feat-ico">&#x1F331;</span>Quality checked</div>
         <div class="feat-item"><span class="feat-ico">&#x1F52C;</span>Lab Tested</div>
-        <div class="feat-item"><span class="feat-ico">&#x2705;</span>FSSAI Approved</div>
+        <div class="feat-item"><span class="feat-ico">&#x2705;</span>FSSAI Licensed</div>
         <div class="feat-item"><span class="feat-ico">&#x1F1EE;&#x1F1F3;</span>Made in India</div>
       </div>
       <div class="tabs">
@@ -1628,7 +1630,7 @@ function buildProductPage(p) {
         <div style="font-size:.88rem;line-height:1.8;color:var(--t-mid);">
           <p style="margin-bottom:12px;font-weight:600;">Key Ingredients:</p>
           <ul style="margin-left:18px;color:var(--gray);">${(p.keyIngredients||[]).map(i=>`<li style="margin-bottom:7px;">${i}</li>`).join('')}</ul>
-          <div style="margin-top:16px;padding:12px;background:var(--gold-pale);border-radius:9px;font-size:.78rem;color:var(--gold)">&#x26A0;&#xFE0F; Free from: Artificial colours, flavours, preservatives, heavy metals. 100% Natural.</div>
+          <div style="margin-top:16px;padding:12px;background:var(--gold-pale);border-radius:9px;font-size:.78rem;color:var(--gold)">&#x26A0;&#xFE0F; Refer to the full product label for additives, allergens and warnings. Read product label.</div>
         </div>
       </div>
       <div class="tab-content" id="tab-rvs">
@@ -1735,7 +1737,7 @@ window.buildKeyStatChips = function (p) {
   if (size)  chips.push([size, 'Size']);
   if (dose)  chips.push([dose, 'Dose']);
   // Origin/approval pair — always true for the Ozylix range.
-  chips.push(['FSSAI', 'Approved'], ['India', 'Made in']);
+  chips.push(['FSSAI', 'Licensed'], ['India', 'Made in']);
   if (!chips.length) return '';
   return '<div class="ksc-row">' + chips.map(function (c) {
     return '<span class="ksc-chip"><span class="ksc-v">' + (typeof c === 'string' ? c : esc(c[0])) + '</span><span class="ksc-k">' + (c[1] || '') + '</span></span>';
@@ -3830,7 +3832,7 @@ function generateInvoice({ orderId, formData, srItems, sub, disc, promoDisc, shi
 
   <!-- FOOTER -->
   <div class="inv-footer">
-    Thank you for shopping with Ozylix 🌿 &nbsp;|&nbsp; Made in India, Anand Gujarat &nbsp;|&nbsp; FSSAI Approved · Lab Tested
+    Thank you for shopping with Ozylix 🌿 &nbsp;|&nbsp; Made in India, Anand Gujarat &nbsp;|&nbsp; FSSAI Licensed · Lab Tested
   </div>
 </div>
 
@@ -4837,6 +4839,7 @@ function finishEmailSession(data) {
 }
 
 async function doLogin() {
+  if(typeof window !== 'undefined' && window.__ozLogoutRequest) await window.__ozLogoutRequest;
   if (emailAuthPending) return;
   clearAuthMessages();
   const email = document.getElementById('loginEmail').value.trim();
@@ -4864,6 +4867,7 @@ async function doLogin() {
 }
 
 async function doRegister() {
+  if(typeof window !== 'undefined' && window.__ozLogoutRequest) await window.__ozLogoutRequest;
   if (emailAuthPending) return;
   clearAuthMessages();
   const name = document.getElementById('regName').value.trim();
@@ -5108,6 +5112,7 @@ function saveVerifiedGoogleSession(data) {
 
 // ── Core: called after any successful Google auth (One Tap, popup, or OAuth2) ──
 async function handleGoogleCredential(response, flowContext = null) {
+  if(typeof window !== 'undefined' && window.__ozLogoutRequest) await window.__ozLogoutRequest;
   if (!response || (!response.credential && !response.code)) {
     _showAuthFeedback('error', 'Google sign-in returned no credential. Please try again.');
     return;
@@ -5443,6 +5448,7 @@ function _initGoogleOneTap() {
 
 // ── Sign out ──
 function doLogout() {
+  window.__ozLogoutRequest=fetch('/api/auth/logout',{method:'POST',credentials:'same-origin',keepalive:true}).catch(function(){});
   emailAuthVersion++;
   resetSignupVerification();
   resetAccountSession();
@@ -5450,6 +5456,7 @@ function doLogout() {
   if (typeof google !== 'undefined' && google.accounts?.id) {
     try { google.accounts.id.disableAutoSelect(); } catch(e) {}
   }
+  try { ['asc_lead','ozylix-position'].forEach(function(k){localStorage.removeItem(k);}); Object.keys(localStorage).filter(function(k){return /^ozylix_vita_/.test(k);}).forEach(function(k){localStorage.removeItem(k);}); } catch (_) {}
   localStorage.removeItem('asc_jwt');
   localStorage.removeItem('asc_user');
   // Privacy: drop anything cached for the outgoing session so the
@@ -7317,3 +7324,14 @@ window.addEventListener('storage', e => {
 });
 syncAccountSession();
 
+
+// Upgrade existing customer sessions without changing login, checkout or admin contracts.
+(async function(){
+  var before;try{before=localStorage.getItem('asc_jwt');}catch(_){return;}
+  if(!before || before.startsWith('cookie.') || !getCurrentUser())return;
+  try{
+    var r=await fetch('/api/auth/session',{method:'POST',headers:{Authorization:'Bearer '+before},credentials:'same-origin'});
+    var data=await r.json();
+    if(r.ok && typeof data.token==='string' && data.token.startsWith('cookie.') && localStorage.getItem('asc_jwt')===before){localStorage.setItem('asc_jwt',data.token);syncAccountSession();updateAccountNavBtn();if(currentPage==='account')loadAccountPage();}
+  }catch(_){}
+})();
