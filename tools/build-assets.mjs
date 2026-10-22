@@ -35,6 +35,8 @@ const MANIFEST = path.join(ROOT, 'assets.manifest.json');
 
 // Only files big enough to be worth the generated-sibling tradeoff.
 const MIN_BYTES = 20 * 1024;
+// These admin extensions are intentionally loaded as readable source.
+const SOURCE_ONLY = new Set(['scripts/admin-card-studio.js','scripts/admin-panel-workspace.js','scripts/admin-workspace.js']);
 const ALWAYS_MINIFY = new Set(['scripts/admin-media-workspace.js']);
 const DIRS = ['scripts', 'styles'];
 
@@ -48,7 +50,9 @@ function targets() {
       if (isGenerated(f)) continue;
       if (!/\.(js|css)$/.test(f)) continue;
       const rel = `${dir}/${f}`;
-      if (fs.statSync(path.join(ROOT, rel)).size < MIN_BYTES && !ALWAYS_MINIFY.has(rel)) continue;
+      if (SOURCE_ONLY.has(rel)) continue;
+      // Keep rebuilding opted-in siblings even after a cleanup shrinks their source.
+      if (fs.statSync(path.join(ROOT, rel)).size < MIN_BYTES && !ALWAYS_MINIFY.has(rel) && !fs.existsSync(path.join(ROOT, minPath(rel)))) continue;
       out.push(rel);
     }
   }
@@ -92,7 +96,7 @@ for (const rel of targets()) {
     if (r.error) { console.error(rel, r.error); process.exitCode = 1; continue; }
     out = r.code;
   } else {
-    const r = new CleanCSS({ level: 2 }).minify(src);
+    const r = new CleanCSS({ level: 2, inline: false }).minify(src);
     if (r.errors.length) { console.error(rel, r.errors.slice(0, 2)); process.exitCode = 1; continue; }
     out = r.styles;
   }
@@ -103,4 +107,5 @@ for (const rel of targets()) {
 }
 fs.writeFileSync(MANIFEST, JSON.stringify(next, null, 2) + '\n');
 console.log(`\ntotal ${before} -> ${after} bytes  (${((before - after) / 1024).toFixed(0)}KB saved)`);
+
 

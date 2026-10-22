@@ -16,12 +16,10 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 /* ── Tables scroll; they never break a word ───────────────────────── */
-.account-panel table,
 .vita-hist table {
   min-width: max-content;
 }
-.account-panel table td, .account-panel table th,
-.vita-hist table td,     .vita-hist table th {
+.vita-hist table td, .vita-hist table th {
   white-space: nowrap;
   overflow-wrap: normal;
   word-break: normal;
@@ -31,75 +29,33 @@
   /* The wrapper each table already sits in becomes the scroll container.
      :has() lets this attach to the existing markup without touching the
      render functions; the fallback below covers browsers without it. */
-  .account-panel div:has(> table),
   .vita-hist {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
   }
-  .account-panel, .vita-hist { max-width: 100%; }
-  .account-panel table, .vita-hist table { display: block; overflow-x: auto; }
-  .account-panel table > thead, .account-panel table > tbody,
-  .vita-hist table > thead,     .vita-hist table > tbody {
+  .vita-hist { max-width: 100%; }
+  .vita-hist table { display: block; overflow-x: auto; }
+  .vita-hist table > thead, .vita-hist table > tbody {
     display: table;
     width: max-content;
     min-width: 100%;
   }
   /* Tighter cells so more of each row is visible before scrolling. */
-  .account-panel table td, .account-panel table th,
-  .vita-hist table td,     .vita-hist table th {
+  .vita-hist table td, .vita-hist table th {
     padding: 11px 13px !important;
     font-size: .8rem !important;
   }
 
   /* ── Account menu: an even grid instead of ragged wrapping ──────── */
-  .account-nav {
-    display: grid;
-    /* `1fr 1fr` resolves to minmax(auto, 1fr), and a grid item defaults to
-       min-width:auto — so the track can never shrink below the widest
-       label. "Track Shipment" and "Profile & Address" pushed the columns
-       to 215px + 191px inside a 306px card and hung off the right edge.
-       minmax(0, 1fr) lets the tracks actually be half each. */
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-  }
-  .account-nav-item {
-    width: 100%;
-    min-width: 0;          /* same reason — the item must be allowed to shrink */
-    min-height: 52px;
-    justify-content: flex-start;
-    padding: 12px 11px;
-    border-radius: 14px;
-    background: var(--paper-hi, #fff);
-    box-shadow: var(--neo-1, 0 1px 3px rgba(0,0,0,.06));
-    font-size: .78rem;
-    line-height: 1.22;
-    text-align: left;
-    touch-action: manipulation;
-  }
   /* Let a long label use two lines rather than force the column wider. */
-  .account-nav-item > span:not(.nav-ico) { min-width: 0; overflow-wrap: anywhere; }
-  .account-nav-item .nav-ico { flex: none; }
   /* Sign Out is an action, not another destination. Matched on the real
      handler — doLogout() — not a guessed one. */
-  .account-nav-item[onclick*="doLogout"],
-  .account-nav-item[onclick*="logout"],
-  .account-nav-item.danger {
-    grid-column: 1 / -1;
-    justify-content: center;
-  }
 
   /* ── The card owns its own background, so nothing drifts across it ─ */
-  .account-sidebar, .account-panel, .account-card {
-    position: relative;
-    z-index: 1;
-  }
 }
 
 /* Very narrow phones: one column reads better than two cramped ones. */
-@media (max-width: 360px) {
-  .account-nav { grid-template-columns: 1fr; }
-}
 
 /* ═══════════════════════════════════════════════════════════════════
    PROMO CARDS — the text column was being crushed to nothing
@@ -270,111 +226,17 @@ body:not(.oz-product) #stickyCart { display: none !important; }
 .particle { z-index: -1 !important; pointer-events: none !important; }
 
 /* ══════════ ACCOUNT HUB REFRESH ══════════ */
-#page-account .account-layout { align-items: start; gap: 20px; }
-#page-account .account-sidebar {
-  padding: 20px;
-  border: 1px solid rgba(34, 54, 46, .08);
-  border-radius: 24px;
-  background: rgba(255,255,255,.78);
-  box-shadow: 0 14px 34px rgba(36, 45, 40, .08);
-}
-.account-profile-top { display:flex; align-items:center; gap:13px; padding-bottom:18px; border-bottom:1px solid rgba(34,54,46,.08); }
-.account-identity { min-width:0; }
-.account-overline, .account-nav-heading { color:var(--green,#3d755a); font-size:.64rem; font-weight:800; letter-spacing:.16em; text-transform:uppercase; }
-.account-overline { margin-bottom:5px; }
-.account-name { line-height:1.18; }
-.account-email { max-width:210px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.account-nav-heading { margin:19px 2px 10px; color:var(--t-low,#7c8780); letter-spacing:.11em; }
-#page-account .account-nav { display:flex; flex-direction:column; gap:8px; }
-#page-account .account-nav-item {
-  display:flex; align-items:center; gap:11px; width:100%; min-height:62px; padding:11px 12px;
-  border:1px solid transparent; border-radius:16px; background:transparent; box-shadow:none;
-  color:var(--t-mid,#4e5952); text-align:left; transition:background .18s ease, border-color .18s ease, transform .18s ease;
-}
-#page-account .account-nav-item:hover { background:rgba(61,117,90,.06); border-color:rgba(61,117,90,.12); transform:translateY(-1px); }
-#page-account .account-nav-item.active { background:linear-gradient(135deg,rgba(218,239,230,.96),rgba(237,246,241,.96)); border-color:rgba(61,117,90,.30); color:var(--green,#3d755a); box-shadow:0 7px 16px rgba(61,117,90,.10); }
-#page-account .account-nav-item .nav-ico { display:grid; place-items:center; flex:0 0 36px; width:36px; height:36px; border-radius:12px; background:rgba(255,255,255,.82); font-size:1.1rem; }
-.account-nav-copy { display:flex; flex:1; min-width:0; flex-direction:column; gap:3px; }
-.account-nav-copy strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.82rem; line-height:1.2; }
-.account-nav-copy small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--t-low,#7c8780); font-size:.67rem; line-height:1.2; }
-.account-nav-count, .account-nav-arrow { flex:0 0 auto; }
-.account-nav-count { min-width:24px; padding:3px 7px; border-radius:99px; background:rgba(61,117,90,.12); color:var(--green,#3d755a); font-size:.66rem; font-weight:800; text-align:center; }
-.account-nav-count-gold { background:rgba(196,146,14,.13); color:#9a7410; }
-.account-nav-arrow { color:var(--t-dim,#9ba49e); font-size:1.25rem; line-height:1; }
-#page-account .account-nav-signout { margin-top:8px; border-top:1px solid rgba(34,54,46,.08); border-radius:0 0 12px 12px; padding-top:17px; color:var(--red,#b84242); }
-#page-account .account-nav-signout .nav-ico { background:rgba(184,66,66,.08); }
-#page-account .account-welcome { display:grid; grid-template-columns:minmax(0,1.08fr) minmax(350px,.92fr); gap:20px; align-items:stretch; padding:24px; border-radius:24px; background:linear-gradient(135deg,#8e2333 0%,#6c317f 52%,#4b4a99 100%); box-shadow:0 18px 36px rgba(102,49,105,.20); overflow:hidden; }
-#page-account .aw-greeting { display:flex; flex-direction:column; justify-content:center; min-width:0; }
-.aw-profile-line { display:flex; align-items:center; gap:12px; min-width:0; }
-.aw-avatar { display:grid; place-items:center; flex:0 0 62px; width:62px; height:62px; border-radius:19px; background:rgba(255,255,255,.92); color:#b83a2f; font-size:1.6rem; font-weight:800; letter-spacing:.04em; box-shadow:0 8px 18px rgba(25,20,40,.14); }
-.aw-profile-copy { min-width:0; }
-.aw-email { display:flex; align-items:center; gap:6px; overflow:hidden; margin-top:7px; color:rgba(255,255,255,.82); font-size:.86rem; }
-.aw-email > span:last-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.aw-email-icon { display:inline-grid; place-items:center; flex:0 0 20px; width:20px; height:20px; border:1px solid rgba(255,255,255,.25); border-radius:7px; color:#fff; font-size:.7rem; }
-#page-account .aw-eyebrow { display:flex; align-items:center; flex-wrap:wrap; gap:8px; color:rgba(255,255,255,.72); font-size:.68rem; font-weight:800; letter-spacing:.15em; text-transform:uppercase; }
-.aw-eyebrow-pill { padding:4px 8px; border:1px solid rgba(255,255,255,.24); border-radius:99px; color:rgba(255,255,255,.82); font-size:.56rem; letter-spacing:.12em; }
-#page-account .aw-name { margin:12px 0 8px; color:#fff; font-size:clamp(1.35rem,2.4vw,2rem); line-height:1.1; }
-#page-account .aw-sub { max-width:420px; margin:0; color:rgba(255,255,255,.76); font-size:.88rem; line-height:1.55; }
-#page-account .aw-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; align-items:stretch; }
-#page-account .aw-stat { display:flex; align-items:flex-start; gap:9px; min-width:0; padding:14px 12px; border:1px solid rgba(255,255,255,.22); border-radius:17px; background:rgba(255,255,255,.12); color:#fff; text-align:left; cursor:pointer; transition:background .18s ease, transform .18s ease; }
-#page-account .aw-stat:hover { background:rgba(255,255,255,.19); transform:translateY(-2px); }
-.aw-stat-icon { display:grid; place-items:center; flex:0 0 28px; width:28px; height:28px; border-radius:10px; background:rgba(255,255,255,.18); font-size:.9rem; }
-#page-account .aw-stat > span:last-child { display:flex; min-width:0; flex-direction:column; }
-#page-account .aw-stat-val { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:1.22rem; line-height:1.1; }
-#page-account .aw-stat-lbl { display:block; margin-top:5px; color:rgba(255,255,255,.88); font-size:.69rem; font-weight:700; }
-#page-account .aw-stat-note { display:block; margin-top:5px; color:rgba(255,255,255,.60); font-size:.6rem; line-height:1.2; }
 .app-menu-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:0 16px 11px; }
 .app-menu-summary button { display:flex; min-width:0; flex-direction:column; align-items:flex-start; padding:11px 12px; border:1px solid rgba(61,117,90,.16); border-radius:15px; background:rgba(61,117,90,.07); color:var(--t-hi,#1f2b24); text-align:left; }
 .app-menu-summary button:active { transform:scale(.98); }
 .app-menu-summary strong { overflow:hidden; max-width:100%; text-overflow:ellipsis; white-space:nowrap; color:var(--green,#3d755a); font-size:1.02rem; line-height:1.1; }
 .app-menu-summary span { margin-top:4px; color:var(--t-low,#7c8780); font-size:.62rem; font-weight:700; }
 .app-menu-live-badge { min-width:24px !important; text-align:center; }
-@media (max-width: 900px) {
-  #page-account { padding-top:calc(env(safe-area-inset-top, 0px) + 106px) !important; }
-  #page-account .account-layout { gap:14px; }
-  #page-account .account-sidebar { padding:16px; border-radius:20px; }
-  #page-account .account-nav { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
-  #page-account .account-nav-item { min-width:0; min-height:70px; padding:10px; }
-  #page-account .account-nav-signout { grid-column:1 / -1; min-height:58px; }
-  #page-account .account-welcome { grid-template-columns:1fr; gap:16px; padding:20px; border-radius:20px; }
-}
 @media (max-width: 560px) {
-  #page-account .account-layout { display:flex; flex-direction:column; gap:8px; }
-  #page-account .account-content { display:contents; }
-  #page-account .account-welcome { order:-2; width:100%; }
-  #page-account .account-sidebar { order:-1; width:100%; padding:7px 5px; border:0; border-radius:0; background:transparent; box-shadow:none; }
-  #page-account .account-profile-top, #page-account .account-nav-heading { display:none; }
-  #page-account .account-profile-top { gap:10px; padding-bottom:10px; }
-  #page-account .account-nav { grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; }
-  #page-account .account-nav-item { min-height:54px; padding:6px 3px; gap:3px; border:1px solid rgba(34,54,46,.07); border-radius:12px; background:rgba(255,255,255,.78); box-shadow:0 3px 9px rgba(36,45,40,.06); flex-direction:column; align-items:center; justify-content:center; text-align:center; }
-  #page-account .account-nav-copy { flex:0 1 auto; align-items:center; gap:0; }
-  #page-account .account-nav-copy strong { overflow:visible; white-space:normal; font-size:.6rem; line-height:1.08; }
-  #page-account .account-nav-copy small, #page-account .account-nav-arrow { display:none; }
-  #page-account .account-nav-item .nav-ico { flex:0 0 23px; width:23px; height:23px; font-size:.74rem; border-radius:8px; }
-  #page-account .account-nav-count { position:absolute; top:3px; right:4px; min-width:18px; padding:2px 4px; font-size:.54rem; }
-  #page-account .account-nav-item { position:relative; }
-  #page-account .account-nav-signout { grid-column:1 / -1; min-height:39px; margin-top:2px; padding:5px; border:1px solid rgba(184,66,66,.12); border-radius:11px; flex-direction:row; }
-  #page-account .account-nav-signout .nav-ico { flex-basis:22px; width:22px; height:22px; }
-  #page-account .account-nav-signout .account-nav-copy { align-items:flex-start; }
-  #page-account .account-welcome { gap:8px; padding:12px; border-radius:17px; }
-  #page-account .aw-sub, #page-account .aw-stat-note { display:none; }
-  .aw-avatar { flex-basis:45px; width:45px; height:45px; border-radius:14px; font-size:1.15rem; }
-  .aw-email { margin-top:4px; font-size:.7rem; }
-  .aw-email-icon { flex-basis:17px; width:17px; height:17px; border-radius:6px; font-size:.58rem; }
-  #page-account .aw-name { margin:7px 0 0; font-size:1.2rem; }
-  #page-account .aw-stats { gap:5px; }
-  #page-account .aw-stat { flex-direction:row; align-items:center; gap:6px; padding:8px 7px; border-radius:11px; }
-  #page-account .aw-stat-icon { flex-basis:23px; width:23px; height:23px; font-size:.75rem; border-radius:8px; }
-  #page-account .aw-stat-val { font-size:.9rem; }
-  #page-account .aw-stat-lbl { margin-top:2px; font-size:.56rem; }
   .app-menu-summary { margin-left:13px; margin-right:13px; }
   #appBottomNav { padding-top:4px; padding-bottom:calc(4px + env(safe-area-inset-bottom, 0px)); }
   #appBottomNav .app-nav-item { min-height:44px; }
   #appBottomNav .app-nav-label { font-size:.62rem; }
-}
-@media (max-width: 360px) {
-  #page-account .account-nav-copy strong { font-size:.56rem; }
-  #page-account .account-nav-item { padding-left:2px; padding-right:2px; }
 }
 
 
@@ -391,98 +253,10 @@ body:not(.oz-product) #stickyCart { display: none !important; }
 
 
 /* 2026-10-06: retain account structure; improve reading and touch targets. */
-#page-account .account-panel { min-width: 0; }
-#page-account .account-panel :is(h2,h3,h4) { line-height: 1.35; }
-#page-account .account-panel :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select) { min-height: 44px; }
-#page-account .account-panel :is(input,select,textarea) { max-width: 100%; }
-#page-account .account-panel :is(td,th), #page-account .aw-stat { font-variant-numeric: tabular-nums; }
-#page-account .account-nav-item:focus-visible { outline: 2px solid var(--indigo, #ab344c); outline-offset: 3px; }
-@media (max-width: 600px) {
-  #page-account .account-nav-copy strong { font-size: .72rem; line-height: 1.3; }
-  #page-account .account-nav-item { min-height: 64px; padding: 9px 4px; }
-  #page-account .account-nav-signout { min-height: 44px; }
-  #page-account .account-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea) { font-size: 16px; }
-  #page-account .account-panel button { min-height: 44px; }
-}
 
 
 /* Account hub refresh shared by every storefront route: no narrow left rail,
    no nested vertical scroller; navigation and content follow the page flow. */
-#page-account .account-welcome {
-  background: linear-gradient(135deg, #72566d 0%, #96768d 58%, #b293a6 100%);
-  box-shadow: 0 14px 34px rgba(91, 65, 84, .18);
-}
-#page-account .account-sidebar {
-  border-color: rgba(126, 91, 116, .18);
-  background: linear-gradient(145deg, #fbf7fa 0%, #f4edf3 100%);
-  box-shadow: 0 8px 24px rgba(91, 65, 84, .08);
-}
-#page-account .account-nav-item.active {
-  color: #684b62;
-  background: #eadce7;
-  border-color: #d8c3d2;
-  box-shadow: inset 3px 0 0 #896783;
-}
-@media (max-width: 760px) {
-  #page-account { height: auto !important; min-height: 0; overflow: visible !important; }
-  #page-account .account-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) !important;
-    gap: 12px;
-  }
-  #page-account .account-content { display: contents; }
-  #page-account .account-welcome {
-    grid-column: 1; grid-row: 1; order: initial; width: 100%; margin: 0;
-  }
-  #page-account .account-sidebar {
-    grid-column: 1; grid-row: 2; order: initial; position: static !important;
-    inset: auto; width: 100%; height: auto; max-height: none; overflow: visible;
-    padding: 10px; border: 1px solid rgba(126, 91, 116, .18); border-radius: 18px;
-  }
-  #page-account .account-profile-top,
-  #page-account .account-nav-heading { display: none; }
-  #page-account .account-nav {
-    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin: 0;
-  }
-  #page-account .account-nav-item {
-    position: relative; display: flex; flex-direction: row; justify-content: flex-start;
-    align-items: center; gap: 7px; width: 100%; height: auto; min-height: 48px;
-    flex: initial; padding: 8px 7px !important; border: 1px solid rgba(126, 91, 116, .12);
-    border-radius: 12px !important; background: rgba(255, 255, 255, .62);
-    box-shadow: none; text-align: left; color: #55444f; transform: none;
-  }
-  #page-account .account-nav-item .nav-ico { flex: 0 0 22px; width: 22px; height: 22px; }
-  #page-account .nav-ico .desktop-account-icon { display: none; }
-  #page-account .nav-ico .mobile-rail-icon { display: block; width: 19px; height: 19px; }
-  #page-account .account-nav-copy {
-    position: static; width: auto; height: auto; padding: 0; margin: 0; overflow: visible;
-    clip-path: none; white-space: normal; min-width: 0; display: flex; flex: 1 1 auto;
-    align-items: flex-start;
-  }
-  #page-account .account-nav-copy strong { font-size: .67rem; line-height: 1.2; font-weight: 700; overflow-wrap: anywhere; }
-  #page-account .account-nav-copy small,
-  #page-account .account-nav-arrow,
-  #page-account .account-nav-count { display: none; }
-  #page-account .account-nav-item.active {
-    color: #684b62; background: #eadce7; border-color: #d8c3d2;
-    box-shadow: inset 0 0 0 1px rgba(137, 103, 131, .08);
-  }
-  #page-account .account-nav-signout {
-    grid-column: 1 / -1; margin: 0; min-height: 42px;
-    border: 1px solid rgba(164, 83, 92, .15); border-radius: 12px !important;
-    background: #fbf3f3; color: #8a4852;
-  }
-  #page-account .account-panel {
-    grid-column: 1; grid-row: 3; width: 100%; min-width: 0; margin: 0;
-    padding: 16px 14px; border: 1px solid rgba(126, 91, 116, .15);
-    border-radius: 18px; background: #fcf9fb;
-    box-shadow: 0 6px 20px rgba(91, 65, 84, .07);
-  }
-}
-@media (max-width: 380px) {
-  #page-account .account-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  #page-account .account-nav-item { min-height: 46px; }
-}
 
 
 .auth-phone-disabled{
@@ -494,96 +268,9 @@ body:not(.oz-product) #stickyCart { display: none !important; }
 .signup-otp-copy{font-size:.85rem;line-height:1.6;color:var(--t-mid);margin-bottom:18px;overflow-wrap:anywhere}
 #signupOtp{font-size:1.4rem;letter-spacing:.3em;text-align:center}
 #signupOtpForm[hidden],#registerDetails[hidden]{display:none!important}
-@media(prefers-reduced-motion:reduce){#page-account.active .account-nav-item{transition:none}}
 
 
 
 
 /* Account Hub 2026: unified responsive layout. No body scroll locks. */
-#page-account .account-mobile-picker{display:none}
-#page-account .account-layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:24px;max-width:1260px;margin-inline:auto;align-items:start;min-width:0}
-#page-account .account-sidebar,#page-account .account-content,#page-account .account-panel{min-width:0;max-width:100%}
-#page-account .account-sidebar{height:auto;max-height:none;overflow:visible}
-#page-account .account-content{display:flex;flex-direction:column;gap:16px;min-width:0}
-#page-account .account-nav{display:flex;flex-direction:column;align-items:stretch;gap:6px;overflow:visible;height:auto}
-#page-account .account-nav-item{width:100%;min-width:0;min-height:48px;display:flex;align-items:center;justify-content:flex-start;gap:10px;padding:10px 12px;white-space:normal}
-#page-account .account-nav-copy{display:block;flex:1;min-width:0;text-align:left;overflow-wrap:anywhere}
-#page-account .account-nav-copy strong{display:block}
-#page-account .account-nav-copy small{display:block}
-#page-account .account-name,#page-account .account-email,#page-account .aw-name,#page-account .aw-email{max-width:100%;white-space:normal;overflow-wrap:anywhere}
-#page-account .account-nav-count,#page-account .account-nav-arrow{flex:none}
-#page-account .account-signout-wrap{margin-top:14px;padding-top:12px;border-top:1px solid var(--edge)}
-#page-account .account-welcome{width:100%;min-width:0;display:flex;flex-wrap:wrap;gap:18px;align-items:center}
-#page-account .aw-greeting{flex:1 1 260px;min-width:0}
-#page-account .aw-stats{flex:1 1 360px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;min-width:0}
-#page-account .aw-stat{min-width:0;max-width:none;overflow-wrap:anywhere;padding:12px;min-height:80px}
-#page-account .aw-stat>span:last-child{min-width:0}
-#page-account .aw-stat-lbl{overflow-wrap:normal;word-break:normal}
-#page-account .account-panel{height:auto;min-height:0;max-height:none;overflow:visible;padding:clamp(16px,2.2vw,24px)}
-#page-account .account-panel:not(.active){display:none!important}
-#page-account .account-panel-title{scroll-margin-top:110px}
-#page-account .account-panel :is(button,input,select,textarea){min-height:44px;box-sizing:border-box}
-#page-account .account-panel :is(input,select,textarea){max-width:100%}
-#page-account .account-panel :is(.promo-row,.profile-row){display:flex;flex-wrap:wrap;gap:12px}
-#page-account .account-panel .profile-row>*{flex:1 1 180px;min-width:0}
-#page-account .account-panel img{max-width:100%;height:auto}
-#page-account .account-panel :is(table,.invoice-table){max-width:100%}
-#page-account .account-panel :has(> table){overflow-x:auto;max-width:100%}
-#page-account :is(button,input,select,textarea,a):focus-visible{outline:2px solid var(--green,#3d755a);outline-offset:3px}
-@media(max-width:900px){
-#page-account .account-layout{grid-template-columns:minmax(0,1fr);gap:12px}
-#page-account .account-content{display:contents}
-#page-account .account-welcome{grid-row:1}
-#page-account .account-sidebar{grid-row:2}
-#page-account .account-panel.active{grid-row:3}
-#page-account .account-profile-top,#page-account .account-nav-heading{display:none}
-#page-account .account-mobile-picker{display:block}
-#page-account .account-section-toggle{display:flex;width:100%;min-height:50px;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--edge);border-radius:12px;background:var(--paper-hi,#fff);padding:12px 16px;color:var(--t-hi);font:inherit;text-align:left}
-#page-account .account-nav{display:none;flex-direction:column;gap:4px;padding:8px 0}
-#page-account .account-nav.account-menu-open{display:flex}
-#page-account .account-nav-item{width:100%;min-height:48px;height:auto;flex:0 0 auto;display:flex;flex-direction:row;align-items:center;justify-content:flex-start;padding:10px 12px}
-#page-account .account-nav-copy,#page-account .account-nav-copy strong{display:block!important;text-align:left}
-#page-account .account-nav-copy small{display:none}
-#page-account .account-nav-item .desktop-account-icon{display:inline}
-#page-account .account-nav-item .mobile-rail-icon{display:none}
-#page-account .account-signout-wrap{margin-top:8px}
-#page-account .account-signout-wrap .account-nav-item{min-height:44px}
-#page-account .account-sidebar{position:static!important;max-height:none;height:auto;overflow:visible;padding:10px;border-radius:16px}
-#page-account .account-panel.active{height:auto;max-height:none;min-height:0;overflow:visible}
-#page-account .aw-stats{flex-basis:100%}
-}
-@media(max-width:600px){
-#page-account{height:auto!important;min-height:100dvh!important;overflow:visible!important;padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important}
-#page-account>.container{display:block;min-height:0;overflow:visible;padding-inline:clamp(12px,3vw,16px)}
-#page-account .account-layout{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto;gap:12px;overflow:visible;min-height:0}
-#page-account .account-welcome{padding:16px;min-height:0}
-#page-account .aw-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-#page-account .aw-stat{padding:8px 6px;min-height:74px;display:flex;flex-direction:column;align-items:flex-start;gap:5px}
-#page-account .aw-stat-icon{width:24px;height:24px;flex:none}
-#page-account .aw-stat-val{font-size:clamp(.83rem,3.4vw,1rem);overflow-wrap:anywhere}
-#page-account .aw-stat-lbl{font-size:.68rem;line-height:1.2}
-#page-account .aw-stat-note{display:none}
-#page-account .account-panel.active{padding:16px;overflow:visible}
-#page-account .account-panel .promo-row>*{flex:1 1 100%;min-width:0}
-#page-account .account-panel .profile-row{display:grid;grid-template-columns:minmax(0,1fr)}
-#page-account .account-panel table{display:table;min-width:max-content}
-}
-@media(prefers-reduced-motion:reduce){#page-account *{scroll-behavior:auto!important;transition-duration:.01ms!important}}
 
-#page-account .account-invoices-desktop{overflow-x:auto;max-width:100%}
-#page-account .account-invoices-mobile{display:none}
-#page-account .account-invoice-table{width:100%;border-collapse:collapse;min-width:650px}
-#page-account .account-invoice-table :is(th,td){padding:13px 12px;border-bottom:1px solid var(--edge);text-align:left;vertical-align:middle;overflow-wrap:anywhere}
-#page-account .account-invoice-table th{font-size:.76rem;color:var(--t-mid);font-weight:700}
-#page-account .account-invoice-table :is(th,td):nth-child(3){text-align:right}
-#page-account .account-invoice-table .invoice-btn,#page-account .account-invoice-actions .invoice-btn{min-height:44px;padding:8px 12px}
-@media(max-width:700px){
-#page-account .account-invoices-desktop{display:none}
-#page-account .account-invoices-mobile{display:grid;gap:12px}
-#page-account .account-invoice-card{padding:16px;border:1px solid var(--edge);border-radius:14px;background:var(--paper-hi,#fff);min-width:0}
-#page-account .account-invoice-card dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0}
-#page-account .account-invoice-card dt{font-size:.74rem;color:var(--t-mid);margin-bottom:4px}
-#page-account .account-invoice-card dd{margin:0;font-weight:600;overflow-wrap:anywhere}
-#page-account .account-invoice-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
-#page-account .account-invoice-actions .invoice-btn{flex:1 1 120px}
-}

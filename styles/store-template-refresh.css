@@ -113,14 +113,12 @@ html body #page-product .qty-tier.selected { background:#f6edef; border-color:va
 html body #page-product .qty-tier.best-value { background:#f6f0e5; }
 html body #page-product .qty-tier::before,html body #page-product .qty-tier::after { content:none; }
 html body #page-product .qt-flag { animation:none; transform:none; }
-html body :is(.cart-items-box,.cart-summary-box,.checkout-form,.checkout-section,.ck-section,.account-sidebar,.account-main,.account-panel,.account-welcome,.auth-box,.rv-card,.rv-form,.faq-item,.contact-card,.about-card) { background:var(--ui-surface); border:1px solid var(--ui-line); border-radius:22px; box-shadow:none!important; }
+html body :is(.cart-items-box,.cart-summary-box,.checkout-form,.checkout-section,.ck-section,.auth-box,.rv-card,.rv-form,.faq-item,.contact-card,.about-card) { background:var(--ui-surface); border:1px solid var(--ui-line); border-radius:22px; box-shadow:none!important; }
 html body :is(.ck-header-card,.ck-sum-head) { background:var(--ui-soft); color:var(--ui-ink); box-shadow:none; }
 html body :is(.ck-sum-badge,.ck-header-badge) { background:var(--ui-accent); color:#fff; box-shadow:none; }
 html body :is(.cart-img,.ck-item-img) { background:var(--ui-bg); border:1px solid var(--ui-line); box-shadow:none; }
 html body :is(.ck-hstep,.ck-hstep-act,.ck-hstep-done) { box-shadow:none; }
 html body .ck-hstep.ck-hstep-done { background:var(--ui-accent); }
-html body #page-account .account-nav-item.active { background:#f2e2e6; color:var(--ui-accent); border-color:var(--ui-line); box-shadow:none; }
-html body #page-account .account-welcome { background:var(--ui-soft); }
 html body :is(.auth-modal,.modal-box,.side-cart,.app-menu-drawer,.wa-chat-popup,.search-modal-box) { background:var(--ui-bg); border-color:var(--ui-line); box-shadow:0 18px 60px #30262b20; }
 html body :is(.sc-header,.sc-footer,.sc-item) { border-color:var(--ui-line); }
 html body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea) { background:var(--ui-surface); border:1px solid var(--ui-line); border-radius:12px; box-shadow:none; }
@@ -171,7 +169,7 @@ html body .footer :is(p,a,.footer-desc,.footer-tagline) { color:var(--ui-muted);
   html body #page-shop #shopHero { width:100%; margin-inline:0; border-radius:18px; }
   html body .product-page { gap:24px; }
   html body #page-product .gallery-main { border-radius:20px; }
-  html body :is(.cart-items-box,.cart-summary-box,.checkout-section,.ck-section,.account-sidebar,.account-main,.account-panel,.account-welcome) { border-radius:18px; }
+  html body :is(.cart-items-box,.cart-summary-box,.checkout-section,.ck-section) { border-radius:18px; }
 }html body :is(.cat-card,.cat-card-sm,.cert-card,.value-card)::before { content:none!important; }
 html body #page-product .gallery-main::before { content:none!important; }
 html body #page-product .qty-tier { animation:none!important; }

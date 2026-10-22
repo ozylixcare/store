@@ -5,7 +5,7 @@ window.OzylixModules = (() => {
     cashfree: {src:'https://sdk.cashfree.com/js/v3/cashfree.js', ready:()=>typeof window.Cashfree === 'function'},
     blog: {src:'/scripts/blog-page.min.js?v=20261012-1', ready:()=>!!window.OzylixBlogPage},
     checkout: {src:'/scripts/payment-flow.min.js?v=20261012-1', ready:()=>!!window.OzylixPaymentFlow},
-    account: {src:'/scripts/account-page.min.js?v=20261020-privacy', ready:()=>!!window.OzylixAccountPage},
+    account: {src:'/scripts/account-page.min.js?v=20261022-account-repair', ready:()=>!!window.OzylixAccountPage},
   };
   const pending = new Map();
   function load(name) {

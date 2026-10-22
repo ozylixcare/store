@@ -1,4 +1,4 @@
-@import url("/styles/store-template-refresh.min.css?v=20261017-drawers2");
+@import url("/styles/store-template-refresh.min.css?v=20261022-account-repair");
 /* Shared geometry for phones and tablets; independent of the selected template. */
 :root { --store-tab-height: 0px; }
 .page.active { min-width: 0; }

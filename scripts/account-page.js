@@ -1,6 +1,6 @@
 // Account panels and actions load on account entry or invoice action.
 (()=>{
-function loadAccountPage() {
+function loadAccountPage(options = {}) {
   if (currentPage !== 'account') return;
   syncAccountSession();
   const user = getCurrentUser();
@@ -11,7 +11,11 @@ function loadAccountPage() {
   const av=document.getElementById('accAvatar'); if(av) av.textContent = (parts[0][0] + (parts[1]?parts[1][0]:'')).toUpperCase();
   accountMenuInit();
   document.querySelectorAll('.account-panel').forEach(p=>{ const active=p.classList.contains('active'); if(active){p.removeAttribute('inert');p.removeAttribute('aria-hidden');}else{p.setAttribute('inert','');p.setAttribute('aria-hidden','true');} });
-  loadActiveAccountPanel();
+  const requestedPanel = new URLSearchParams(location.search).get('section');
+  const panel = requestedPanel && document.getElementById('panel-' + requestedPanel) ? requestedPanel : 'orders';
+  switchAccountPanel(panel, {history:false, scroll:options.scroll === true || !!requestedPanel});
+  const skip = document.querySelector('.skip-link');
+  if (skip) skip.href = '#page-account';
   prefillProfile(user);
   // Refresh the top Account Hub identity and live summary on every account entry.
   try { if (typeof refreshAccountWelcome === 'function') refreshAccountWelcome(); } catch(e) {}
@@ -186,12 +190,12 @@ async function renderReturnsPanel() {
           + '<span class="ret-days">' + o.days_left + ' day' + (o.days_left === 1 ? '' : 's') + ' left</span></div>'
           + '<div class="ret-items">' + pickHint + items + '</div>'
           + '<div class="ret-form">'
-          + '<label>Reason for return</label>'
+          + '<label for="retreason-' + _esc(o.order_id) + '">Reason for return</label>'
           + '<select id="retreason-' + _esc(o.order_id) + '">'
           + '<option value="">Select a reason…</option>'
           + RETURN_REASONS.map(function(r){ return '<option>' + _esc(r) + '</option>'; }).join('')
           + '</select>'
-          + '<label>Anything else we should know? (optional)</label>'
+          + '<label for="retnote-' + _esc(o.order_id) + '">Anything else we should know? (optional)</label>'
           + '<textarea id="retnote-' + _esc(o.order_id) + '" placeholder="Tell us what went wrong…"></textarea>'
           + '</div>'
           + '<div class="ret-actions"><button class="btn-primary" onclick="submitReturn(\'' + _esc(o.order_id) + '\', this)">Submit return request</button></div>'
@@ -228,7 +232,7 @@ async function renderReturnsPanel() {
     el.innerHTML = html;
   } catch (err) {
     console.error('[renderReturnsPanel]', err);
-    el.innerHTML = '<div class="ret-empty">Could not load returns: ' + _esc(err.message) + '</div>';
+    el.innerHTML = '<div class="ret-empty">Could not load returns: ' + _esc(err.message) + ' <button type="button" class="btn-outline" onclick="renderReturnsPanel()">Retry</button></div>';
   }
 }
 
@@ -340,11 +344,23 @@ function accountMenuInit() {
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape'&&toggle.getAttribute('aria-expanded')==='true'){e.preventDefault();accountMenuClose(true);}
   });
+  menu.addEventListener('keydown',e=>{
+    const items=Array.from(menu.querySelectorAll('button'));
+    const index=items.indexOf(document.activeElement);
+    if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)) {
+      e.preventDefault();
+      const next=e.key==='Home'?0:e.key==='End'?items.length-1:(index+(e.key==='ArrowDown'?1:-1)+items.length)%items.length;
+      items[next]?.focus();
+    }
+  });
+  menu.addEventListener('focusout',()=>setTimeout(()=>{
+    if(!menu.contains(document.activeElement)&&document.activeElement!==toggle)accountMenuClose(false);
+  },0));
   document.addEventListener('pointerdown',e=>{
     if(toggle.getAttribute('aria-expanded')==='true'&&!menu.contains(e.target)&&!toggle.contains(e.target))accountMenuClose(false);
   });
 }
-function switchAccountPanel(panel) {
+function switchAccountPanel(panel, options = {}) {
   if (currentPage !== 'account') return;
   if (!getCurrentUser()) { openAuth('login'); return; }
   if (!document.getElementById('panel-' + panel)) return;
@@ -363,13 +379,22 @@ function switchAccountPanel(panel) {
   accountMenuInit();
   const selectedName = document.querySelector('#panel-' + panel + ' .account-panel-title')?.textContent?.trim() || panel;
   const currentLabel=document.getElementById('accountSectionLabel');
-  if(currentLabel)currentLabel.textContent=selectedName.replace(/^[^\\p{L}\\p{N}]+/u,'').trim();
+  if(currentLabel)currentLabel.textContent=selectedName.replace(/^[^\p{L}\p{N}]+/u,'').trim();
   accountMenuClose(false);
   const idx = labels.indexOf(panel);
   if (idx >= 0 && navItems[idx]) navItems[idx].classList.add('active');
   navItems.forEach(b => b.setAttribute('aria-current', b.classList.contains('active') ? 'page' : 'false'));
   document.querySelector('#panel-' + panel + ' .account-panel-title')?.setAttribute('tabindex', '-1');
-  document.querySelector('#panel-' + panel + ' .account-panel-title')?.focus({preventScroll:true});
+  const heading = document.querySelector('#panel-' + panel + ' .account-panel-title');
+  heading?.focus({preventScroll:true});
+  if (options.history !== false) {
+    const url = new URL(location.href);
+    if (url.searchParams.get('section') !== panel) {
+      url.searchParams.set('section', panel);
+      history.pushState({...history.state, page:'account'}, '', url.pathname + url.search + url.hash);
+    }
+  }
+  if (options.scroll !== false) requestAnimationFrame(() => heading?.scrollIntoView({block:'start',behavior:'instant'}));
 }
 
 function _renderOrderCards(orders, container) {
@@ -417,7 +442,7 @@ function _renderOrderCards(orders, container) {
         vitaLine = `<div style="font-size:.76rem;margin-top:6px;display:flex;gap:10px;flex-wrap:wrap">🌿 ${bits.join(' · ')}</div>`;
       }
     }
-    const payStatus = o.payment_status ? `<div style="font-size:.72rem;color:var(--gray,#888);margin-top:4px">${o.payment_status}</div>` : '';
+    const payStatus = o.payment_status ? `<div style="font-size:.72rem;color:var(--gray,#888);margin-top:4px">Payment: ${_esc(o.payment_status)}</div>` : '';
     // 2026-08: show WHICH payment method was used (COD vs Online) and every
     // discount that applied, so My Orders matches the invoice and the
     // VitaPoints ledger — same database row, same numbers.
@@ -425,11 +450,11 @@ function _renderOrderCards(orders, container) {
       cod: '💵 COD', cashfree: '🔒 Online (Cashfree)', gokwik: '🔒 Online (GoKwik)',
       online: '🔒 Online', UPI: '🔒 UPI',
     };
-    const payMethod = o.payment_method ? `<div style="font-size:.72rem;font-weight:600;color:var(--t-mid,#444);margin-top:3px">${PAY_METHOD_LABEL[String(o.payment_method).toLowerCase()] || '🔒 ' + o.payment_method}</div>` : '';
+    const payMethod = o.payment_method ? `<div style="font-size:.72rem;font-weight:600;color:var(--t-mid,#444);margin-top:3px">${PAY_METHOD_LABEL[String(o.payment_method).toLowerCase()] || '🔒 ' + _esc(o.payment_method)}</div>` : '';
     const discBits = [];
     if (Number(o.tier_discount || 0) > 0) discBits.push(`Pack/tier −₹${Number(o.tier_discount).toLocaleString('en-IN')}`);
     if (Number(o.mix_match_discount || 0) > 0) discBits.push(`Mix&Match −₹${Number(o.mix_match_discount).toLocaleString('en-IN')}`);
-    if (Number(o.coupon_discount || 0) > 0) discBits.push(`Promo ${o.coupon_code ? '(' + o.coupon_code + ')' : ''} −₹${Number(o.coupon_discount).toLocaleString('en-IN')}`);
+    if (Number(o.coupon_discount || 0) > 0) discBits.push(`Promo ${o.coupon_code ? '(' + _esc(o.coupon_code) + ')' : ''} −₹${Number(o.coupon_discount).toLocaleString('en-IN')}`);
     if (Number(o.vita_points_discount || 0) > 0) discBits.push(`VitaPoints −₹${Number(o.vita_points_discount).toLocaleString('en-IN')}`);
     const discLine = discBits.length ? `<div style="font-size:.72rem;color:var(--success,#2E7D32);margin-top:3px">🏷️ ${discBits.join(' · ')}</div>` : '';
     // REVIEW COLLECTION: delivered orders get a direct "Write a Review"
@@ -446,19 +471,19 @@ function _renderOrderCards(orders, container) {
     return `<div class="order-card">
       <div class="order-header">
         <div>
-          <div class="order-id">${orderId}</div>
-          <div class="order-date">${date}</div>
+          <div class="order-id">${_esc(orderId)}</div>
+          <div class="order-date">${_esc(date)}</div>
         </div>
-        <span class="order-status ${statusCls}">${status}</span>
+        <span class="order-status ${statusCls}">${_esc(status)}</span>
       </div>
-      <div class="order-items">${items.map(i => `${i.name||i.item_name||''} × ${i.qty||i.units||1}`).join(', ') || 'Order confirmed'}</div>
+      <div class="order-items">${items.map(i => `${_esc(i.name||i.item_name||'')} ${_esc(i.pack_size||i.packSize||'')} × ${_esc(i.qty||i.units||1)}`).join(', ') || 'Order confirmed'}</div>
       ${vitaLine}
       ${payMethod}${discLine}
       <div class="order-footer">
         <div class="order-total">₹${parseFloat(total).toLocaleString('en-IN')}${payStatus}</div>
-        <div style="display:flex;gap:8px">
-          <button class="invoice-btn" onclick="downloadInvoice('${orderId}')">🧾 Updated Invoice</button>
-          <button class="order-track-btn" onclick="openTracking('${orderId}')">🚚 Track</button>${deliveredReviewCta}
+        <div class="order-actions">
+          <button class="invoice-btn" onclick="downloadInvoice(${_esc(JSON.stringify(String(orderId)))})">🧾 Invoice</button>
+          <button class="order-track-btn" onclick="openTracking(${_esc(JSON.stringify(String(orderId)))})">🚚 Track</button>${deliveredReviewCta}
         </div>
       </div>
     </div>`;
@@ -488,7 +513,22 @@ async function loadOrdersList() {
   // __INVOICE_ORDERS, so Print/Invoice from My Account could fall back to an
   // incomplete local row and appear to use a different template.
   window.__INVOICE_ORDERS = merged;
-  _renderOrderCards(merged, container);
+  let visible = 10;
+  const paint = () => {
+    _renderOrderCards(merged.slice(0, visible), container);
+    if (visible < merged.length) {
+      const more = document.createElement('button');
+      more.type='button'; more.className='btn-outline';
+      more.textContent='Load more orders (' + (merged.length-visible) + ' remaining)';
+      more.addEventListener('click',()=>{
+        const previous=visible;visible+=10;paint();
+        const next=container.querySelectorAll('.order-card')[previous];
+        if(next){next.tabIndex=-1;next.focus({preventScroll:true});}
+      });
+      container.appendChild(more);
+    }
+  };
+  paint();
 
   if (!backendLoaded) {
     container.innerHTML = '<div class="no-orders" role="status"><h3>Order history is unavailable</h3><p>Please retry to load your verified orders.</p><button class="btn-outline" onclick="loadOrdersList()">Retry</button></div>';
@@ -501,6 +541,7 @@ async function loadInvoicesList() {
   const user = getCurrentUser();
   if (!user) return;
 
+  container.innerHTML='<p role="status">Loading invoices…</p>';
   const jwt = localStorage.getItem('asc_jwt') || '';
   let orders = [];
   let invoicesLoaded = false;
@@ -547,7 +588,8 @@ async function doTrackOrder() {
   const res = document.getElementById('trackResult');
   if (!inp || !res) return;
   const requested = inp.value.trim();
-  if (!requested) { showToast('Please enter an Order ID', 'error'); return; }
+  if (!requested) { inp.setAttribute('aria-invalid','true'); res.style.display='block';res.textContent='Enter an Order ID or Shiprocket tracking number.';inp.focus();return; }
+  inp.removeAttribute('aria-invalid');
   const normaliseId = value => String(value || '').trim().toUpperCase();
   const matchesId = value => {
     const a = normaliseId(value);
@@ -558,7 +600,7 @@ async function doTrackOrder() {
   res.style.display = 'block';
   res.innerHTML = '<div style="padding:14px;color:var(--gray)">Loading order status…</div>';
   let order = Array.isArray(window.__INVOICE_ORDERS)
-    ? window.__INVOICE_ORDERS.find(o => matchesId(o.id || o.orderId))
+    ? window.__INVOICE_ORDERS.find(o => matchesId(o.id || o.orderId) || [o.awb_code,o.awb_number,o.awb,o.tracking_number,o.tracking_id].some(matchesId))
     : null;
   const user = getCurrentUser();
   const jwt = localStorage.getItem('asc_jwt') || localStorage.getItem('asc_token') || '';
@@ -575,7 +617,7 @@ async function doTrackOrder() {
         const backendOrders = (data.data || data || []).filter(o =>
           !user?.email || (o.customer_email || '').toLowerCase().trim() === user.email.toLowerCase().trim()
         );
-        order = backendOrders.find(o => matchesId(o.id || o.orderId));
+        order = backendOrders.find(o => matchesId(o.id || o.orderId) || [o.awb_code,o.awb_number,o.awb,o.tracking_number,o.tracking_id].some(matchesId));
       }
     } catch (e) { console.warn('[Tracking] backend lookup failed:', e && e.message); }
   }
@@ -714,6 +756,9 @@ function prefillProfile(user) {
 function saveProfile() {
   const user = getCurrentUser();
   if (!user) return;
+  const form=document.querySelector('#panel-profile form');
+  if(form&&!form.reportValidity())return;
+  const feedback=document.getElementById('profileSaveStatus');
   const getVal = id => document.getElementById(id)?.value?.trim() || '';
   user.name = (getVal('profileFirst') + ' ' + getVal('profileLast')).trim();
   user.phone = getVal('profilePhone');
@@ -725,7 +770,9 @@ function saveProfile() {
     pin: getVal('profilePin'),
   };
   // Profile remains local to this signed-in account on this device.
-  localStorage.setItem('asc_user', JSON.stringify(user));
+  try {localStorage.setItem('asc_user', JSON.stringify(user));}
+  catch(e){if(feedback)feedback.textContent='Could not save on this device. Please retry.';return;}
+  if(feedback)feedback.textContent='Profile and address saved on this device.';
   const an=document.getElementById('accName'); if(an) an.textContent = user.name;
   updateAccountNavBtn();
   showToast('✅ Profile & address saved!');
@@ -742,3 +789,4 @@ function saveProfile() {
 
 window.OzylixAccountPage = {loadAccountPage,_retJwt,renderReturnsPanel,submitReturn,cancelReturn,switchAccountPanel,_renderOrderCards,loadOrdersList,loadInvoicesList,openTracking,doTrackOrder,invoiceAuthHeaders,fetchInvoicePDF,findInvoiceOrder,downloadInvoice,downloadInvoicePDF,printInvoice,prefillProfile,saveProfile};
 })();
+
