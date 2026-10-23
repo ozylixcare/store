@@ -1,10 +1,10 @@
 /* Account Hub layout and component styles have one owner. */
-#page-account{--ac-ink:#302b31;--ac-muted:#6d626b;--ac-line:#e5dce2;--ac-brand:#8e2333;--ac-soft:#f7f1f5;background:var(--off-white,#faf8f9);color:var(--ac-ink);padding:120px 0 112px;min-height:100dvh;font-size:15px;line-height:1.6}
+#page-account{--ac-ink:var(--t-hi,#302b31);--ac-muted:var(--t-mid,#6d626b);--ac-line:var(--edge,#e5dce2);--ac-brand:var(--indigo,#8e2333);--ac-soft:var(--paper,#f5f3f4);--ac-raised:6px 6px 14px var(--sh-d,rgba(72,62,70,.13)),-6px -6px 14px var(--sh-l,#fff);--ac-pressed:inset 3px 3px 7px var(--sh-d,rgba(72,62,70,.13)),inset -3px -3px 7px var(--sh-l,#fff);background:var(--off-white,#faf8f9);color:var(--ac-ink);padding:120px 0 112px;min-height:100dvh;font-size:15px;line-height:1.6}
 #page-account *{box-sizing:border-box}
 #page-account>.container{max-width:1280px;margin:auto;padding-inline:24px}
 #page-account .account-layout{display:grid;grid-template-columns:264px minmax(0,1fr);gap:24px;align-items:start}
 #page-account :is(.account-content,.account-panel,.account-sidebar,.account-identity,.aw-profile-copy){min-width:0}
-#page-account .account-sidebar{padding:16px;background:var(--paper-hi,#fff);border:1px solid var(--ac-line);border-radius:20px;position:static}
+#page-account .account-sidebar{padding:16px;background:var(--paper,#f5f3f4);border:1px solid var(--ac-line);border-radius:20px;box-shadow:var(--ac-raised);position:static}
 #page-account .account-profile-top{display:flex;align-items:center;gap:12px;padding:8px 0 20px;border-bottom:1px solid var(--ac-line)}
 #page-account :is(.account-name,.account-email,.aw-name,.aw-email,.order-id,.order-items,.ret-oid,.ret-meta){overflow-wrap:anywhere;white-space:normal}
 #page-account :is(.account-avatar,.aw-avatar){display:grid;place-items:center;flex:none;width:44px;height:44px;border-radius:14px;background:#f4e6eb;color:var(--ac-brand);font-weight:700}
@@ -15,7 +15,7 @@
 #page-account .account-nav{display:flex;flex-direction:column;gap:4px;margin:0}
 #page-account .account-nav-item{display:flex;align-items:center;gap:12px;width:100%;min-width:0;min-height:56px;padding:12px;border:1px solid transparent;border-radius:12px;background:transparent;text-align:left;color:var(--ac-ink);font:inherit;cursor:pointer}
 #page-account .account-nav-item:hover{background:var(--ac-soft)}
-#page-account .account-nav-item.active{background:#f3e4e9;color:#7d2439;border-color:#e8cdd7}
+#page-account .account-nav-item.active{background:var(--green-hi,#ebd9dc);color:var(--indigo-lo,#8e2333);border-color:var(--edge-hi);box-shadow:var(--ac-pressed)}
 #page-account .nav-ico{display:grid;place-items:center;flex:none;width:24px;height:24px;font-size:20px}
 #page-account .mobile-rail-icon{display:none}
 #page-account .account-nav-copy{flex:1;min-width:0}
@@ -27,23 +27,23 @@
 #page-account .account-nav-signout{color:#a52c3e}
 #page-account .account-mobile-picker{display:none}
 #page-account .account-content{display:flex;flex-direction:column;gap:24px}
-#page-account .account-welcome{padding:24px;border-radius:20px;background:linear-gradient(120deg,#70283f,#755778);color:white;display:grid;gap:24px;box-shadow:0 8px 24px #63374712}
+#page-account .account-welcome{padding:24px;border-radius:20px;background:var(--paper,#f5f3f4);color:var(--ac-ink);display:grid;gap:24px;box-shadow:var(--ac-raised)}
 #page-account .aw-profile-line{display:flex;gap:12px;align-items:center}
-#page-account .aw-avatar{background:#ffffff24;color:#fff}
-#page-account .aw-eyebrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#fff}
-#page-account .aw-eyebrow-pill{padding:2px 8px;border:1px solid #ffffff55;border-radius:20px;font-size:10px}
-#page-account .aw-email{font-size:13px;margin-top:4px;color:#f4e9f1}
+#page-account .aw-avatar{background:var(--paper-hi,#fff);color:var(--ac-brand);box-shadow:var(--ac-raised)}
+#page-account .aw-eyebrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ac-brand)}
+#page-account .aw-eyebrow-pill{padding:2px 8px;border:1px solid var(--edge-hi);border-radius:20px;font-size:10px}
+#page-account .aw-email{font-size:13px;margin-top:4px;color:var(--ac-muted)}
 #page-account .aw-email-icon{margin-right:6px}
-#page-account .aw-name{font-size:clamp(24px,2.4vw,32px);line-height:1.25;letter-spacing:-.025em;margin:20px 0 8px;color:#fff}
-#page-account .aw-sub{margin:0;color:#f4e9f1;font-size:14px}
+#page-account .aw-name{font-size:clamp(24px,2.4vw,32px);line-height:1.25;letter-spacing:-.025em;margin:20px 0 8px;color:var(--ac-ink)}
+#page-account .aw-sub{margin:0;color:var(--ac-muted);font-size:14px}
 #page-account .aw-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-#page-account .aw-stat{display:flex;gap:12px;align-items:flex-start;min-width:0;padding:16px;border:1px solid #ffffff44;border-radius:14px;background:#ffffff14;color:#fff;text-align:left;font:inherit;cursor:pointer}
-#page-account .aw-stat>span:last-child{display:grid;min-width:0;gap:4px}
+#page-account .aw-stat{display:flex;gap:12px;align-items:flex-start;min-width:0;padding:16px;border:1px solid var(--ac-line);border-radius:14px;background:var(--paper,#f5f3f4);box-shadow:var(--ac-raised);color:var(--ac-ink);text-align:left;font:inherit;cursor:pointer}
+#page-account .aw-stat>span:nth-child(2){display:grid;min-width:0;gap:4px}
 #page-account .aw-stat-icon{font-size:20px;flex:none}
-#page-account .aw-stat-val{color:#fff;font-size:24px;font-weight:700;line-height:1.2;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+#page-account .aw-stat-val{color:var(--ac-brand);font-size:24px;font-weight:700;line-height:1.2;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 #page-account .aw-stat-lbl{font-size:13px;font-weight:600}
-#page-account .aw-stat-note{font-size:11px;color:#f4e9f1;line-height:1.4}
-#page-account .account-panel{display:none;padding:24px;border:1px solid var(--ac-line);border-radius:20px;background:var(--paper-hi,#fff);height:auto;max-height:none;overflow:visible}
+#page-account .aw-stat-note{font-size:11px;color:var(--ac-muted);line-height:1.4}
+#page-account .account-panel{display:none;padding:24px;border:1px solid var(--ac-line);border-radius:20px;background:var(--paper,#f5f3f4);box-shadow:var(--ac-raised);height:auto;max-height:none;overflow:visible}
 #page-account .account-panel.active{display:block}
 #page-account .account-panel-title{font-size:22px;font-weight:700;line-height:1.35;letter-spacing:-.02em;margin:0 0 8px;scroll-margin-top:120px;color:var(--ac-ink)}
 #page-account .account-section-copy{font-size:14px;margin:0 0 24px;color:var(--ac-muted)}
@@ -63,7 +63,7 @@
 #page-account .promo-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start}
 #page-account .account-field-label{grid-column:1/-1;margin:0}
 #page-account #trackResult{overflow-wrap:anywhere}
-#page-account .order-card{border:1px solid var(--ac-line);border-radius:16px;background:#fff;box-shadow:none;margin:0 0 16px;overflow:visible}
+#page-account .order-card{border:1px solid var(--ac-line);border-radius:16px;background:var(--paper,#f5f3f4);box-shadow:var(--ac-raised);margin:0 0 16px;overflow:visible}
 #page-account :is(.order-header,.order-footer){display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding:16px;background:transparent}
 #page-account .order-header{border-bottom:1px solid var(--ac-line);align-items:start}
 #page-account .order-header>div{min-width:0;flex:1 1 160px}
@@ -112,7 +112,7 @@ body:has(#page-account.active) #waChatPopup{bottom:calc(88px + env(safe-area-ins
 #page-account .account-panel.active{grid-row:3}
 #page-account :is(.account-profile-top,.account-nav-heading){display:none}
 #page-account .account-mobile-picker{display:block}
-#page-account .account-section-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;gap:12px;padding:12px;border:1px solid var(--ac-line);border-radius:12px;background:#fff;color:var(--ac-ink);font:inherit;text-align:left}
+#page-account .account-section-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;gap:12px;padding:12px;border:1px solid var(--ac-line);border-radius:12px;background:var(--paper,#f5f3f4);box-shadow:var(--ac-pressed);color:var(--ac-ink);font:inherit;text-align:left}
 #page-account .account-nav{display:none;margin-top:8px}
 #page-account .account-nav.account-menu-open{display:flex}
 #page-account .account-nav-copy small{display:none}

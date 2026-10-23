@@ -3,18 +3,22 @@
   'use strict';
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const admin=document.body.classList.contains('admin-motion-ready') || !!document.getElementById('sidebar');
-  const controls='button,a.btn,a.btn-primary,a.btn-outline,a.shader-btn-primary,a.shader-btn-ghost,a.nav-cta,a.promo-card-cta';
+  const controls='button,a.btn,a.btn-primary,a.btn-outline,a.shader-btn-primary,a.shader-btn-ghost,a.nav-cta,a.promo-card-cta,a[class*="btn"],[role="button"]';
   const running=new Set();
   function off(){return reduced.matches || document.body.classList.contains('admin-motion-reduced');}
   function decorate(root){
     const nodes=root.matches?.(controls)?[root,...root.querySelectorAll(controls)]:[...root.querySelectorAll(controls)];
     nodes.forEach(button=>{
+      button.classList.add('oz-glass-control');
       button.classList.remove('oz-liquid');
       button.removeAttribute('data-liquid-tone');
       button.removeAttribute('data-liquid-pressed');
       button.style.removeProperty('--liquid-x');
       if(button.querySelector(':scope > .oz-button-glass'))return;
-      if(getComputedStyle(button).position==='static')button.style.position='relative';
+      const surface=getComputedStyle(button);
+      const rgb=(surface.color.match(/[\d.]+/g)||[]).slice(0,3).map(Number);
+      button.classList.toggle('oz-glass-on-colour',rgb.length===3&&rgb.reduce((a,b)=>a+b,0)>600);
+      if(surface.position==='static')button.style.position='relative';
       const reflection=document.createElement('span');
       reflection.className='oz-button-glass';reflection.setAttribute('aria-hidden','true');
       button.appendChild(reflection);
