@@ -11,6 +11,8 @@ assert.doesNotMatch(css,/!important|overflow-x:\s*hidden|overflow-y:\s*auto/);
 assert.match(css,/grid-template-columns:264px minmax\(0,1fr\)/);
 assert.match(css,/\.account-nav\.account-menu-open\{display:flex\}/);
 assert.match(css,/\.account-invoices-desktop\{display:none\}/);
+assert.match(css,/--ac-welcome:linear-gradient\(135deg,#8e2333 0%,#6c317f 52%,#4b4a99 100%\)/);
+assert.match(css,/\.aw-name\{[^}]*color:var\(--ac-welcome-text\)/);
 const page=fs.readFileSync('index.html','utf8');
 assert.match(page,/<h1 class="aw-name"/);assert.match(page,/for="profileFirst"/);assert.match(page,/id="profileEmail"[^>]*readonly/);
 assert.match(source,/history\.pushState/);assert.match(source,/behavior:'instant'/);
