@@ -64,3 +64,7 @@ Existing browser scripts `test-feature-loading.cjs`, `test-responsive-device.cjs
 - Merge/deploy the reviewed PR, then perform a production read-only smoke test and cache refresh. This report does not claim that the repair is already live.
 
 Screenshots supplied separately: before/after desktop (1280px) and mobile (390px), all explicitly synthetic QA fixtures.
+
+## Styling follow-up
+
+Restored theme-derived account colours and raised/inset neumorphic surfaces while retaining the responsive repair. The shared liquid-glass button surface now has a visible rim, reflection, hover and pressed states, a softer overlay for light text, reduced-motion support and forced-colour fallback. Shared storefront/admin loading and the standalone FAQ entry include it. Dynamically rendered buttons receive the same non-interactive decorative layer; labels, dimensions and handlers are unchanged. Repeated all 56 section/width checks after this style adjustment: no overflow, and every native button in the account fixture carried the glass decoration.
