@@ -68,3 +68,7 @@ Screenshots supplied separately: before/after desktop (1280px) and mobile (390px
 ## Styling follow-up
 
 Restored theme-derived account colours and raised/inset neumorphic surfaces while retaining the responsive repair. The shared liquid-glass button surface now has a visible rim, reflection, hover and pressed states, a softer overlay for light text, reduced-motion support and forced-colour fallback. Shared storefront/admin loading and the standalone FAQ entry include it. Dynamically rendered buttons receive the same non-interactive decorative layer; labels, dimensions and handlers are unchanged. Repeated all 56 section/width checks after this style adjustment: no overflow, and every native button in the account fixture carried the glass decoration.
+
+## Original account colour correction
+
+Restored the earlier account-specific burgundy (#8e2333), purple (#6c317f) and indigo (#4b4a99) welcome gradient from the repository history, with white text, translucent summary cards and the earlier green selected navigation. The previous theme-derived neutral banner did not restore these colours. Kept the responsive layout, neumorphic content surfaces and shared glass buttons. Desktop and mobile fixture previews verify the rendered gradient and white text; regression checks protect the palette from another neutral-theme substitution.
