@@ -73,6 +73,12 @@ async function recordLoginAttempt(username, status) {
   return entry;
 }
 
+function escapeAuditText(value) {
+  return String(value == null ? '' : value).replace(/[&<>"']/g, function (char) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char];
+  });
+}
+
 // ── Render the login audit table ─────────────────────────────
 function renderLoginAudit() {
   const tbody = document.getElementById('loginAuditTbody');
@@ -108,7 +114,7 @@ function renderLoginAudit() {
 
     return `<tr>
       <td style="font-size:0.72rem;white-space:nowrap;color:var(--text3)">${new Date(e.ts).toLocaleString('en-IN')}</td>
-      <td><code style="font-size:0.8rem">${e.username || '-'}</code></td>
+      <td><code style="font-size:0.8rem">${escapeAuditText(e.username || '-')}</code></td>
       <td>${statusBadge}</td>
       <td style="font-size:0.75rem;color:var(--text3)">Not stored in browser</td>
       <td style="font-size:0.75rem;color:var(--text3)">Server audit required</td>
